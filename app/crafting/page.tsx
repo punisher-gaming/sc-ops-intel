@@ -1,13 +1,21 @@
+"use client";
+
+import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CatalogStub } from "@/components/CatalogStub";
+import { CraftingBrowser } from "@/components/CraftingBrowser";
 
 export default function CraftingPage() {
   return (
     <PageShell>
-      <CatalogStub
-        title="CRAFTING"
-        blurb="Fabricator recipes — blueprint + required resources → output item. Click a material to jump to where to find it in Resources."
-      />
+      <Suspense
+        fallback={
+          <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+            Loading recipes…
+          </div>
+        }
+      >
+        <CraftingBrowser />
+      </Suspense>
     </PageShell>
   );
 }

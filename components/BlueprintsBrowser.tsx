@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  dismantleReturns,
+  dismantleTimeSeconds,
   displayName,
   fetchBlueprint,
   fetchBlueprints,
@@ -431,27 +433,20 @@ function BlueprintDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "1rem",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          marginBottom: "1rem",
-        }}
-      >
+      {/* HOW TO OBTAIN — prominent, answers the first question */}
+      <HowToObtainPanel blueprint={blueprint} sources={sources} />
+
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: "1rem" }}>
         <Stat label="Craft time" value={formatCraftTime(blueprint.craft_time_seconds)} />
         <Stat label="Grade" value={blueprint.output_grade ?? "—"} />
         <Stat label="Material groups" value={String(groups.length)} />
-        <Stat
-          label="Default access"
-          value={blueprint.available_by_default ? "Yes" : "No"}
-        />
+        <Stat label="Kind" value={blueprint.kind ?? "—"} />
       </div>
 
-      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1.2fr 1fr" }}>
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr" }}>
         <div className="card" style={{ padding: "1.5rem" }}>
           <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 14 }}>
-            Required materials
+            Required material groups
           </div>
           {groups.length === 0 ? (
             <div style={{ color: "var(--text-dim)" }}>No material requirements recorded.</div>
@@ -485,46 +480,13 @@ function BlueprintDetail({ id }: { id: string }) {
               ))}
             </ul>
           )}
-          <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 14, lineHeight: 1.5 }}>
-            Groups are ingredient slots — the game lets you fill each one with
-            one of several compatible parts, and the part you choose affects
-            the output stats. Specific ingredient options coming in a later
-            update.
+          <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 14, lineHeight: 1.5 }}>
+            Each group is a slot — the game lets you fill it with one of
+            several compatible parts. The part you pick affects output stats.
           </p>
         </div>
 
-        <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 14 }}>
-            Known sources
-          </div>
-          {sources.length === 0 ? (
-            <div style={{ color: "var(--text-dim)" }}>
-              No canonical sources yet — this blueprint may be available by
-              default, or only unlocked via player progression. Community
-              intel reports will show here when submitted.
-            </div>
-          ) : (
-            <ul style={{ display: "flex", flexDirection: "column", gap: 8, listStyle: "none" }}>
-              {sources.map((s) => (
-                <li
-                  key={s.id}
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: 6,
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  {prettySource(s)}
-                </li>
-              ))}
-            </ul>
-          )}
-          <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} disabled>
-            Log field intel · Coming soon
-          </button>
-        </div>
+        <DismantlePanel blueprint={blueprint} />
       </div>
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
@@ -544,6 +506,128 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="card" style={{ padding: "14px 16px" }}>
       <div className="label-mini" style={{ marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>{value}</div>
+    </div>
+  );
+}
+
+function HowToObtainPanel({ blueprint, sources }: { blueprint: Blueprint; sources: BlueprintSource[] }) {
+  const hasSources = sources.length > 0;
+  const isDefault = blueprint.available_by_default === true;
+
+  // Title + top-line state
+  let state: "default" | "sources" | "unknown";
+  if (hasSources) state = "sources";
+  else if (isDefault) state = "default";
+  else state = "unknown";
+
+  const headline =
+    state === "default"
+      ? "Available by default"
+      : state === "sources"
+        ? `Obtainable from ${sources.length} known source${sources.length === 1 ? "" : "s"}`
+        : "Obtain method unknown";
+
+  const badgeClass =
+    state === "default" ? "badge-success" : state === "sources" ? "badge-accent" : "badge-warn";
+  const badgeText = state === "default" ? "Default" : state === "sources" ? "Drops" : "Unmapped";
+
+  return (
+    <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <span className={`badge ${badgeClass}`} style={{ fontSize: "0.75rem" }}>{badgeText}</span>
+        <div style={{ fontSize: "1rem", fontWeight: 600 }}>{headline}</div>
+      </div>
+
+      {state === "default" && (
+        <p style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
+          This blueprint is unlocked from the start — anyone can craft it at a
+          compatible fabricator without a mission reward or drop.
+        </p>
+      )}
+
+      {state === "sources" && (
+        <ul style={{ display: "flex", flexDirection: "column", gap: 8, listStyle: "none" }}>
+          {sources.map((s) => (
+            <li
+              key={s.id}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 6,
+                background: "rgba(77,217,255,0.05)",
+                border: "1px solid rgba(77,217,255,0.2)",
+                fontSize: "0.9rem",
+              }}
+            >
+              {prettySource(s)}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {state === "unknown" && (
+        <div>
+          <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 10 }}>
+            Star Citizen&apos;s game files don&apos;t record an obtain method
+            for this blueprint — it may be a cosmetic variant, an event
+            reward, or tied to store purchase. We&apos;ll fill this in via
+            community field reports once intel submission is live.
+          </p>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", lineHeight: 1.5 }}>
+            Know where this drops? Log in and{" "}
+            <span style={{ color: "var(--accent)" }}>log field intel</span> to
+            share it with the org. Coming in the next update.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DismantlePanel({ blueprint }: { blueprint: Blueprint }) {
+  const returns = dismantleReturns(blueprint);
+  const time = dismantleTimeSeconds(blueprint);
+
+  return (
+    <div className="card" style={{ padding: "1.5rem" }}>
+      <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 14 }}>
+        Dismantle yields
+      </div>
+      {returns.length === 0 ? (
+        <div style={{ color: "var(--text-dim)" }}>No dismantle data recorded.</div>
+      ) : (
+        <>
+          <ul style={{ display: "flex", flexDirection: "column", gap: 6, listStyle: "none" }}>
+            {returns.map((r) => (
+              <li
+                key={r.UUID}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <Link
+                  href={`/resources?id=${encodeURIComponent(r.UUID)}`}
+                  style={{ color: "var(--accent)", fontWeight: 500 }}
+                >
+                  {r.Name}
+                </Link>
+                <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>
+                  {r.QuantityScu < 0.01 ? r.QuantityScu.toExponential(1) : r.QuantityScu.toFixed(3)} SCU
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="label-mini" style={{ marginTop: 12 }}>
+            {time != null && <>Dismantle time: {time}s · </>}
+            Click any resource to see where it spawns
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,13 +1,21 @@
+"use client";
+
+import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CatalogStub } from "@/components/CatalogStub";
+import { ResourcesBrowser } from "@/components/ResourcesBrowser";
 
 export default function ResourcesPage() {
   return (
     <PageShell>
-      <CatalogStub
-        title="RESOURCES"
-        blurb="Crafting materials and ores — with location, extraction method (mining, harvesting, mission reward), and which recipes consume them."
-      />
+      <Suspense
+        fallback={
+          <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+            Loading resources…
+          </div>
+        }
+      >
+        <ResourcesBrowser />
+      </Suspense>
     </PageShell>
   );
 }
