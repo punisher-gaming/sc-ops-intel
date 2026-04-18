@@ -1,0 +1,18 @@
+name = "sc-ops-intel-ingest"
+main = "src/index.ts"
+compatibility_date = "2026-04-18"
+compatibility_flags = ["nodejs_compat"]
+
+# Run daily at 03:00 UTC
+[triggers]
+crons = ["0 3 * * *"]
+
+# Public config — non-secret
+[vars]
+SUPABASE_URL = "https://rtdjkrrectaubywhhnxk.supabase.co"
+SC_WIKI_BASE = "https://api.star-citizen.wiki/api/v3"
+CURRENT_GAME_VERSION = "4.7.1-LIVE"
+
+# Secrets set via: npx wrangler secret put SUPABASE_SECRET_KEY
+# Required secrets:
+#   SUPABASE_SECRET_KEY — sb_secret_... from Supabase Project Settings → API
