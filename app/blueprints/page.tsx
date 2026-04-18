@@ -1,13 +1,21 @@
+"use client";
+
+import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CatalogStub } from "@/components/CatalogStub";
+import { BlueprintsBrowser } from "@/components/BlueprintsBrowser";
 
 export default function BlueprintsPage() {
   return (
     <PageShell>
-      <CatalogStub
-        title="BLUEPRINTS"
-        blurb="Every fabricator blueprint from 4.7 onward — sortable by type, rarity, and source (mission, shop, drop). Click through to the crafting recipe and required materials."
-      />
+      <Suspense
+        fallback={
+          <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+            Loading blueprints…
+          </div>
+        }
+      >
+        <BlueprintsBrowser />
+      </Suspense>
     </PageShell>
   );
 }

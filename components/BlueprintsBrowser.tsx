@@ -1,0 +1,549 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  displayName,
+  fetchBlueprint,
+  fetchBlueprints,
+  fetchBlueprintSources,
+  formatCraftTime,
+  prettySource,
+  prettyType,
+  uniqueValues,
+  type Blueprint,
+  type BlueprintSource,
+} from "@/lib/blueprints";
+import { CURRENT_PATCH } from "./PatchPill";
+
+type SortKey = "name" | "output_item_type" | "output_grade" | "craft_time_seconds";
+
+const PAGE_SIZE = 50;
+
+export function BlueprintsBrowser() {
+  const params = useSearchParams();
+  const id = params.get("id");
+  if (id) return <BlueprintDetail id={id} />;
+  return <BlueprintList />;
+}
+
+function BlueprintList() {
+  const [rows, setRows] = useState<Blueprint[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const [q, setQ] = useState("");
+  const [type, setType] = useState("");
+  const [grade, setGrade] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    fetchBlueprints()
+      .then(setRows)
+      .catch((e) => setErr(e.message ?? String(e)));
+  }, []);
+
+  const types = useMemo(
+    () => (rows ? uniqueValues(rows, "output_item_type") : []),
+    [rows],
+  );
+  const grades = useMemo(
+    () => (rows ? uniqueValues(rows, "output_grade") : []),
+    [rows],
+  );
+
+  const filtered = useMemo(() => {
+    if (!rows) return [];
+    const qLower = q.trim().toLowerCase();
+    const out = rows.filter((r) => {
+      if (type && r.output_item_type !== type) return false;
+      if (grade && r.output_grade !== grade) return false;
+      if (qLower) {
+        const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""} ${r.key}`.toLowerCase();
+        if (!hay.includes(qLower)) return false;
+      }
+      return true;
+    });
+    const mul = sortDir === "asc" ? 1 : -1;
+    out.sort((a, b) => {
+      let av: unknown;
+      let bv: unknown;
+      if (sortKey === "name") {
+        av = displayName(a).toLowerCase();
+        bv = displayName(b).toLowerCase();
+      } else {
+        av = a[sortKey];
+        bv = b[sortKey];
+      }
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * mul;
+      return String(av).localeCompare(String(bv)) * mul;
+    });
+    return out;
+  }, [rows, q, type, grade, sortKey, sortDir]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [q, type, grade, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  function toggleSort(k: SortKey) {
+    if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
+      setSortKey(k);
+      setSortDir(k === "craft_time_seconds" ? "asc" : "asc");
+    }
+  }
+
+  return (
+    <div className="container-wide">
+      <div className="page-header">
+        <div className="accent-label">Catalog</div>
+        <h1>Blueprints</h1>
+        <p>
+          Every crafting recipe from patch {CURRENT_PATCH}. Search or filter,
+          click any row to see required materials and where to obtain it.
+        </p>
+      </div>
+
+      {/* filters */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search blueprints…"
+          className="input"
+          style={{ flex: "1 1 260px", minWidth: 240 }}
+        />
+        <select value={type} onChange={(e) => setType(e.target.value)} className="select" style={{ width: 180 }}>
+          <option value="">All types</option>
+          {types.map((t) => (
+            <option key={t} value={t}>
+              {prettyType(t)}
+            </option>
+          ))}
+        </select>
+        <select value={grade} onChange={(e) => setGrade(e.target.value)} className="select" style={{ width: 140 }}>
+          <option value="">All grades</option>
+          {grades.map((g) => (
+            <option key={g} value={g}>
+              Grade {g}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* result count + pagination info */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+          color: "var(--text-dim)",
+          fontSize: "0.8rem",
+        }}
+      >
+        <div>
+          {rows ? `${filtered.length.toLocaleString()} of ${rows.length.toLocaleString()} blueprints` : "…"}
+        </div>
+        {pageCount > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              className="btn btn-ghost"
+              style={{ height: 28, padding: "0 10px", fontSize: "0.8rem" }}
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              ← Prev
+            </button>
+            <span>
+              Page {page + 1} / {pageCount}
+            </span>
+            <button
+              className="btn btn-ghost"
+              style={{ height: 28, padding: "0 10px", fontSize: "0.8rem" }}
+              disabled={page >= pageCount - 1}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
+
+      {err && (
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 6,
+            background: "rgba(255,107,107,0.08)",
+            border: "1px solid rgba(255,107,107,0.3)",
+            color: "var(--alert)",
+            marginBottom: 16,
+          }}
+        >
+          Couldn&apos;t load blueprints: {err}
+        </div>
+      )}
+
+      {!rows && !err && (
+        <div style={{ color: "var(--text-muted)", padding: "2rem 0" }}>Loading…</div>
+      )}
+
+      {rows && (
+        <div className="table-shell">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>
+                  Name
+                </Th>
+                <Th
+                  onClick={() => toggleSort("output_item_type")}
+                  active={sortKey === "output_item_type"}
+                  dir={sortDir}
+                  width={180}
+                >
+                  Type
+                </Th>
+                <Th
+                  onClick={() => toggleSort("output_grade")}
+                  active={sortKey === "output_grade"}
+                  dir={sortDir}
+                  width={90}
+                >
+                  Grade
+                </Th>
+                <th style={{ padding: "12px 16px", textAlign: "left", color: "var(--text-dim)", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", width: 100, fontWeight: 500 }}>
+                  Groups
+                </th>
+                <Th
+                  onClick={() => toggleSort("craft_time_seconds")}
+                  active={sortKey === "craft_time_seconds"}
+                  dir={sortDir}
+                  width={100}
+                  align="right"
+                >
+                  Craft
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.map((b) => (
+                <tr key={b.id}>
+                  <td style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "0.875rem" }}>
+                    <Link
+                      href={`/blueprints?id=${encodeURIComponent(b.id)}`}
+                      style={{ color: "var(--accent)", fontWeight: 500 }}
+                    >
+                      {displayName(b)}
+                    </Link>
+                    {b.output_item_class && b.output_item_class !== displayName(b) && (
+                      <div style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: 2 }}>
+                        {b.output_item_class}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                    {prettyType(b.output_item_type)}
+                    {b.output_item_subtype && (
+                      <div style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>
+                        {b.output_item_subtype}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "0.875rem" }}>
+                    <GradeBadge grade={b.output_grade} />
+                  </td>
+                  <td style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                    {b.required_groups?.length ?? 0}
+                  </td>
+                  <td
+                    style={{
+                      padding: "14px 16px",
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      fontSize: "0.875rem",
+                      color: "var(--text-muted)",
+                      fontFamily: "var(--font-mono)",
+                      textAlign: "right",
+                    }}
+                  >
+                    {formatCraftTime(b.craft_time_seconds)}
+                  </td>
+                </tr>
+              ))}
+              {pageRows.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
+                    No blueprints match these filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Th({
+  children,
+  onClick,
+  active,
+  dir,
+  width,
+  align = "left",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  active: boolean;
+  dir: "asc" | "desc";
+  width?: number;
+  align?: "left" | "right";
+}) {
+  return (
+    <th
+      onClick={onClick}
+      style={{
+        padding: "12px 16px",
+        textAlign: align,
+        color: active ? "var(--accent)" : "var(--text-dim)",
+        fontSize: "0.7rem",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        userSelect: "none",
+        width,
+        fontWeight: 500,
+      }}
+    >
+      {children}
+      {active && <span style={{ marginLeft: 6 }}>{dir === "asc" ? "▲" : "▼"}</span>}
+    </th>
+  );
+}
+
+function GradeBadge({ grade }: { grade: string | null }) {
+  if (!grade) return <span style={{ color: "var(--text-dim)" }}>—</span>;
+  const map: Record<string, string> = {
+    "1": "badge-muted",
+    "2": "badge-success",
+    "3": "badge-accent",
+    "4": "badge-warn",
+    "5": "badge-alert",
+  };
+  const cls = map[grade] ?? "badge-muted";
+  return <span className={`badge ${cls}`}>G{grade}</span>;
+}
+
+function BlueprintDetail({ id }: { id: string }) {
+  const [blueprint, setBlueprint] = useState<Blueprint | null | undefined>(undefined);
+  const [sources, setSources] = useState<BlueprintSource[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [bp, srcs] = await Promise.all([
+          fetchBlueprint(id),
+          fetchBlueprintSources(id),
+        ]);
+        if (cancelled) return;
+        setBlueprint(bp);
+        setSources(srcs);
+      } catch (e) {
+        if (!cancelled) setErr((e as Error).message ?? String(e));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (err) {
+    return (
+      <div className="container">
+        <div
+          style={{
+            margin: "3rem 0",
+            padding: "1rem 1.25rem",
+            borderRadius: 6,
+            background: "rgba(255,107,107,0.08)",
+            border: "1px solid rgba(255,107,107,0.3)",
+            color: "var(--alert)",
+          }}
+        >
+          {err}
+        </div>
+      </div>
+    );
+  }
+
+  if (blueprint === undefined) {
+    return (
+      <div className="container" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+        Loading…
+      </div>
+    );
+  }
+
+  if (blueprint === null) {
+    return (
+      <div className="container" style={{ paddingTop: "3rem" }}>
+        <div className="card" style={{ padding: "1.5rem" }}>
+          <div style={{ color: "var(--alert)", marginBottom: 12 }}>Blueprint not found</div>
+          <Link href="/blueprints" style={{ color: "var(--accent)" }}>← Back to all blueprints</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const groups = blueprint.required_groups ?? [];
+
+  return (
+    <div className="container-wide">
+      <div style={{ paddingTop: "1.5rem" }}>
+        <Link href="/blueprints" className="label-mini" style={{ color: "var(--accent)" }}>
+          ← All blueprints
+        </Link>
+      </div>
+
+      <div className="page-header">
+        <div className="accent-label">
+          {prettyType(blueprint.output_item_type)}
+          {blueprint.output_item_subtype && ` · ${blueprint.output_item_subtype}`}
+          {blueprint.output_grade && ` · Grade ${blueprint.output_grade}`}
+        </div>
+        <h1>{displayName(blueprint)}</h1>
+        {blueprint.output_item_class && blueprint.output_item_class !== displayName(blueprint) && (
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-dim)" }}>
+            {blueprint.output_item_class}
+          </p>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: "1rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          marginBottom: "1rem",
+        }}
+      >
+        <Stat label="Craft time" value={formatCraftTime(blueprint.craft_time_seconds)} />
+        <Stat label="Grade" value={blueprint.output_grade ?? "—"} />
+        <Stat label="Material groups" value={String(groups.length)} />
+        <Stat
+          label="Default access"
+          value={blueprint.available_by_default ? "Yes" : "No"}
+        />
+      </div>
+
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1.2fr 1fr" }}>
+        <div className="card" style={{ padding: "1.5rem" }}>
+          <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 14 }}>
+            Required materials
+          </div>
+          {groups.length === 0 ? (
+            <div style={{ color: "var(--text-dim)" }}>No material requirements recorded.</div>
+          ) : (
+            <ul style={{ display: "flex", flexDirection: "column", gap: 8, listStyle: "none" }}>
+              {groups.map((g, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "10px 14px",
+                    borderRadius: 6,
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 500 }}>{g.name ?? g.key ?? "—"}</div>
+                    {g.modifier_count > 0 && (
+                      <div className="label-mini" style={{ marginTop: 2 }}>
+                        {g.modifier_count} stat modifier{g.modifier_count === 1 ? "" : "s"}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ color: "var(--accent)", fontFamily: "var(--font-mono)" }}>
+                    ×{g.required_count ?? "?"}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 14, lineHeight: 1.5 }}>
+            Groups are ingredient slots — the game lets you fill each one with
+            one of several compatible parts, and the part you choose affects
+            the output stats. Specific ingredient options coming in a later
+            update.
+          </p>
+        </div>
+
+        <div className="card" style={{ padding: "1.5rem" }}>
+          <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 14 }}>
+            Known sources
+          </div>
+          {sources.length === 0 ? (
+            <div style={{ color: "var(--text-dim)" }}>
+              No canonical sources yet — this blueprint may be available by
+              default, or only unlocked via player progression. Community
+              intel reports will show here when submitted.
+            </div>
+          ) : (
+            <ul style={{ display: "flex", flexDirection: "column", gap: 8, listStyle: "none" }}>
+              {sources.map((s) => (
+                <li
+                  key={s.id}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 6,
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {prettySource(s)}
+                </li>
+              ))}
+            </ul>
+          )}
+          <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} disabled>
+            Log field intel · Coming soon
+          </button>
+        </div>
+      </div>
+
+      <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
+        Last synced{" "}
+        {blueprint.last_synced_at
+          ? new Date(blueprint.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
+          : "—"}
+        {" · "}
+        Patch {blueprint.game_version ?? CURRENT_PATCH}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="card" style={{ padding: "14px 16px" }}>
+      <div className="label-mini" style={{ marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>{value}</div>
+    </div>
+  );
+}
