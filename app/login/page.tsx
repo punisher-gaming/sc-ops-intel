@@ -27,12 +27,12 @@ export default function LoginPage() {
     router.push("/notes");
   }
 
-  async function handleDiscord() {
+  async function handleOAuth(provider: "discord" | "google") {
     setError(null);
     setBusy(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "discord",
+      provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
@@ -109,14 +109,24 @@ export default function LoginPage() {
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
           </div>
 
-          <button
-            onClick={handleDiscord}
-            disabled={busy}
-            className="btn btn-secondary"
-            style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
-          >
-            Continue with Discord
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button
+              onClick={() => handleOAuth("discord")}
+              disabled={busy}
+              className="btn btn-secondary"
+              style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
+            >
+              Continue with Discord
+            </button>
+            <button
+              onClick={() => handleOAuth("google")}
+              disabled={busy}
+              className="btn btn-secondary"
+              style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
+            >
+              Continue with Google
+            </button>
+          </div>
 
           <div style={{ marginTop: 20, fontSize: "0.875rem", color: "var(--text-muted)" }}>
             No account?{" "}

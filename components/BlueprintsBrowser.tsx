@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  bodyPartFromClass,
+  capitalize,
   dismantleReturns,
   dismantleTimeSeconds,
   displayName,
@@ -50,6 +52,8 @@ function BlueprintList() {
 
   const [q, setQ] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [selectedSubtypes, setSelectedSubtypes] = useState<Set<string>>(new Set());
+  const [selectedBodyParts, setSelectedBodyParts] = useState<Set<string>>(new Set());
   const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
   const [grade, setGrade] = useState("");
   const [onlyObtainable, setOnlyObtainable] = useState(false);
@@ -107,6 +111,19 @@ function BlueprintList() {
     () => (rows ? uniqueValues(rows, "output_item_type") : []),
     [rows],
   );
+  const subtypes = useMemo(
+    () => (rows ? uniqueValues(rows, "output_item_subtype") : []),
+    [rows],
+  );
+  const bodyParts = useMemo(() => {
+    if (!rows) return [];
+    const set = new Set<string>();
+    for (const r of rows) {
+      const p = bodyPartFromClass(r.output_item_class);
+      if (p) set.add(p);
+    }
+    return Array.from(set).sort();
+  }, [rows]);
   const grades = useMemo(
     () => (rows ? uniqueValues(rows, "output_grade") : []),
     [rows],
@@ -117,6 +134,11 @@ function BlueprintList() {
     const qLower = q.trim().toLowerCase();
     const out = rows.filter((r) => {
       if (selectedTypes.size > 0 && !selectedTypes.has(r.output_item_type ?? "")) return false;
+      if (selectedSubtypes.size > 0 && !selectedSubtypes.has(r.output_item_subtype ?? "")) return false;
+      if (selectedBodyParts.size > 0) {
+        const part = bodyPartFromClass(r.output_item_class);
+        if (!part || !selectedBodyParts.has(part)) return false;
+      }
       if (grade && r.output_grade !== grade) return false;
       if (hideOwned && owned.has(r.id)) return false;
       if (onlyObtainable) {
@@ -160,11 +182,11 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
-  }, [q, selectedTypes, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -214,6 +236,26 @@ function BlueprintList() {
           options={types.map((t) => ({ value: t, label: prettyType(t) }))}
           selected={selectedTypes}
           onChange={setSelectedTypes}
+        />
+      )}
+
+      {/* Subtype switches (Light / Medium / Heavy / Attachment / etc.) */}
+      {subtypes.length > 0 && (
+        <FilterPillGroup
+          label="Subtypes"
+          options={subtypes.map((s) => ({ value: s, label: s }))}
+          selected={selectedSubtypes}
+          onChange={setSelectedSubtypes}
+        />
+      )}
+
+      {/* Body-part switches (Arms / Helmet / Core / etc.) — derived from class */}
+      {bodyParts.length > 0 && (
+        <FilterPillGroup
+          label="Armor / gear parts"
+          options={bodyParts.map((p) => ({ value: p, label: capitalize(p) }))}
+          selected={selectedBodyParts}
+          onChange={setSelectedBodyParts}
         />
       )}
 

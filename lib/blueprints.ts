@@ -166,6 +166,35 @@ export async function fetchBlueprintMissionFamilies(): Promise<{
   return { byBlueprint, families };
 }
 
+// Parse the armor/gear body-part out of output_item_class. Classes look like
+// "armor_light_helmet_01" or "behr_core_medium_01". We look for a short list
+// of known part names anywhere in the string.
+const BODY_PARTS = [
+  "helmet",
+  "core",
+  "arms",
+  "legs",
+  "torso",
+  "backpack",
+  "undersuit",
+  "boots",
+  "gloves",
+] as const;
+export type BodyPart = (typeof BODY_PARTS)[number];
+
+export function bodyPartFromClass(cls: string | null | undefined): BodyPart | null {
+  if (!cls) return null;
+  const lower = cls.toLowerCase();
+  for (const p of BODY_PARTS) {
+    if (lower.includes(p)) return p;
+  }
+  return null;
+}
+
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function missionFamilyFromKey(key: string | null | undefined): string | null {
   if (!key) return null;
   // "BP_MISSIONREWARD_CitizensForProsperityDestroyItems_AB" → "Citizens For Prosperity"
