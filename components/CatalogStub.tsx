@@ -3,52 +3,28 @@ import { CURRENT_PATCH } from "./PatchPill";
 export function CatalogStub({
   title,
   blurb,
-  phase = 3,
 }: {
   title: string;
   blurb: string;
   phase?: number;
 }) {
   return (
-    <div className="max-w-[1200px] mx-auto px-8">
-      <div className="divider">
-        <div className="bar" />
-        <div className="label">{title}</div>
-        <div className="bar" />
+    <div className="container-wide">
+      <div className="page-header">
+        <div className="accent-label">Catalog</div>
+        <h1>{title}</h1>
+        <p>{blurb}</p>
       </div>
 
-      <div className="tron-card mt-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div
-            className="font-display font-black text-3xl"
-            style={{ letterSpacing: "0.12em", textShadow: "0 0 16px rgba(0,229,255,0.5)" }}
-          >
-            {title}
-          </div>
-          <div
-            className="font-mono border border-amber text-amber px-2 py-0.5"
-            style={{ letterSpacing: "0.2em", fontSize: "0.9rem" }}
-          >
-            SYNCING {CURRENT_PATCH}
-          </div>
+      <div className="card" style={{ padding: "2rem", marginTop: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <span className="badge badge-warn">Coming Soon</span>
+          <span className="label-mini">Patch {CURRENT_PATCH}</span>
         </div>
-
-        <p className="text-bone/70 leading-relaxed max-w-[68ch] mb-6">{blurb}</p>
-
-        <div
-          className="font-mono text-phosphor p-4 border border-dashed"
-          style={{
-            borderColor: "rgba(0,255,127,0.3)",
-            background: "rgba(0,255,127,0.04)",
-            letterSpacing: "0.1em",
-          }}
-        >
-          &gt; data ingest :: PHASE {phase}
-          <br />
-          &gt; status :: in development
-          <br />
-          &gt; check back after 4.7.2 lands
-        </div>
+        <p style={{ color: "var(--text-muted)", lineHeight: 1.6, maxWidth: "60ch" }}>
+          This section is still being built. The data pipeline is running
+          nightly; the browsing UI lands in the next update.
+        </p>
       </div>
     </div>
   );

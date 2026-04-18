@@ -7,23 +7,19 @@ export function AuthButton() {
   const { user, loading } = useUser();
 
   if (loading) {
-    return (
-      <span className="font-mono text-bone/30" style={{ fontSize: "1.1rem", letterSpacing: "0.18em" }}>
-        ...
-      </span>
-    );
+    return <span className="btn btn-ghost" style={{ opacity: 0.5 }}>…</span>;
   }
 
   if (!user) {
     return (
-      <Link href="/login" className="cta">
-        Login
+      <Link href="/login" className="btn btn-primary">
+        Sign in
       </Link>
     );
   }
 
   return (
-    <Link href="/account" className="cta">
+    <Link href="/account" className="btn btn-secondary">
       Account
     </Link>
   );
