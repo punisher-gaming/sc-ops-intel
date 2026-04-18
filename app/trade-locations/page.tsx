@@ -2,19 +2,19 @@
 
 import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CommoditiesBrowser } from "@/components/CommoditiesBrowser";
+import { TradeLocationsBrowser } from "@/components/TradeLocationsBrowser";
 
-export default function CommoditiesPage() {
+export default function TradeLocationsPage() {
   return (
     <PageShell>
       <Suspense
         fallback={
           <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
-            Loading commodities…
+            Loading trade locations…
           </div>
         }
       >
-        <CommoditiesBrowser />
+        <TradeLocationsBrowser />
       </Suspense>
     </PageShell>
   );
