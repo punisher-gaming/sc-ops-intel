@@ -72,3 +72,38 @@ export function formatCrew(ship: Ship): string {
   }
   return String(crew_max ?? crew_min);
 }
+
+// Pull physical dimensions (length / beam / height in meters) from the SC
+// Wiki payload stashed in source_data. Used by the fleet compare view.
+export function shipDimensions(ship: Ship): {
+  length: number | null;
+  beam: number | null;
+  height: number | null;
+} {
+  const sd = (ship.source_data ?? {}) as Record<string, unknown>;
+  const pick = (obj: unknown): number | null => {
+    const v = obj as number | string | null | undefined;
+    const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+  const sizes = sd.sizes as Record<string, unknown> | undefined;
+  const dim = sd.dimension as Record<string, unknown> | undefined;
+  return {
+    length: pick(sizes?.length) ?? pick(dim?.length) ?? null,
+    beam: pick(sizes?.beam) ?? pick(dim?.width) ?? null,
+    height: pick(sizes?.height) ?? pick(dim?.height) ?? null,
+  };
+}
+
+// Fetch multiple ships by id (for compare view). Supabase's .in() is
+// fine up to a few hundred.
+export async function fetchShipsByIds(ids: string[]): Promise<Ship[]> {
+  if (ids.length === 0) return [];
+  const client = createClient();
+  const { data, error } = await client
+    .from("ships")
+    .select(LIST_COLS + ", source_data")
+    .in("id", ids);
+  if (error) throw error;
+  return (data ?? []) as unknown as Ship[];
+}
