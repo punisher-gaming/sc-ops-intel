@@ -4,6 +4,7 @@ import { fetchScunpackedJson } from "../scunpacked";
 import { nowIso, recordRun, upsertInBatches } from "./util";
 
 interface ScunpackedManufacturer {
+  Reference?: string;
   UUID?: string;
   Code?: string;
   Name?: string;
@@ -26,9 +27,9 @@ export async function ingestManufacturers(client: SupabaseClient, env: Env) {
     }
 
     const rows = data
-      .filter((m) => m.UUID && m.Name)
+      .filter((m) => (m.Reference || m.UUID) && m.Name)
       .map((m) => ({
-        id: String(m.UUID),
+        id: String(m.Reference ?? m.UUID),
         code: m.Code ?? null,
         name: String(m.Name),
         country: m.Country ?? null,
