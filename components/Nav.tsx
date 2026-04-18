@@ -8,6 +8,7 @@ import { CURRENT_PATCH } from "./PatchPill";
 import { GlobalSearch } from "./GlobalSearch";
 
 const LINKS = [
+  { href: "/ask", label: "Ask" },
   { href: "/blueprints", label: "Blueprints" },
   { href: "/resources", label: "Resources" },
   { href: "/crafting", label: "Crafting" },

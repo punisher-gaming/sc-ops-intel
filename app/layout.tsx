@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MusicPlayer } from "@/components/MusicPlayer";
 
 export const metadata: Metadata = {
   title: "SC OPS INTEL · Punisher Gaming",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="page-vignette" />
         {children}
+        <MusicPlayer />
       </body>
     </html>
   );
