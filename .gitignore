@@ -14,13 +14,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Build outputs (for future Next.js phase)
+# Build outputs
 .next/
 out/
 dist/
 build/
 .vercel/
 .wrangler/
+next-env.d.ts
 
 # IDE
 .vscode/
