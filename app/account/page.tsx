@@ -13,6 +13,22 @@ type Profile = {
   bio: string | null;
 };
 
+function oauthProvider(user: { app_metadata?: Record<string, unknown> } | null): string | null {
+  if (!user) return null;
+  const prov = (user.app_metadata?.provider as string | undefined) ?? null;
+  if (!prov || prov === "email") return null;
+  return prov.charAt(0).toUpperCase() + prov.slice(1);
+}
+
+function metaString(user: { user_metadata?: Record<string, unknown> } | null, keys: string[]): string | null {
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  for (const k of keys) {
+    const v = meta[k];
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return null;
+}
+
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
@@ -35,11 +51,19 @@ export default function AccountPage() {
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) {
-          const p = data as Profile;
-          setDisplayName(p.display_name ?? "");
-          setRsiHandle(p.rsi_handle ?? "");
-        }
+        const p = (data ?? null) as Profile | null;
+        // Fall back to OAuth metadata if the profile row is blank.
+        // This is common for Discord/Google first-timers — the trigger
+        // created a profiles row with just the id, so we pre-fill from
+        // the provider's user_metadata so the form isn't empty.
+        const metaName = metaString(user, [
+          "full_name",
+          "name",
+          "user_name",
+          "preferred_username",
+        ]);
+        setDisplayName(p?.display_name ?? metaName ?? "");
+        setRsiHandle(p?.rsi_handle ?? "");
         setLoadingProfile(false);
       });
   }, [user, userLoading, router]);
@@ -78,13 +102,82 @@ export default function AccountPage() {
     );
   }
 
+  const avatar = metaString(user, ["avatar_url", "picture"]);
+  const providerName = metaString(user, [
+    "full_name",
+    "name",
+    "user_name",
+    "preferred_username",
+  ]);
+  const provider = oauthProvider(user);
+
   return (
     <PageShell>
       <div className="container" style={{ paddingTop: "2.5rem" }}>
         <div className="page-header">
           <div className="accent-label">Account</div>
           <h1>Your profile</h1>
-          <p>Signed in as <span style={{ color: "var(--text)" }}>{user.email}</span></p>
+        </div>
+
+        {/* Identity card — avatar + provider info, pulled from OAuth metadata */}
+        <div
+          className="card"
+          style={{
+            padding: "1.25rem 1.5rem",
+            marginTop: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          {avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatar}
+              alt=""
+              width={56}
+              height={56}
+              style={{
+                borderRadius: "50%",
+                border: "1px solid rgba(255,255,255,0.15)",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div
+              aria-hidden
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: "50%",
+                background: "rgba(77,217,255,0.08)",
+                border: "1px solid rgba(77,217,255,0.25)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--accent)",
+                fontWeight: 700,
+                fontSize: "1.25rem",
+              }}
+            >
+              {(providerName ?? user.email ?? "?").slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
+              {providerName ?? user.email ?? "Signed in"}
+            </div>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 2 }}>
+              {user.email ?? "No email on file"}
+              {provider && (
+                <>
+                  {" · "}
+                  <span style={{ color: "var(--text)" }}>Signed in via {provider}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="card" style={{ padding: "1.75rem", marginTop: "1rem" }}>
