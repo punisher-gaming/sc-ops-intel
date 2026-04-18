@@ -15,6 +15,7 @@ import {
   type ResourceLocation,
 } from "@/lib/resources";
 import { CURRENT_PATCH } from "./PatchPill";
+import { IntelPanel } from "./IntelPanel";
 
 const PAGE_SIZE = 50;
 
@@ -284,10 +285,9 @@ function ResourceDetail({ id }: { id: string }) {
           chance the group rolls at that location; the second is how likely
           this specific resource appears within the group.
         </p>
-        <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} disabled>
-          Log field intel · Coming soon
-        </button>
       </div>
+
+      <IntelPanel entityType="resource" entityId={resource.id} entityName={displayName(resource)} />
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}

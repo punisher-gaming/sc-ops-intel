@@ -8,16 +8,23 @@ import {
   dismantleTimeSeconds,
   displayName,
   fetchBlueprint,
+  fetchBlueprintIdsWithSources,
+  fetchBlueprintMissionFamilies,
   fetchBlueprints,
   fetchBlueprintSources,
+  fetchOwnedBlueprintIds,
   formatCraftTime,
+  markBlueprintOwned,
   prettySource,
   prettyType,
+  unmarkBlueprintOwned,
   uniqueValues,
   type Blueprint,
   type BlueprintSource,
 } from "@/lib/blueprints";
+import { useUser } from "@/lib/supabase/hooks";
 import { CURRENT_PATCH } from "./PatchPill";
+import { IntelPanel } from "./IntelPanel";
 
 type SortKey = "name" | "output_item_type" | "output_grade" | "craft_time_seconds";
 
@@ -31,12 +38,22 @@ export function BlueprintsBrowser() {
 }
 
 function BlueprintList() {
+  const { user } = useUser();
   const [rows, setRows] = useState<Blueprint[] | null>(null);
+  const [idsWithSources, setIdsWithSources] = useState<Set<string>>(new Set());
+  const [missionFamilies, setMissionFamilies] = useState<{
+    byBlueprint: Map<string, Set<string>>;
+    families: string[];
+  }>({ byBlueprint: new Map(), families: [] });
+  const [owned, setOwned] = useState<Set<string>>(new Set());
   const [err, setErr] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
-  const [type, setType] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
   const [grade, setGrade] = useState("");
+  const [onlyObtainable, setOnlyObtainable] = useState(false);
+  const [hideOwned, setHideOwned] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
@@ -45,7 +62,46 @@ function BlueprintList() {
     fetchBlueprints()
       .then(setRows)
       .catch((e) => setErr(e.message ?? String(e)));
+    fetchBlueprintIdsWithSources()
+      .then(setIdsWithSources)
+      .catch(() => {});
+    fetchBlueprintMissionFamilies()
+      .then(setMissionFamilies)
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setOwned(new Set());
+      return;
+    }
+    fetchOwnedBlueprintIds(user.id).then(setOwned).catch(() => {});
+  }, [user?.id]);
+
+  async function toggleOwned(bpId: string) {
+    if (!user) return;
+    const next = new Set(owned);
+    if (next.has(bpId)) {
+      next.delete(bpId);
+      setOwned(next);
+      try {
+        await unmarkBlueprintOwned(user.id, bpId);
+      } catch {
+        // revert on failure
+        next.add(bpId);
+        setOwned(new Set(next));
+      }
+    } else {
+      next.add(bpId);
+      setOwned(next);
+      try {
+        await markBlueprintOwned(user.id, bpId);
+      } catch {
+        next.delete(bpId);
+        setOwned(new Set(next));
+      }
+    }
+  }
 
   const types = useMemo(
     () => (rows ? uniqueValues(rows, "output_item_type") : []),
@@ -60,8 +116,26 @@ function BlueprintList() {
     if (!rows) return [];
     const qLower = q.trim().toLowerCase();
     const out = rows.filter((r) => {
-      if (type && r.output_item_type !== type) return false;
+      if (selectedTypes.size > 0 && !selectedTypes.has(r.output_item_type ?? "")) return false;
       if (grade && r.output_grade !== grade) return false;
+      if (hideOwned && owned.has(r.id)) return false;
+      if (onlyObtainable) {
+        const hasSource = idsWithSources.has(r.id);
+        const isDefault = r.available_by_default === true;
+        if (!hasSource && !isDefault) return false;
+      }
+      if (selectedFamilies.size > 0) {
+        const fams = missionFamilies.byBlueprint.get(r.id);
+        if (!fams) return false;
+        let match = false;
+        for (const f of selectedFamilies) {
+          if (fams.has(f)) {
+            match = true;
+            break;
+          }
+        }
+        if (!match) return false;
+      }
       if (qLower) {
         const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""} ${r.key}`.toLowerCase();
         if (!hay.includes(qLower)) return false;
@@ -86,11 +160,11 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, q, type, grade, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
-  }, [q, type, grade, sortKey, sortDir]);
+  }, [q, selectedTypes, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -123,14 +197,6 @@ function BlueprintList() {
           className="input"
           style={{ flex: "1 1 260px", minWidth: 240 }}
         />
-        <select value={type} onChange={(e) => setType(e.target.value)} className="select" style={{ width: 180 }}>
-          <option value="">All types</option>
-          {types.map((t) => (
-            <option key={t} value={t}>
-              {prettyType(t)}
-            </option>
-          ))}
-        </select>
         <select value={grade} onChange={(e) => setGrade(e.target.value)} className="select" style={{ width: 140 }}>
           <option value="">All grades</option>
           {grades.map((g) => (
@@ -139,6 +205,45 @@ function BlueprintList() {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Type switches (multi-select) */}
+      {types.length > 0 && (
+        <FilterPillGroup
+          label="Types"
+          options={types.map((t) => ({ value: t, label: prettyType(t) }))}
+          selected={selectedTypes}
+          onChange={setSelectedTypes}
+        />
+      )}
+
+      {/* Mission family switches */}
+      {missionFamilies.families.length > 0 && (
+        <FilterPillGroup
+          label="Mission families"
+          options={missionFamilies.families.slice(0, 30).map((f) => ({ value: f, label: f }))}
+          selected={selectedFamilies}
+          onChange={setSelectedFamilies}
+        />
+      )}
+
+      {/* Boolean toggles */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+        <ToggleChip
+          label="Only with known source"
+          checked={onlyObtainable}
+          onChange={setOnlyObtainable}
+          count={rows ? rows.filter((r) => idsWithSources.has(r.id) || r.available_by_default).length : null}
+        />
+        {user && (
+          <ToggleChip
+            label="Hide owned"
+            checked={hideOwned}
+            onChange={setHideOwned}
+            count={owned.size > 0 ? owned.size : null}
+            countLabel="owned"
+          />
+        )}
       </div>
 
       {/* result count + pagination info */}
@@ -204,6 +309,22 @@ function BlueprintList() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
+                {user && (
+                  <th
+                    style={{
+                      padding: "12px 8px",
+                      width: 44,
+                      color: "var(--text-dim)",
+                      fontSize: "0.7rem",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      fontWeight: 500,
+                    }}
+                    title="Mark as owned"
+                  >
+                    ✓
+                  </th>
+                )}
                 <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>
                   Name
                 </Th>
@@ -239,7 +360,40 @@ function BlueprintList() {
             </thead>
             <tbody>
               {pageRows.map((b) => (
-                <tr key={b.id}>
+                <tr key={b.id} style={owned.has(b.id) ? { opacity: 0.55 } : undefined}>
+                  {user && (
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        borderBottom: "1px solid rgba(255,255,255,0.05)",
+                        textAlign: "center",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        aria-label={owned.has(b.id) ? "Mark as not owned" : "Mark as owned"}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleOwned(b.id);
+                        }}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 4,
+                          border: `1px solid ${owned.has(b.id) ? "var(--success)" : "rgba(255,255,255,0.2)"}`,
+                          background: owned.has(b.id) ? "rgba(74,222,128,0.15)" : "transparent",
+                          color: owned.has(b.id) ? "var(--success)" : "transparent",
+                          cursor: "pointer",
+                          fontSize: "0.85rem",
+                          lineHeight: 1,
+                          padding: 0,
+                        }}
+                      >
+                        ✓
+                      </button>
+                    </td>
+                  )}
                   <td style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "0.875rem" }}>
                     <Link
                       href={`/blueprints?id=${encodeURIComponent(b.id)}`}
@@ -283,7 +437,7 @@ function BlueprintList() {
               ))}
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
+                  <td colSpan={user ? 6 : 5} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
                     No blueprints match these filters.
                   </td>
                 </tr>
@@ -489,6 +643,8 @@ function BlueprintDetail({ id }: { id: string }) {
         <DismantlePanel blueprint={blueprint} />
       </div>
 
+      <IntelPanel entityType="blueprint" entityId={blueprint.id} entityName={displayName(blueprint)} />
+
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}
         {blueprint.last_synced_at
@@ -580,6 +736,112 @@ function HowToObtainPanel({ blueprint, sources }: { blueprint: Blueprint; source
         </div>
       )}
     </div>
+  );
+}
+
+function FilterPillGroup({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  selected: Set<string>;
+  onChange: (s: Set<string>) => void;
+}) {
+  function toggle(v: string) {
+    const next = new Set(selected);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChange(next);
+  }
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+        <div className="label-mini">{label}</div>
+        {selected.size > 0 && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ height: 22, padding: "0 8px", fontSize: "0.75rem" }}
+            onClick={() => onChange(new Set())}
+          >
+            Clear ({selected.size})
+          </button>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {options.map((o) => {
+          const active = selected.has(o.value);
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => toggle(o.value)}
+              style={{
+                padding: "5px 10px",
+                borderRadius: 14,
+                fontSize: "0.8rem",
+                cursor: "pointer",
+                background: active ? "rgba(77,217,255,0.15)" : "rgba(255,255,255,0.04)",
+                color: active ? "var(--accent)" : "var(--text-muted)",
+                border: `1px solid ${active ? "rgba(77,217,255,0.45)" : "rgba(255,255,255,0.1)"}`,
+                transition: "background-color 0.15s, border-color 0.15s, color 0.15s",
+              }}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ToggleChip({
+  label,
+  checked,
+  onChange,
+  count,
+  countLabel,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  count?: number | null;
+  countLabel?: string;
+}) {
+  return (
+    <label
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        cursor: "pointer",
+        padding: "7px 12px",
+        borderRadius: 6,
+        background: checked ? "rgba(77,217,255,0.1)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${checked ? "rgba(77,217,255,0.45)" : "rgba(255,255,255,0.1)"}`,
+        transition: "background-color 0.15s, border-color 0.15s",
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ accentColor: "#4dd9ff", width: 14, height: 14 }}
+      />
+      <span style={{ fontSize: "0.85rem", color: checked ? "var(--accent)" : "var(--text)" }}>
+        {label}
+      </span>
+      {count != null && (
+        <span className="label-mini">
+          {count.toLocaleString()}
+          {countLabel ? ` ${countLabel}` : ""}
+        </span>
+      )}
+    </label>
   );
 }
 

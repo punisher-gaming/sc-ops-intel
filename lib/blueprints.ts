@@ -107,6 +107,117 @@ export async function fetchBlueprintSources(
   return (data ?? []) as BlueprintSource[];
 }
 
+// Returns the set of blueprint_ids that have at least one canonical source
+// (mission reward pool, shop, etc.). Used by the /blueprints list to power
+// the "only show blueprints with known sources" toggle.
+export async function fetchBlueprintIdsWithSources(): Promise<Set<string>> {
+  const client = createClient();
+  const PAGE = 1000;
+  const out = new Set<string>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("blueprint_sources")
+      .select("blueprint_id")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{ blueprint_id: string }>;
+    for (const r of rows) out.add(r.blueprint_id);
+    if (rows.length < PAGE) break;
+  }
+  return out;
+}
+
+// Fetch all (blueprint_id, mission_family) pairs. Mission family is derived
+// from source_key — we strip "BP_MISSIONREWARD_" and keep everything up to
+// the first trailing variant tag (e.g. "_AB", "_A", "_B"). Lets users filter
+// blueprints by "only drops in XenoThreat missions", etc.
+export async function fetchBlueprintMissionFamilies(): Promise<{
+  byBlueprint: Map<string, Set<string>>;
+  families: string[];
+}> {
+  const client = createClient();
+  const PAGE = 1000;
+  const byBlueprint = new Map<string, Set<string>>();
+  const familyCounts = new Map<string, number>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("blueprint_sources")
+      .select("blueprint_id, source_key, source_name")
+      .eq("source_kind", "reward_pool")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{
+      blueprint_id: string;
+      source_key: string | null;
+      source_name: string | null;
+    }>;
+    for (const r of rows) {
+      const fam = missionFamilyFromKey(r.source_key) ?? r.source_name ?? null;
+      if (!fam) continue;
+      if (!byBlueprint.has(r.blueprint_id)) byBlueprint.set(r.blueprint_id, new Set());
+      byBlueprint.get(r.blueprint_id)!.add(fam);
+      familyCounts.set(fam, (familyCounts.get(fam) ?? 0) + 1);
+    }
+    if (rows.length < PAGE) break;
+  }
+  const families = Array.from(familyCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([f]) => f);
+  return { byBlueprint, families };
+}
+
+export function missionFamilyFromKey(key: string | null | undefined): string | null {
+  if (!key) return null;
+  // "BP_MISSIONREWARD_CitizensForProsperityDestroyItems_AB" → "Citizens For Prosperity"
+  const cleaned = key
+    .replace(/^BP_MISSIONREWARD_/i, "")
+    .replace(/^BP_/i, "")
+    // Trim trailing single/double letter variant tags ("_A", "_AB")
+    .replace(/_[A-Z]{1,3}$/i, "");
+  // Take the leading PascalCase run as the "family"
+  const match = cleaned.match(/^([A-Z][a-z]+(?:[A-Z][a-z]+)*)/);
+  const fam = match ? match[1] : cleaned;
+  // Space out PascalCase
+  return fam.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+// User blueprint ownership
+export async function fetchOwnedBlueprintIds(userId: string): Promise<Set<string>> {
+  const client = createClient();
+  const PAGE = 1000;
+  const out = new Set<string>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("user_blueprints")
+      .select("blueprint_id")
+      .eq("user_id", userId)
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{ blueprint_id: string }>;
+    for (const r of rows) out.add(r.blueprint_id);
+    if (rows.length < PAGE) break;
+  }
+  return out;
+}
+
+export async function markBlueprintOwned(userId: string, blueprintId: string): Promise<void> {
+  const client = createClient();
+  const { error } = await client
+    .from("user_blueprints")
+    .upsert({ user_id: userId, blueprint_id: blueprintId }, { onConflict: "user_id,blueprint_id" });
+  if (error) throw error;
+}
+
+export async function unmarkBlueprintOwned(userId: string, blueprintId: string): Promise<void> {
+  const client = createClient();
+  const { error } = await client
+    .from("user_blueprints")
+    .delete()
+    .eq("user_id", userId)
+    .eq("blueprint_id", blueprintId);
+  if (error) throw error;
+}
+
 export function uniqueValues<T extends keyof Blueprint>(
   blueprints: Blueprint[],
   key: T,
