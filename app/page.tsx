@@ -23,9 +23,26 @@ export default function LandingPage() {
             <Link href="/blueprints" className="btn btn-primary">
               Browse Blueprints
             </Link>
-            <Link href="/resources" className="btn btn-secondary">
-              Find Resources
+            <Link href="/ships" className="btn btn-secondary">
+              Browse Ships
             </Link>
+          </div>
+        </section>
+
+        <section className="container-wide" style={{ paddingTop: "2rem" }}>
+          <div
+            style={{
+              display: "grid",
+              gap: "1rem",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            }}
+          >
+            <LiveStat label="Ships" count="295" href="/ships" />
+            <LiveStat label="Blueprints" count="1,044" href="/blueprints" />
+            <LiveStat label="Resources" count="533" href="/resources" />
+            <LiveStat label="Spawn locations" count="1,074" href="/resources" />
+            <LiveStat label="Trade locations" count="961" href="/commodities" />
+            <LiveStat label="Commodities" count="194" href="/commodities" />
           </div>
         </section>
 
@@ -40,22 +57,22 @@ export default function LandingPage() {
             <FeatureCard
               href="/blueprints"
               title="Blueprints"
-              body="Every crafting recipe. Filter by type, grade, manufacturer. See required materials and where to obtain each one."
+              body="1,044 crafting recipes. Filter by type, grade, mission family. Mark ones you own. Click any for materials + sources."
             />
             <FeatureCard
               href="/resources"
               title="Resources"
-              body="Mining yields, harvestables, salvage. Each resource shows every known spawn location across Stanton and Pyro."
+              body="533 materials with 1,074 spawn locations across Stanton and Pyro. Probabilities pulled from game files."
             />
             <FeatureCard
               href="/crafting"
               title="Crafting"
-              body="Reverse lookup: type what you want, get the full material chain back to raw resources with source locations."
+              body="Fast recipe search. Type what you want to build, get the blueprint with its material chain."
             />
             <FeatureCard
-              href="/commodities"
-              title="Commodities"
-              body="Trade goods, prices by location, shop networks. Plan profitable runs and find stock fast."
+              href="/ships"
+              title="Ships"
+              body="Every flyable hull. Hull HP, shields, speed, cargo, crew. Sortable, filterable."
             />
           </div>
         </section>
@@ -66,13 +83,16 @@ export default function LandingPage() {
             <h2 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: 16 }}>
               Build progress
             </h2>
-            <ul style={{ display: "grid", gap: 10, color: "var(--text-muted)", lineHeight: 1.6 }}>
-              <StatusLine state="done" label="Ship data ingested" detail="295 hulls from SC Wiki API" />
-              <StatusLine state="active" label="Blueprints & resources" detail="Data pipeline live, UI in progress" />
-              <StatusLine state="planned" label="Crafting recipe search" detail="Material chain + source lookup" />
-              <StatusLine state="planned" label="Commodity trade routes" detail="Prices per location" />
-              <StatusLine state="planned" label="Community field intel" detail="Logged-in users submit, moderators approve" />
-              <StatusLine state="planned" label="Import Hangar" detail="Linked RSI profile fleet — coming later" />
+            <ul style={{ display: "grid", gap: 10, color: "var(--text-muted)", lineHeight: 1.6, listStyle: "none" }}>
+              <StatusLine state="done" label="Ships catalog" detail="295 hulls, searchable, sortable, detail view" />
+              <StatusLine state="done" label="Blueprints catalog" detail="1,044 recipes with type + mission-family filters and mark-as-owned" />
+              <StatusLine state="done" label="Resources catalog" detail="533 materials + 1,074 spawn locations grouped by system" />
+              <StatusLine state="done" label="Crafting search" detail="Fast recipe lookup across all blueprints" />
+              <StatusLine state="done" label="Global search (⌘K)" detail="Searches ships + blueprints + resources from any page" />
+              <StatusLine state="done" label="Community intel" detail="Logged-in users can submit field reports, moderator approval" />
+              <StatusLine state="active" label="Commodities & trade routes" detail="194 commodities + 961 shops ingested; UI next" />
+              <StatusLine state="planned" label="Weapons / Components" detail="Blocked on 107 MB Git LFS items dataset; separate ingest strategy" />
+              <StatusLine state="planned" label="Import Hangar" detail="Paste-based RSI fleet import, local parse" />
             </ul>
           </div>
         </section>
@@ -81,6 +101,32 @@ export default function LandingPage() {
         Punisher Gaming · SC OPS INTEL · Unofficial — no affiliation with CIG
       </footer>
     </>
+  );
+}
+
+function LiveStat({ label, count, href }: { label: string; count: string; href: string }) {
+  return (
+    <Link
+      href={href}
+      className="card card-hover"
+      style={{ padding: "1.25rem 1.5rem", display: "block", textDecoration: "none" }}
+    >
+      <div
+        style={{
+          fontSize: "2.25rem",
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          color: "var(--accent)",
+          fontFamily: "var(--font-mono)",
+          lineHeight: 1,
+        }}
+      >
+        {count}
+      </div>
+      <div className="label-mini" style={{ marginTop: 8 }}>
+        {label}
+      </div>
+    </Link>
   );
 }
 

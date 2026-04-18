@@ -1,13 +1,21 @@
+"use client";
+
+import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CatalogStub } from "@/components/CatalogStub";
+import { ShipsBrowser } from "@/components/ShipsBrowser";
 
 export default function ShipsPage() {
   return (
     <PageShell>
-      <CatalogStub
-        title="SHIPS"
-        blurb="Every flyable hull in the 'verse — coming after blueprints, resources, and crafting ship. Ingest is already live (295 hulls in the DB); UI re-enables once the higher-priority sections land."
-      />
+      <Suspense
+        fallback={
+          <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+            Loading ships…
+          </div>
+        }
+      >
+        <ShipsBrowser />
+      </Suspense>
     </PageShell>
   );
 }
