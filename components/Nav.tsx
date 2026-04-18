@@ -6,8 +6,9 @@ import { AuthButton } from "./AuthButton";
 import { PunisherSkull } from "./PunisherSkull";
 import { CURRENT_PATCH } from "./PatchPill";
 import { GlobalSearch } from "./GlobalSearch";
+import { useUser } from "@/lib/supabase/hooks";
 
-const LINKS = [
+const PUBLIC_LINKS = [
   { href: "/ask", label: "Ask" },
   { href: "/blueprints", label: "Blueprints" },
   { href: "/resources", label: "Resources" },
@@ -15,11 +16,18 @@ const LINKS = [
   { href: "/commodities", label: "Commodities" },
   { href: "/trade-locations", label: "Trade" },
   { href: "/ships", label: "Ships" },
+];
+
+const AUTHED_LINKS = [
   { href: "/notes", label: "Notes" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export function Nav() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const links = [...PUBLIC_LINKS, ...(user ? AUTHED_LINKS : [])];
+
   return (
     <nav className="site-nav">
       <div className="site-nav-inner">
@@ -30,7 +38,7 @@ export function Nav() {
           </span>
         </Link>
         <div className="site-nav-links">
-          {LINKS.map((l) => {
+          {links.map((l) => {
             const active = pathname === l.href || pathname?.startsWith(l.href + "/");
             return (
               <Link key={l.href} href={l.href} className={active ? "active" : ""}>
