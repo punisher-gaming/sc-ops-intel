@@ -11,6 +11,8 @@ import {
   type TradeLocation,
 } from "@/lib/commodities";
 import { CURRENT_PATCH } from "./PatchPill";
+import { AvailabilityList } from "./AvailabilityList";
+import { TradeLocationPrices } from "./TradeLocationPrices";
 
 const PAGE_SIZE = 50;
 
@@ -199,8 +201,15 @@ function TradeLocationDetail({ id }: { id: string }) {
         )}
       </div>
 
+      <div style={{ marginBottom: "1rem" }}>
+        <div className="accent-label" style={{ marginBottom: 10 }}>Inventory</div>
+        <AvailabilityList locationId={t.id} />
+      </div>
+
+      <TradeLocationPrices locationId={t.id} locationName={t.name} />
+
       {t.source_data && (
-        <div className="card" style={{ padding: "1.5rem" }}>
+        <div className="card" style={{ padding: "1.5rem", marginTop: "1rem" }}>
           <button
             onClick={() => setRaw((v) => !v)}
             className="btn btn-ghost"

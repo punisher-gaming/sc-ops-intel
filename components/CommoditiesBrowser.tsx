@@ -11,6 +11,8 @@ import {
   type Commodity,
 } from "@/lib/commodities";
 import { CURRENT_PATCH } from "./PatchPill";
+import { AvailabilityList } from "./AvailabilityList";
+import { PricePanel } from "./PricePanel";
 
 const PAGE_SIZE = 50;
 
@@ -182,18 +184,17 @@ function CommodityDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <div className="card" style={{ padding: "1.5rem" }}>
-        <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 10 }}>Prices &amp; stock</div>
-        <p style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-          Per-terminal buy/sell prices come from scunpacked&apos;s{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>
-            commodity_trade_locations.json
-          </code>{" "}
-          — a 42&nbsp;MB dataset we haven&apos;t ingested yet because it
-          needs chunked upload to fit Cloudflare Worker limits. Scheduled for
-          the next ingest round.
+      <div style={{ marginBottom: "1rem" }}>
+        <div className="accent-label" style={{ marginBottom: 10 }}>Availability</div>
+        <AvailabilityList commodityId={c.id} />
+        <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 10, lineHeight: 1.5 }}>
+          Canonical list of terminals that sell or buy this commodity, from
+          the game files. In-game aUEC prices are crowdsourced by Punisher
+          members below — click a terminal to log one.
         </p>
       </div>
+
+      <PricePanel commodityId={c.id} commodityName={c.name} />
 
       {c.source_data && (
         <div className="card" style={{ padding: "1.5rem", marginTop: "1rem" }}>

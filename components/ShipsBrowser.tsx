@@ -14,6 +14,29 @@ import {
 import { CURRENT_PATCH } from "./PatchPill";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
 
+const COMPARE_KEY = "sc-ops-intel:compare-ships";
+
+function loadCompare(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(COMPARE_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCompare(set: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(COMPARE_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    /* quota exceeded, ignore */
+  }
+}
+
 type SortKey =
   | "name"
   | "manufacturer"
@@ -44,12 +67,27 @@ function ShipList() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
+  const [compare, setCompare] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchShips()
       .then(setRows)
       .catch((e) => setErr(e.message ?? String(e)));
+    setCompare(loadCompare());
   }, []);
+
+  function toggleCompare(id: string) {
+    const next = new Set(compare);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setCompare(next);
+    saveCompare(next);
+  }
+
+  function clearCompare() {
+    setCompare(new Set());
+    saveCompare(new Set());
+  }
 
   const manufacturers = useMemo(() => (rows ? uniqueValues(rows, "manufacturer") : []), [rows]);
   const roles = useMemo(() => (rows ? uniqueValues(rows, "role") : []), [rows]);
@@ -171,11 +209,64 @@ function ShipList() {
       {err && <ErrorBar text={`Couldn't load ships: ${err}`} />}
       {!rows && !err && <div style={{ color: "var(--text-muted)", padding: "2rem 0" }}>Loading…</div>}
 
+      {compare.size > 0 && (
+        <div
+          style={{
+            position: "sticky",
+            bottom: 16,
+            zIndex: 5,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 14px",
+            marginBottom: 12,
+            borderRadius: 8,
+            background: "rgba(77,217,255,0.12)",
+            border: "1px solid rgba(77,217,255,0.4)",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>
+            {compare.size} ship{compare.size === 1 ? "" : "s"} selected
+          </span>
+          <Link
+            href={`/ships/compare?ids=${Array.from(compare).map(encodeURIComponent).join(",")}`}
+            className="btn btn-primary"
+            style={{ height: 32, padding: "0 14px", fontSize: "0.85rem" }}
+          >
+            Compare fleet →
+          </Link>
+          <button
+            type="button"
+            onClick={clearCompare}
+            className="btn btn-ghost"
+            style={{ height: 32, padding: "0 10px", fontSize: "0.8rem", marginLeft: "auto" }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {rows && (
         <div className="table-shell" style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
             <thead>
               <tr>
+                <th
+                  style={{
+                    padding: "12px 8px",
+                    width: 44,
+                    color: "var(--text-dim)",
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    fontWeight: 500,
+                  }}
+                  title="Select for fleet compare"
+                >
+                  ⇆
+                </th>
                 <Th k="name" label="Name" sortKey={sortKey} dir={sortDir} onClick={toggleSort} />
                 <Th k="manufacturer" label="Manufacturer" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={140} />
                 <Th k="role" label="Role" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={130} />
@@ -189,7 +280,38 @@ function ShipList() {
             </thead>
             <tbody>
               {pageRows.map((s) => (
-                <tr key={s.id}>
+                <tr key={s.id} style={compare.has(s.id) ? { background: "rgba(77,217,255,0.04)" } : undefined}>
+                  <td
+                    style={{
+                      padding: "14px 8px",
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      textAlign: "center",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      aria-label={compare.has(s.id) ? "Remove from fleet compare" : "Add to fleet compare"}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleCompare(s.id);
+                      }}
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 4,
+                        border: `1px solid ${compare.has(s.id) ? "var(--accent)" : "rgba(255,255,255,0.2)"}`,
+                        background: compare.has(s.id) ? "rgba(77,217,255,0.15)" : "transparent",
+                        color: compare.has(s.id) ? "var(--accent)" : "transparent",
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                        lineHeight: 1,
+                        padding: 0,
+                      }}
+                    >
+                      ✓
+                    </button>
+                  </td>
                   <td style={tdStyle}>
                     <Link href={`/ships?id=${encodeURIComponent(s.id)}`} style={{ color: "var(--accent)", fontWeight: 500 }}>
                       {s.name}
@@ -207,7 +329,7 @@ function ShipList() {
               ))}
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
+                  <td colSpan={10} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
                     No ships match these filters.
                   </td>
                 </tr>
