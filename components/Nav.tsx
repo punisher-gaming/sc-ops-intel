@@ -12,9 +12,8 @@ const LINKS = [
   { href: "/resources", label: "Resources" },
   { href: "/crafting", label: "Crafting" },
   { href: "/commodities", label: "Commodities" },
+  { href: "/trade-locations", label: "Trade" },
   { href: "/ships", label: "Ships" },
-  { href: "/weapons", label: "Weapons" },
-  { href: "/components", label: "Components" },
   { href: "/notes", label: "Notes" },
 ];
 
