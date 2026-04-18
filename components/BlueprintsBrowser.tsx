@@ -27,6 +27,7 @@ import {
 import { useUser } from "@/lib/supabase/hooks";
 import { CURRENT_PATCH } from "./PatchPill";
 import { IntelPanel } from "./IntelPanel";
+import { ItemImage, ItemImageCredit } from "./ItemImage";
 
 type SortKey = "name" | "output_item_type" | "output_grade" | "craft_time_seconds";
 
@@ -615,18 +616,36 @@ function BlueprintDetail({ id }: { id: string }) {
         </Link>
       </div>
 
-      <div className="page-header">
-        <div className="accent-label">
-          {prettyType(blueprint.output_item_type)}
-          {blueprint.output_item_subtype && ` · ${blueprint.output_item_subtype}`}
-          {blueprint.output_grade && ` · Grade ${blueprint.output_grade}`}
+      <div
+        className="page-header"
+        style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "220px 1fr", alignItems: "start" }}
+      >
+        <div>
+          <ItemImage
+            kind="item"
+            candidates={[
+              blueprint.output_item_name,
+              displayName(blueprint),
+              blueprint.output_item_class,
+            ]}
+            alt={displayName(blueprint)}
+            size={400}
+          />
+          <ItemImageCredit />
         </div>
-        <h1>{displayName(blueprint)}</h1>
-        {blueprint.output_item_class && blueprint.output_item_class !== displayName(blueprint) && (
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-dim)" }}>
-            {blueprint.output_item_class}
-          </p>
-        )}
+        <div style={{ minWidth: 0 }}>
+          <div className="accent-label">
+            {prettyType(blueprint.output_item_type)}
+            {blueprint.output_item_subtype && ` · ${blueprint.output_item_subtype}`}
+            {blueprint.output_grade && ` · Grade ${blueprint.output_grade}`}
+          </div>
+          <h1>{displayName(blueprint)}</h1>
+          {blueprint.output_item_class && blueprint.output_item_class !== displayName(blueprint) && (
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-dim)" }}>
+              {blueprint.output_item_class}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* HOW TO OBTAIN — prominent, answers the first question */}
