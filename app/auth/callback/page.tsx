@@ -28,13 +28,8 @@ export default function AuthCallback() {
 
   return (
     <PageShell>
-      <div className="max-w-[500px] mx-auto px-8 text-center">
-        <div
-          className="font-mono text-phosphor mt-16"
-          style={{ fontSize: "1.3rem", letterSpacing: "0.2em" }}
-        >
-          &gt; authenticating...
-        </div>
+      <div className="container" style={{ paddingTop: "4rem", textAlign: "center", color: "var(--text-muted)" }}>
+        Authenticating…
       </div>
     </PageShell>
   );

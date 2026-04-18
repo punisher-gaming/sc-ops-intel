@@ -54,66 +54,100 @@ export default function SignupPage() {
 
   return (
     <PageShell>
-      <div className="max-w-[500px] mx-auto px-8">
-        <div className="divider">
-          <div className="bar" />
-          <div className="label">CREATE ACCOUNT</div>
-          <div className="bar" />
-        </div>
-        <div className="tron-card mt-8">
-          <p className="text-bone/70 mb-6">
-            Free. Only needed to save notes and recipes. We store your email and nothing else
-            unless you opt in.
-          </p>
-          <form onSubmit={handleSignup} className="flex flex-col gap-4">
-            <input
-              type="email"
-              placeholder="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              className="px-4 py-3 font-mono text-lg bg-transparent border border-cyan/30 text-bone placeholder:text-bone/30 focus:border-cyan outline-none"
-            />
-            <input
-              type="password"
-              placeholder="password (8+ chars)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="new-password"
-              className="px-4 py-3 font-mono text-lg bg-transparent border border-cyan/30 text-bone placeholder:text-bone/30 focus:border-cyan outline-none"
-            />
+      <div style={{ maxWidth: 440, margin: "0 auto", padding: "3rem 2rem" }}>
+        <div className="accent-label" style={{ marginBottom: 8 }}>Account</div>
+        <h1 style={{ fontSize: "2rem", fontWeight: 600, letterSpacing: "-0.02em" }}>
+          Create account
+        </h1>
+        <p style={{ color: "var(--text-muted)", marginTop: 8, marginBottom: 24, lineHeight: 1.6 }}>
+          Free. Only needed to save notes, recipes, and log intel. We store
+          your email and nothing else unless you opt in.
+        </p>
+
+        <div className="card" style={{ padding: "1.75rem" }}>
+          <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <label>
+              <div className="label-mini" style={{ marginBottom: 6 }}>Email</div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="input"
+              />
+            </label>
+            <label>
+              <div className="label-mini" style={{ marginBottom: 6 }}>Password (8+ chars)</div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="input"
+              />
+            </label>
+
             {error && (
-              <div className="font-mono text-sm p-3 border border-[#FF3B30]/50 text-[#FF3B30]" style={{ letterSpacing: "0.08em" }}>
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 6,
+                  background: "rgba(255,107,107,0.08)",
+                  border: "1px solid rgba(255,107,107,0.3)",
+                  color: "var(--alert)",
+                  fontSize: "0.85rem",
+                }}
+              >
                 {error}
               </div>
             )}
             {message && (
-              <div className="font-mono text-sm p-3 border border-phosphor/50 text-phosphor" style={{ letterSpacing: "0.08em" }}>
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 6,
+                  background: "rgba(74,222,128,0.08)",
+                  border: "1px solid rgba(74,222,128,0.3)",
+                  color: "var(--success)",
+                  fontSize: "0.85rem",
+                }}
+              >
                 {message}
               </div>
             )}
-            <button type="submit" disabled={busy} className="btn btn-primary disabled:opacity-50 disabled:cursor-wait">
-              {busy ? "..." : "Sign Up"}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary"
+              style={{ marginTop: 4, opacity: busy ? 0.5 : 1 }}
+            >
+              {busy ? "Creating…" : "Create account"}
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 h-px bg-cyan/20" />
-            <div className="font-mono text-bone/40 text-sm" style={{ letterSpacing: "0.2em" }}>OR</div>
-            <div className="flex-1 h-px bg-cyan/20" />
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+            <div className="label-mini">or</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
           </div>
 
-          <button onClick={handleDiscord} disabled={busy} className="btn btn-secondary w-full disabled:opacity-50">
+          <button
+            onClick={handleDiscord}
+            disabled={busy}
+            className="btn btn-secondary"
+            style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
+          >
             Continue with Discord
           </button>
 
-          <div className="mt-6 text-bone/60 text-sm font-mono" style={{ letterSpacing: "0.1em" }}>
+          <div style={{ marginTop: 20, fontSize: "0.875rem", color: "var(--text-muted)" }}>
             Already have an account?{" "}
-            <Link href="/login" className="text-cyan hover:text-magenta">
-              Log in
+            <Link href="/login" style={{ color: "var(--accent)" }}>
+              Sign in
             </Link>
           </div>
         </div>
