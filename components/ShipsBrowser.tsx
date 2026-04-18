@@ -12,6 +12,7 @@ import {
   type Ship,
 } from "@/lib/ships";
 import { CURRENT_PATCH } from "./PatchPill";
+import { ItemImage, ItemImageCredit } from "./ItemImage";
 
 type SortKey =
   | "name"
@@ -258,6 +259,16 @@ function ShipDetail({ id }: { id: string }) {
           {ship.size_class && ` · Size ${ship.size_class}`}
         </div>
         <h1>{ship.name}</h1>
+      </div>
+
+      <div style={{ marginBottom: "1.5rem" }}>
+        <ItemImage
+          kind="ship"
+          candidates={[ship.name]}
+          alt={ship.name}
+          size={800}
+        />
+        <ItemImageCredit />
       </div>
 
       <div
