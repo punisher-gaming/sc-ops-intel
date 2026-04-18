@@ -35,6 +35,30 @@ export interface BlueprintSource {
   source_name: string | null;
 }
 
+// Shape of source_data.Dismantle.Returns entries (from scunpacked).
+export interface DismantleReturn {
+  Kind: string;             // "resource" etc.
+  UUID: string;
+  Name: string;
+  QuantityScu: number;
+}
+
+export function dismantleReturns(b: Blueprint): DismantleReturn[] {
+  const dm = (b.source_data as { Dismantle?: { Returns?: DismantleReturn[] } } | null | undefined)?.Dismantle;
+  if (!dm || !Array.isArray(dm.Returns)) return [];
+  return dm.Returns.filter((r) => r && r.UUID && r.Name);
+}
+
+export function dismantleTimeSeconds(b: Blueprint): number | null {
+  const dm = (b.source_data as { Dismantle?: { TimeSeconds?: number } } | null | undefined)?.Dismantle;
+  return typeof dm?.TimeSeconds === "number" ? Math.round(dm.TimeSeconds) : null;
+}
+
+export function dismantleEfficiency(b: Blueprint): number | null {
+  const dm = (b.source_data as { Dismantle?: { Efficiency?: number } } | null | undefined)?.Dismantle;
+  return typeof dm?.Efficiency === "number" ? dm.Efficiency : null;
+}
+
 const LIST_COLS =
   "id, key, kind, name, output_item_class, output_item_name, output_item_type, output_item_subtype, output_grade, craft_time_seconds, available_by_default, required_groups, game_version, last_synced_at";
 
