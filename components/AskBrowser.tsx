@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ask, type Answer } from "@/lib/ask";
+import { ask, type Answer, type Hit } from "@/lib/ask";
 
 const EXAMPLES = [
   "Where's the best spot to mine Tungsten?",
-  "Find a sniper rifle",
   "Buy Agricium",
-  "Mine Gold",
+  "Sell Laranite",
+  "Sniper rifle",
   "Polaris",
-  "Recipe for FS-9 LMG",
+  "How to craft FS-9 LMG",
 ];
 
 export function AskBrowser() {
@@ -46,9 +46,8 @@ export function AskBrowser() {
         <div className="accent-label">Quick answers</div>
         <h1>Ask</h1>
         <p>
-          Type a question in plain English. We match it against ships,
-          blueprints, resources, and commodities — no AI, just fast lookups
-          against the database.
+          Ask in plain English. We&apos;ll find ships, blueprints, resources,
+          and commodities that match — then deep-link you to the details.
         </p>
       </div>
 
@@ -100,92 +99,64 @@ export function AskBrowser() {
 }
 
 function AnswerView({ answer }: { answer: Answer }) {
-  if (answer.kind === "none") {
+  if (answer.total === 0) {
+    // Quiet fallback — don't shout, just say nothing matched and link to search
     return (
-      <div className="card" style={{ padding: "1.5rem" }}>
-        <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 6 }}>
-          Nothing matched &ldquo;{answer.query}&rdquo;
-        </div>
-        <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-          Try a more specific term — &ldquo;Mine Gold&rdquo;, &ldquo;Polaris&rdquo;, or
-          &ldquo;Buy Laranite&rdquo;. Or use the{" "}
-          <Link href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true })); }} style={{ color: "var(--accent)" }}>
-            ⌘K global search
-          </Link>
-          {" "}for partial matches across everything.
-        </div>
+      <div style={{ color: "var(--text-dim)", padding: "1.5rem 0", fontSize: "0.95rem" }}>
+        Nothing matched. Try{" "}
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+          }}
+          style={{ color: "var(--accent)" }}
+        >
+          ⌘K global search
+        </a>
+        {" "}for partial matches across the whole catalog.
       </div>
     );
   }
 
-  if (answer.kind === "resource") {
-    return (
-      <div className="card" style={{ padding: "1.5rem" }}>
-        <div className="accent-label" style={{ marginBottom: 10 }}>
-          Resources matching &ldquo;{answer.query}&rdquo;
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {answer.hits.map((h) => (
-            <Link
-              key={h.id}
-              href={h.href}
-              className="card card-hover"
-              style={{ padding: "1rem 1.25rem", textDecoration: "none", color: "var(--text)", display: "block" }}
-            >
-              <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)" }}>{h.name}</div>
-              <div className="label-mini" style={{ marginTop: 4 }}>{h.subtitle}</div>
-              <div style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: 8 }}>{h.detail}</div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Order sections by intent — most-relevant kind first
+  const order = (() => {
+    switch (answer.intent) {
+      case "mine":
+        return ["resources", "commodities", "blueprints", "ships"] as const;
+      case "buy":
+      case "sell":
+        return ["commodities", "blueprints", "resources", "ships"] as const;
+      case "recipe":
+        return ["blueprints", "resources", "ships", "commodities"] as const;
+      case "ship":
+        return ["ships", "blueprints", "resources", "commodities"] as const;
+      default:
+        return ["resources", "blueprints", "commodities", "ships"] as const;
+    }
+  })();
 
-  if (answer.kind === "blueprint") {
-    return <HitList title={`Blueprints matching "${answer.query}"`} hits={answer.hits} />;
-  }
+  const sectionTitles: Record<string, string> = {
+    resources: "Resources",
+    blueprints: "Blueprints",
+    commodities: "Commodities",
+    ships: "Ships",
+  };
 
-  if (answer.kind === "commodity") {
-    return (
-      <div className="card" style={{ padding: "1.5rem" }}>
-        <div className="accent-label" style={{ marginBottom: 10 }}>
-          Commodities matching &ldquo;{answer.query}&rdquo;
-        </div>
-        <div className="label-mini" style={{ marginBottom: 12 }}>
-          Click through → community-reported buy/sell prices per terminal are listed there
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {answer.hits.map((h) => (
-            <Link
-              key={h.id}
-              href={h.href}
-              className="card card-hover"
-              style={{ padding: "1rem 1.25rem", textDecoration: "none", color: "var(--text)", display: "block" }}
-            >
-              <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)" }}>{h.name}</div>
-              <div className="label-mini" style={{ marginTop: 4 }}>{h.subtitle}</div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (answer.kind === "ship") {
-    return <HitList title={`Ships matching "${answer.query}"`} hits={answer.hits} />;
-  }
-
-  return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {order.map((key) => {
+        const hits = answer[key] as Hit[];
+        if (hits.length === 0) return null;
+        return (
+          <Section key={key} title={`${sectionTitles[key]} matching "${answer.query}"`} hits={hits} />
+        );
+      })}
+    </div>
+  );
 }
 
-function HitList({
-  title,
-  hits,
-}: {
-  title: string;
-  hits: Array<{ id: string; name: string; subtitle: string; href: string }>;
-}) {
+function Section({ title, hits }: { title: string; hits: Hit[] }) {
   return (
     <div className="card" style={{ padding: "1.5rem" }}>
       <div className="accent-label" style={{ marginBottom: 10 }}>{title}</div>
@@ -199,6 +170,9 @@ function HitList({
           >
             <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)" }}>{h.name}</div>
             <div className="label-mini" style={{ marginTop: 4 }}>{h.subtitle}</div>
+            {h.detail && (
+              <div style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: 8 }}>{h.detail}</div>
+            )}
           </Link>
         ))}
       </div>
