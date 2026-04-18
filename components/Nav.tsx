@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthButton } from "./AuthButton";
 
 const LINKS = [
   { href: "/ships", label: "Ships" },
@@ -25,7 +26,7 @@ export function Nav() {
           </li>
         ))}
         <li>
-          <Link href="/login" className="cta">Login</Link>
+          <AuthButton />
         </li>
       </ul>
     </nav>
