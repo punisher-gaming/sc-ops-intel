@@ -16,12 +16,8 @@ SC_WIKI_BASE = "https://api.star-citizen.wiki/api/v3"
 # only if GitHub is unreachable.
 CURRENT_GAME_VERSION = "4.7.1-LIVE"
 
-# Email notifications via Resend.
-# Until you've verified citizendex.com in Resend, leave NOTIFICATIONS_FROM
-# unset and the worker uses Resend's testing domain (onboarding@resend.dev)
-# which only delivers to your verified-owner email. Once you verify the
-# domain, switch this to "CitizenDex <notifications@citizendex.com>".
-NOTIFICATIONS_FROM = "CitizenDex <onboarding@resend.dev>"
+# Email notifications via Resend. citizendex.com verified Apr 19 2026.
+NOTIFICATIONS_FROM = "CitizenDex <notifications@citizendex.com>"
 NOTIFICATIONS_REPLY_TO = "noreply@citizendex.com"
 
 # Cloudflare Workers AI binding — powers /ai/chat endpoint with llama-3.
