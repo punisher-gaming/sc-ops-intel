@@ -54,7 +54,15 @@ function TopicFeed() {
   async function reload() {
     try {
       const ts = await fetchAllThreads(sort);
-      setThreads(ts);
+      // Force "General" to slot #1 regardless of sort mode. Everything else
+      // keeps the order the server gave us (hot = last_activity_at desc, etc.)
+      // so the most recently active topic falls into slot #2 and so on.
+      const generalIdx = ts.findIndex((t) => t.title.trim().toLowerCase() === "general");
+      const ordered =
+        generalIdx >= 0
+          ? [ts[generalIdx], ...ts.slice(0, generalIdx), ...ts.slice(generalIdx + 1)]
+          : ts;
+      setThreads(ordered);
       setLoaded(true);
       const auths = await fetchAuthors(ts.map((t) => t.user_id));
       setAuthors(auths);
