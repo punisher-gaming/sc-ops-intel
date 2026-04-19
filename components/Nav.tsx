@@ -47,6 +47,7 @@ const PUBLIC_LINKS: NavItem[] = [
     children: [
       { href: "/ships", label: "Ships" },
       { href: "/components", label: "Components" },
+      { href: "/meta-loadouts", label: "🎯 Meta Loadouts" },
     ],
   },
   {
