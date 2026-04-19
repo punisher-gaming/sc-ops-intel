@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
+import { SavedFleets } from "@/components/SavedFleets";
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
 
@@ -231,6 +232,8 @@ export default function AccountPage() {
             </div>
           </form>
         </div>
+
+        <SavedFleets userId={user.id} />
 
         <div className="card" style={{ padding: "1.75rem", marginTop: "1rem" }}>
           <div style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 8 }}>Hangar</div>
