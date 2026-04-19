@@ -191,6 +191,40 @@ export function bodyPartFromClass(cls: string | null | undefined): BodyPart | nu
   return null;
 }
 
+// Classify a weapon blueprint by its class-name token. scunpacked class
+// names follow the pattern `<manufacturer>_<kind>_<damage>_<variant>`
+// (e.g. behr_rifle_ballistic_01, klwe_pistol_energy_01) so the second
+// underscore token reliably names the weapon kind. Falls back to a
+// substring search on the blueprint name for edge cases.
+const WEAPON_KINDS = [
+  "pistol",
+  "rifle",
+  "smg",
+  "lmg",
+  "shotgun",
+  "sniper",
+  "launcher",
+  "grenade",
+] as const;
+export type WeaponKind = (typeof WEAPON_KINDS)[number];
+
+export function weaponKindFromBlueprint(b: {
+  output_item_class?: string | null;
+  output_item_name?: string | null;
+  name?: string;
+}): WeaponKind | null {
+  const cls = (b.output_item_class ?? "").toLowerCase();
+  const nm = (b.output_item_name ?? b.name ?? "").toLowerCase();
+  const hay = `${cls} ${nm}`;
+  for (const k of WEAPON_KINDS) {
+    // Match whole tokens in class, or substring in name
+    if (cls.includes(`_${k}_`) || cls.endsWith(`_${k}`) || nm.includes(k)) {
+      return k;
+    }
+  }
+  return null;
+}
+
 export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

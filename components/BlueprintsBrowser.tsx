@@ -16,6 +16,7 @@ import {
   fetchBlueprintSources,
   fetchBlueprintsThatYield,
   fetchKnownDismantleMaterials,
+  weaponKindFromBlueprint,
   fetchOwnedBlueprintIds,
   formatCraftTime,
   markBlueprintOwned,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/blueprints";
 import { useUser } from "@/lib/supabase/hooks";
 import { tokenMatch } from "@/lib/search";
+import { FilterMultiSelect } from "./FilterMultiSelect";
 import { CURRENT_PATCH } from "./PatchPill";
 import { IntelPanel } from "./IntelPanel";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
@@ -59,6 +61,7 @@ function BlueprintList() {
   const [selectedSubtypes, setSelectedSubtypes] = useState<Set<string>>(new Set());
   const [selectedBodyParts, setSelectedBodyParts] = useState<Set<string>>(new Set());
   const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
+  const [selectedWeaponKinds, setSelectedWeaponKinds] = useState<Set<string>>(new Set());
   const [grade, setGrade] = useState("");
   // Material-yield filter: pick a refined material (Aluminum, Tungsten, …)
   // and the list narrows to blueprints whose dismantle returns it. We load
@@ -157,6 +160,17 @@ function BlueprintList() {
     }
     return Array.from(set).sort();
   }, [rows]);
+  // Derive weapon kinds present in the catalog so the filter dropdown
+  // only shows categories that actually have hits.
+  const weaponKinds = useMemo(() => {
+    if (!rows) return [];
+    const set = new Set<string>();
+    for (const r of rows) {
+      const k = weaponKindFromBlueprint(r);
+      if (k) set.add(k);
+    }
+    return Array.from(set).sort();
+  }, [rows]);
   const grades = useMemo(
     () => (rows ? uniqueValues(rows, "output_grade") : []),
     [rows],
@@ -171,6 +185,10 @@ function BlueprintList() {
       if (selectedBodyParts.size > 0) {
         const part = bodyPartFromClass(r.output_item_class);
         if (!part || !selectedBodyParts.has(part)) return false;
+      }
+      if (selectedWeaponKinds.size > 0) {
+        const kind = weaponKindFromBlueprint(r);
+        if (!kind || !selectedWeaponKinds.has(kind)) return false;
       }
       if (grade && r.output_grade !== grade) return false;
       if (yieldsMatchIds && !yieldsMatchIds.has(r.id)) return false;
@@ -217,11 +235,11 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMatchIds, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, selectedWeaponKinds, grade, yieldsMatchIds, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
-  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMaterial, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
+  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, selectedWeaponKinds, grade, yieldsMaterial, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -285,45 +303,58 @@ function BlueprintList() {
         )}
       </div>
 
-      {/* Type switches (multi-select) */}
-      {types.length > 0 && (
-        <FilterPillGroup
-          label="Types"
-          options={types.map((t) => ({ value: t, label: prettyType(t) }))}
-          selected={selectedTypes}
-          onChange={setSelectedTypes}
-        />
-      )}
-
-      {/* Subtype switches (Light / Medium / Heavy / Attachment / etc.) */}
-      {subtypes.length > 0 && (
-        <FilterPillGroup
-          label="Subtypes"
-          options={subtypes.map((s) => ({ value: s, label: s }))}
-          selected={selectedSubtypes}
-          onChange={setSelectedSubtypes}
-        />
-      )}
-
-      {/* Body-part switches (Arms / Helmet / Core / etc.) — derived from class */}
-      {bodyParts.length > 0 && (
-        <FilterPillGroup
-          label="Armor / gear parts"
-          options={bodyParts.map((p) => ({ value: p, label: capitalize(p) }))}
-          selected={selectedBodyParts}
-          onChange={setSelectedBodyParts}
-        />
-      )}
-
-      {/* Mission family switches */}
-      {missionFamilies.families.length > 0 && (
-        <FilterPillGroup
-          label="Mission families"
-          options={missionFamilies.families.slice(0, 30).map((f) => ({ value: f, label: f }))}
-          selected={selectedFamilies}
-          onChange={setSelectedFamilies}
-        />
-      )}
+      {/* Filter dropdowns — collapses what used to be 4–5 rows of pills
+          into a single flex row. Each shows its label + selection count
+          and opens to a checkbox list. */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
+      >
+        {types.length > 0 && (
+          <FilterMultiSelect
+            label="Types"
+            options={types.map((t) => ({ value: t, label: prettyType(t) }))}
+            selected={selectedTypes}
+            onChange={setSelectedTypes}
+          />
+        )}
+        {weaponKinds.length > 0 && (
+          <FilterMultiSelect
+            label="Weapon kinds"
+            options={weaponKinds.map((k) => ({ value: k, label: capitalize(k) }))}
+            selected={selectedWeaponKinds}
+            onChange={setSelectedWeaponKinds}
+          />
+        )}
+        {subtypes.length > 0 && (
+          <FilterMultiSelect
+            label="Subtypes"
+            options={subtypes.map((s) => ({ value: s, label: s }))}
+            selected={selectedSubtypes}
+            onChange={setSelectedSubtypes}
+          />
+        )}
+        {bodyParts.length > 0 && (
+          <FilterMultiSelect
+            label="Armor parts"
+            options={bodyParts.map((p) => ({ value: p, label: capitalize(p) }))}
+            selected={selectedBodyParts}
+            onChange={setSelectedBodyParts}
+          />
+        )}
+        {missionFamilies.families.length > 0 && (
+          <FilterMultiSelect
+            label="Mission families"
+            options={missionFamilies.families.slice(0, 30).map((f) => ({ value: f, label: f }))}
+            selected={selectedFamilies}
+            onChange={setSelectedFamilies}
+          />
+        )}
+      </div>
 
       {/* Boolean toggles */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
