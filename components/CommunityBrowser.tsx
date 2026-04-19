@@ -169,15 +169,37 @@ function ThreadCard({
   user: ReturnType<typeof useUser>["user"];
   onVote: (val: -1 | 1) => void;
 }) {
+  const router = useRouter();
+  const href = `/community?thread=${encodeURIComponent(thread.id)}`;
+
+  // Make the entire card clickable. Skip navigation when the click came
+  // from inside a real <a> or <button> (vote arrows, author pill, badges)
+  // so those keep their own behavior.
+  function handleCardClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (target.closest("a, button")) return;
+    router.push(href);
+  }
+
   return (
     <div
-      className="card"
+      className="card card-hover"
+      onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(href);
+        }
+      }}
       style={{
         padding: "1rem 1.25rem",
         display: "grid",
         gridTemplateColumns: "44px 1fr",
         gap: 14,
         alignItems: "start",
+        cursor: "pointer",
       }}
     >
       <VoteColumn score={thread.score} myVote={myVote} disabled={!user} onVote={onVote} />
