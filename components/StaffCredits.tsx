@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { displayNameFor, isOwner, roleLabelFor } from "@/lib/owner";
+import { displayNameFor, roleLabelFor } from "@/lib/owner";
 
 // "Please respect our Admin & Moderators" panel for the homepage. Pulls the
 // staff list from public_staff_list() — a SECURITY DEFINER RPC that returns
@@ -35,11 +35,9 @@ export function StaffCredits() {
           setStaff([]);
           return;
         }
-        // Owner first, then admins, then moderators (server sort already
-        // puts admins ahead of mods; we just float the owner to slot #1).
-        const rows = ((data ?? []) as StaffMember[]).slice();
-        rows.sort((a, b) => (isOwner(a.id) ? -1 : isOwner(b.id) ? 1 : 0));
-        setStaff(rows);
+        // Server-side RPC already sorts is_admin desc, is_moderator desc,
+        // so Owners (is_admin) come first and Admins (is_moderator) after.
+        setStaff((data ?? []) as StaffMember[]);
       });
   }, []);
 
@@ -106,17 +104,14 @@ function StaffPill({ member }: { member: StaffMember }) {
   const rawName =
     member.display_name || member.discord_username || "Unnamed";
   const name = displayNameFor(member.id, rawName);
-  // Role: Owner > Admin > Moderator (owner override wins)
+  // Role: Owner (is_admin) > Admin (is_moderator) > Staff
   const role =
     roleLabelFor(member.id, {
       is_admin: member.is_admin,
       is_moderator: member.is_moderator,
     }) ?? "Staff";
-  const roleColor = isOwner(member.id)
-    ? "var(--warn)" // Owner = amber — stands out from the Admin cyan
-    : member.is_admin
-      ? "var(--accent)"
-      : "var(--warn)";
+  // Owner = amber (top privilege, stands out), Admin = cyan accent
+  const roleColor = role === "Owner" ? "var(--warn)" : "var(--accent)";
 
   return (
     <Link

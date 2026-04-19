@@ -65,11 +65,11 @@ export default function AdminHome() {
         <div className="container" style={{ paddingTop: "4rem" }}>
           <div className="card" style={{ padding: "2rem" }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 8 }}>
-              Moderator tools
+              Staff only
             </div>
             <div style={{ color: "var(--text-muted)" }}>
-              You&apos;re signed in but aren&apos;t a moderator or admin. Ask
-              knerfd to flip your{" "}
+              You&apos;re signed in but aren&apos;t an Admin or Owner. Ask
+              KNERFD to flip your{" "}
               <code style={{ fontFamily: "var(--font-mono)" }}>is_moderator</code>{" "}
               flag if you need access.
             </div>
@@ -83,12 +83,12 @@ export default function AdminHome() {
     <PageShell>
       <div className="container" style={{ paddingTop: "2.5rem" }}>
         <div className="page-header">
-          <div className="accent-label">Admin</div>
+          <div className="accent-label">Staff tools</div>
           <h1>Control panel</h1>
           <p>
             Signed in as{" "}
-            {role.is_admin && <span className="badge badge-accent" style={{ marginRight: 6 }}>admin</span>}
-            {role.is_moderator && <span className="badge badge-success">moderator</span>}
+            {role.is_admin && <span className="badge badge-warn" style={{ marginRight: 6 }}>owner</span>}
+            {role.is_moderator && !role.is_admin && <span className="badge badge-accent">admin</span>}
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export default function AdminHome() {
             <AdminCard
               href="/admin/users"
               title="Users"
-              body="See every registered user, toggle moderator / admin flags."
+              body="See every registered user, toggle Admin / Owner flags."
             />
           )}
           <AdminCard

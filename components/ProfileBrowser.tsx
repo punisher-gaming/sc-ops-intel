@@ -8,7 +8,7 @@ import { fetchPublicFleets, type Fleet } from "@/lib/fleets";
 import { fetchShipsByIds, type Ship } from "@/lib/ships";
 import { RsiProfileCard } from "./RsiProfileCard";
 import { Hologram } from "./Hologram";
-import { displayNameFor, isOwner, roleLabelFor } from "@/lib/owner";
+import { displayNameFor, roleLabelFor } from "@/lib/owner";
 
 // Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
@@ -91,7 +91,6 @@ export function ProfileBrowser() {
     is_admin: profile.is_admin,
     is_moderator: profile.is_moderator,
   });
-  const owner = isOwner(profile.id);
 
   return (
     <div className="container" style={{ paddingTop: "2rem" }}>
@@ -156,11 +155,8 @@ export function ProfileBrowser() {
             {role && (
               <span
                 style={{
-                  color: owner
-                    ? "var(--warn)"
-                    : profile.is_admin
-                      ? "var(--accent)"
-                      : "var(--warn)",
+                  // Owner = amber, Admin = cyan accent
+                  color: role === "Owner" ? "var(--warn)" : "var(--accent)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   fontWeight: 600,

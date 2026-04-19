@@ -107,10 +107,10 @@ export default function AdminUsers() {
         <div className="container" style={{ paddingTop: "4rem" }}>
           <div className="card" style={{ padding: "2rem" }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 8 }}>
-              Admin only
+              Owner only
             </div>
             <div style={{ color: "var(--text-muted)" }}>
-              This page manages user roles. Only the site admin
+              This page manages user roles. Only Owners
               (<code style={{ fontFamily: "var(--font-mono)" }}>profiles.is_admin = true</code>)
               can access it.
             </div>
@@ -124,12 +124,12 @@ export default function AdminUsers() {
     <PageShell>
       <div className="container-wide" style={{ paddingTop: "2.5rem" }}>
         <div className="page-header">
-          <div className="accent-label">Admin</div>
+          <div className="accent-label">Owner tools</div>
           <h1>Users</h1>
           <p>
-            Toggle moderator access per user. Moderators can upload music,
-            publish community intel, and approve commodity prices. Admin
-            (that&apos;s you) is the only role that can manage other users.
+            Toggle Admin access per user. Admins can upload music, publish
+            community intel, and approve commodity prices. Owners
+            (that&apos;s you) can also manage other users&apos; roles.
           </p>
         </div>
 
@@ -181,8 +181,8 @@ export default function AdminUsers() {
                   <th style={thStyle("left")}>User</th>
                   <th style={thStyle("left", 130)}>Provider</th>
                   <th style={thStyle("left", 140)}>Joined</th>
-                  <th style={thStyle("center", 110)}>Moderator</th>
-                  <th style={thStyle("center", 90)}>Admin</th>
+                  <th style={thStyle("center", 110)}>Admin</th>
+                  <th style={thStyle("center", 90)}>Owner</th>
                 </tr>
               </thead>
               <tbody>

@@ -134,12 +134,12 @@ export default function MusicAdmin() {
         <div className="container" style={{ paddingTop: "4rem" }}>
           <div className="card" style={{ padding: "2rem" }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 8 }}>
-              Moderator only
+              Admin only
             </div>
             <div style={{ color: "var(--text-muted)" }}>
-              This page manages site music uploads. Only users with the{" "}
+              This page manages site music uploads. Only Admins (users with the{" "}
               <code style={{ fontFamily: "var(--font-mono)" }}>is_moderator</code> flag on
-              their profile can upload, reorder, or delete tracks.
+              their profile) can upload, reorder, or delete tracks.
             </div>
           </div>
         </div>
