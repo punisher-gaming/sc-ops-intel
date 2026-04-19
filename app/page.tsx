@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
-import { PunisherSkull } from "@/components/PunisherSkull";
 
 export default function LandingPage() {
   return (
@@ -8,12 +7,27 @@ export default function LandingPage() {
       <Nav />
       <main className="relative min-h-screen">
         <section className="home-hero">
-          <div style={{ display: "inline-block", opacity: 0.9 }}>
-            <PunisherSkull size={72} />
+          <div className="brand-mark">
+            <div className="brand-frame">
+              <span className="brand-corner tl" aria-hidden />
+              <span className="brand-corner tr" aria-hidden />
+              <span className="brand-corner bl" aria-hidden />
+              <span className="brand-corner br" aria-hidden />
+              <h1
+                className="brand-primary"
+                data-text="PUNISHER · GAMING"
+              >
+                <span>PUNISHER</span>
+                <span className="brand-dot" aria-hidden>·</span>
+                <span>GAMING</span>
+              </h1>
+            </div>
+            <div className="brand-secondary">
+              <span className="brand-bar" aria-hidden />
+              <span>SC OPS <span className="accent">//</span> INTEL</span>
+              <span className="brand-bar" aria-hidden />
+            </div>
           </div>
-          <h1>
-            SC OPS <span className="accent">INTEL</span>
-          </h1>
           <p className="tagline">
             Star Citizen operations database. Blueprints, resources, crafting
             recipes, commodities, ships — auto-synced every patch. Save notes.

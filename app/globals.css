@@ -122,6 +122,20 @@ a { color: inherit; text-decoration: none; }
   background: rgba(255,255,255,0.08);
 }
 
+/* Native dropdown options — most browsers default to OS white. Hint
+   towards our dark theme. Firefox + modern Chrome respect this; Safari
+   uses OS chrome regardless but the trigger element itself stays themed. */
+.select option,
+select option {
+  background: var(--ink-2);
+  color: var(--text);
+}
+/* Belt-and-suspenders: catch any plain <select> that doesn't have .select
+   so the closed trigger looks consistent (e.g. file pickers, etc.) */
+select {
+  color-scheme: dark;
+}
+
 .label-mini {
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -222,6 +236,113 @@ a { color: inherit; text-decoration: none; }
   margin: 1.5rem 0 1rem;
 }
 .home-hero h1 .accent { color: var(--accent); }
+
+/* ====================================================================
+   Hero brand-mark — military / sci-fi command-center vibe
+   - corner L-brackets at each corner of a transparent frame
+   - chunky uppercase wordmark with chromatic-aberration shadow ghost
+     (cyan + red) and a soft cyan halo
+   - centred cyan dot separator
+   - below: "SC OPS // INTEL" subtitle in mono with horizontal rules
+   ==================================================================== */
+
+.brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 1.75rem;
+}
+
+.brand-frame {
+  position: relative;
+  display: inline-block;
+  padding: 1.4rem 2.2rem;
+}
+
+/* Corner L-brackets — pure CSS, no images */
+.brand-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--accent);
+  border-style: solid;
+  border-width: 0;
+  filter: drop-shadow(0 0 8px rgba(77,217,255,0.5));
+}
+.brand-corner.tl { top: 0;    left: 0;    border-top-width: 2px; border-left-width: 2px; }
+.brand-corner.tr { top: 0;    right: 0;   border-top-width: 2px; border-right-width: 2px; }
+.brand-corner.bl { bottom: 0; left: 0;    border-bottom-width: 2px; border-left-width: 2px; }
+.brand-corner.br { bottom: 0; right: 0;   border-bottom-width: 2px; border-right-width: 2px; }
+
+.brand-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  font-size: clamp(2.6rem, 8.5vw, 5.25rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--text);
+  /* Chromatic-aberration ghost: cyan offset left, red offset right.
+     Reads as a slight glitch / hologram-misalignment effect. */
+  text-shadow:
+    -2px 0 0 rgba(77,217,255,0.55),
+     2px 0 0 rgba(255,107,107,0.40),
+     0 0 50px rgba(77,217,255,0.20);
+  margin: 0;
+}
+
+.brand-primary .brand-dot {
+  display: inline-block;
+  color: var(--accent);
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 0.9;
+  transform: translateY(-0.06em);
+  text-shadow: 0 0 14px rgba(77,217,255,0.8);
+  padding: 0 0.05em;
+}
+
+/* Cyan slash through the middle of the wordmark — sits behind text via
+   z-index so the letters cut through it. Subtle pulse keeps it alive. */
+.brand-frame::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+  opacity: 0.35;
+  z-index: -1;
+  filter: drop-shadow(0 0 6px rgba(77,217,255,0.6));
+  animation: brand-pulse 4s ease-in-out infinite;
+}
+@keyframes brand-pulse {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.55; }
+}
+
+.brand-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+  letter-spacing: 0.4em;
+  color: var(--text-muted);
+}
+.brand-secondary .accent {
+  color: var(--accent);
+  margin: 0 0.4em;
+}
+.brand-bar {
+  height: 1px;
+  width: clamp(40px, 8vw, 90px);
+  background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), transparent);
+}
 .home-hero .tagline {
   color: var(--text-muted);
   max-width: 56ch;
