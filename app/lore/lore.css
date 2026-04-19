@@ -466,6 +466,401 @@
 }
 .lore-panel p:last-child { margin-bottom: 0; }
 
+/* ═══════════ Chronicle flip book ═══════════
+   Stacked pages that turn chronologically left-around-spine. Each page
+   has front + back faces; the back uses transform:rotateY(180deg) so
+   it shows the "wrong side" correctly mid-turn. Pages are absolutely
+   positioned inside a 3D-transform container (.flipbook-book) with
+   perspective on the outer stage. */
+
+.flipbook-stage {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem 2rem;
+  perspective: 2600px;
+  overflow: hidden;
+}
+
+.flipbook-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  animation: flipbook-backdrop-fade 0.9s ease-out;
+}
+@keyframes flipbook-backdrop-fade {
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.flipbook-backdrop > svg,
+.flipbook-backdrop > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+.flipbook-backdrop-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(2, 5, 12, 0.75) 75%),
+    linear-gradient(180deg, rgba(2, 5, 12, 0.55) 0%, rgba(2, 5, 12, 0.92) 100%);
+}
+
+/* The book — fixed aspect ratio, 3D children, subtle shadow */
+.flipbook-book {
+  position: relative;
+  width: min(640px, 94vw);
+  aspect-ratio: 2 / 3;
+  max-height: 78vh;
+  transform-style: preserve-3d;
+  z-index: 2;
+  filter: drop-shadow(0 26px 50px rgba(0, 0, 0, 0.72))
+          drop-shadow(0 0 40px rgba(77, 217, 255, 0.15));
+}
+.flipbook-spine {
+  position: absolute;
+  left: -8px; top: 2%; bottom: 2%;
+  width: 14px;
+  background: linear-gradient(90deg, #000 0%, #0a0e16 60%, #020409 100%);
+  border-radius: 3px 0 0 3px;
+  z-index: -1;
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Each page occupies the full book rect, pins to the left spine, and
+   rotates around that edge. backface-visibility off so faces don't
+   bleed through each other. */
+.flipbook-page {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.flipbook-page-face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--lore-border-strong);
+  background: #020409;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flipbook-page-front { transform: rotateY(0deg); }
+.flipbook-page-back  { transform: rotateY(180deg); }
+
+/* ── Front cover ───────────────────────────────────────────── */
+.flipbook-cover-art  { position: absolute; inset: 0; }
+.flipbook-cover-art > svg { width: 100%; height: 100%; display: block; }
+.flipbook-cover-overlay {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at center top, transparent 25%, rgba(2, 5, 12, 0.6) 78%),
+    linear-gradient(180deg, rgba(2, 5, 12, 0.12) 0%, rgba(2, 5, 12, 0.72) 100%);
+}
+.flipbook-cover-masthead {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(90deg, rgba(77, 217, 255, 0.1), transparent);
+  border-bottom: 1px solid var(--lore-border);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.5);
+}
+.flipbook-cover-title {
+  position: absolute;
+  left: 0; right: 0; top: 26%;
+  padding: 0 2rem;
+  text-align: center;
+}
+.flipbook-cover-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
+}
+.flipbook-cover-title h1 {
+  font-family: var(--font-mono);
+  font-size: clamp(2.8rem, 8.5vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+  color: #fff;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.95), 0 0 42px rgba(77, 217, 255, 0.4);
+}
+.flipbook-cover-title h1 span {
+  color: var(--lore-cyan);
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.95), 0 0 34px rgba(77, 217, 255, 0.9);
+}
+.flipbook-cover-sub {
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1.3vw, 0.9rem);
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+.flipbook-cover-footer {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background: linear-gradient(0deg, rgba(2, 5, 12, 0.95), transparent);
+}
+.flipbook-cover-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.flipbook-cover-stars {
+  color: var(--lore-cyan);
+  letter-spacing: 0.3em;
+  filter: drop-shadow(0 0 4px currentColor);
+  font-size: 0.85rem;
+}
+.flipbook-cover-barcode {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 22px;
+  opacity: 0.8;
+}
+.flipbook-cover-barcode > span {
+  display: inline-block;
+  height: 100%;
+  background: var(--lore-cyan);
+}
+
+/* ── Chapter page front face ──────────────────────────────── */
+.flipbook-chapter-art { position: absolute; inset: 0; }
+.flipbook-chapter-art > svg,
+.flipbook-chapter-art > img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.flipbook-chapter-overlay {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 5, 12, 0.1) 0%, rgba(2, 5, 12, 0.35) 40%, rgba(2, 5, 12, 0.92) 100%);
+}
+.flipbook-chapter-corner {
+  position: absolute;
+  top: 12px; left: 14px;
+  padding: 4px 10px;
+  background: rgba(2, 5, 12, 0.78);
+  border: 1px solid var(--lore-border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.5);
+}
+.flipbook-chapter-title {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 1.5rem 1.75rem 1.75rem;
+  color: #fff;
+}
+.flipbook-chapter-years {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.5);
+}
+.flipbook-chapter-title h2 {
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+  line-height: 1;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+}
+.flipbook-chapter-sub {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.flipbook-chapter-blurb {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 14px;
+  max-width: 42ch;
+}
+.flipbook-chapter-cta {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 3px;
+  background: rgba(77, 217, 255, 0.14);
+  border: 1px solid var(--lore-border-strong);
+  color: var(--lore-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.flipbook-chapter-cta:hover {
+  background: rgba(77, 217, 255, 0.26);
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.6);
+}
+
+/* ── Page back face (the "wrong side" shown mid-turn) ────── */
+.flipbook-back-face {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, #0a1a2e 0%, #02070f 60%, #0a1a2e 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  color: var(--lore-text-dim);
+}
+.flipbook-back-top,
+.flipbook-back-bottom {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lore-cyan);
+  opacity: 0.85;
+}
+.flipbook-back-top { text-align: left; }
+.flipbook-back-bottom { text-align: right; margin-top: auto; }
+.flipbook-back-grid {
+  flex: 1;
+  margin: 1.5rem 0;
+  background-image:
+    linear-gradient(to right, rgba(77, 217, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(77, 217, 255, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at center, #000 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, transparent 80%);
+}
+
+/* ── Back cover (deepest layer, always underneath) ────── */
+.flipbook-backcover {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--lore-border);
+  background: linear-gradient(135deg, #030710 0%, #0a1a2e 60%, #030710 100%);
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flipbook-backcover-face {
+  text-align: center;
+  padding: 2rem;
+}
+.flipbook-backcover-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.5);
+}
+.flipbook-backcover-title {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 5.5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+/* ── Controls ───────────────────────────────────────────── */
+.flipbook-controls {
+  margin-top: 2rem;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  flex-wrap: wrap;
+}
+.flipbook-btn {
+  min-width: 44px;
+  height: 38px;
+  padding: 0 14px;
+  background: rgba(2, 5, 12, 0.7);
+  border: 1px solid var(--lore-border-strong);
+  border-radius: 4px;
+  color: var(--lore-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.flipbook-btn:hover {
+  background: rgba(77, 217, 255, 0.1);
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.5);
+}
+.flipbook-btn-secondary { color: var(--lore-text-dim); }
+.flipbook-counter {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--lore-text);
+  padding: 0 16px;
+  min-width: 160px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.flipbook-counter-num {
+  color: var(--lore-cyan);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.4);
+}
+.flipbook-counter-of { color: var(--lore-text-dim); }
+.flipbook-counter-cover {
+  color: var(--lore-cyan);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.4);
+}
+
+@media (max-width: 600px) {
+  .flipbook-book { width: 88vw; max-height: 72vh; }
+  .flipbook-chapter-title { padding: 1rem 1.25rem 1.25rem; }
+  .flipbook-chapter-blurb { font-size: 0.85rem; }
+}
+
 /* ═══════════ Comic cover (opening sequence) ═══════════ */
 
 .comic-cover-scene {

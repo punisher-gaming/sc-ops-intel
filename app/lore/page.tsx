@@ -8,7 +8,7 @@ import {
   SpaceScene,
 } from "@/components/LoreArt";
 import type { Accent } from "@/components/LoreArt";
-import { ComicCover } from "@/components/ComicCover";
+import { ChronicleFlipBook } from "@/components/ChronicleFlipBook";
 import { LoreImageEl } from "@/components/LoreImage";
 import type { LoreChapter } from "@/lib/lore-data";
 
@@ -18,8 +18,8 @@ import type { LoreChapter } from "@/lib/lore-data";
 export default function LoreHome() {
   return (
     <>
-      {/* ── Comic-book cover with auto-flipping corner ── */}
-      <ComicCover />
+      {/* ── Chronological flip book — pages turn through every chapter ── */}
+      <ChronicleFlipBook />
 
       {/* Intro blurb below the cover to bridge to the table of contents */}
       <section
