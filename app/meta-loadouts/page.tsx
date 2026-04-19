@@ -157,6 +157,27 @@ function MetaLoadouts() {
 
       {!err && weapons === null && <Loading />}
 
+      {weapons && (
+        <div
+          className="label-mini"
+          style={{
+            marginBottom: 8,
+            color: "var(--text-dim)",
+            textTransform: "none",
+            letterSpacing: 0,
+            fontSize: "0.75rem",
+          }}
+        >
+          📊 Catalog: <strong>{weapons.length}</strong> ship-mount weapons,{" "}
+          <strong>{weapons.filter((w) => w.dps != null).length}</strong> with full DPS math.{" "}
+          Size buckets:{" "}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9]
+            .map((s) => `S${s}: ${weapons.filter((w) => w.size === s).length}`)
+            .filter((str) => !str.endsWith(": 0"))
+            .join(" · ")}
+        </div>
+      )}
+
       {loadout && <LoadoutCard result={loadout} />}
 
       <p style={{ marginTop: "2rem", fontSize: "0.72rem", color: "var(--text-dim)", lineHeight: 1.6 }}>
@@ -235,7 +256,13 @@ function SlotRow({ slot }: { slot: LoadoutResult["slots"][number] }) {
               {weapon.damageType !== "unknown" ? `${weapon.damageType} · ` : ""}
               {weapon.dps != null ? `${Math.round(weapon.dps)} DPS · ` : ""}
               {weapon.alpha != null ? `${Math.round(weapon.alpha)} alpha` : ""}
+              {weapon.dps == null && weapon.alpha == null ? "stats unavailable" : ""}
             </div>
+            {reason && (
+              <div style={{ marginTop: 3, fontSize: "0.7rem", color: "var(--warn)" }}>
+                {reason}
+              </div>
+            )}
           </>
         ) : (
           <div style={{ fontSize: "0.85rem", color: "var(--text-dim)", fontStyle: "italic" }}>

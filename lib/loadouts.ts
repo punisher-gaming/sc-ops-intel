@@ -21,9 +21,10 @@
 import type { Item } from "./items";
 import { createClient } from "./supabase/client";
 
-// Fetch all ship-mount weapons with their source_data jsonb. Filters by
-// size 1-9 (ship weapon range) and excludes personal/handheld weapons.
-// Returns the slim list ready to feed into extractWeaponStats().
+// Fetch all ship-mount weapons with their source_data jsonb. Trusts
+// the size column (1-9 = ship weapon range; personal weapons sit at
+// size 0 or null so they're naturally excluded). Returns the slim
+// list ready to feed into extractWeaponStats().
 export async function fetchShipWeaponCandidates(): Promise<Item[]> {
   const client = createClient();
   const PAGE = 1000;
@@ -43,11 +44,11 @@ export async function fetchShipWeaponCandidates(): Promise<Item[]> {
     out.push(...rows);
     if (rows.length < PAGE) break;
   }
-  // Filter to ship-mount weapons. Personal weapons (pistols, rifles)
-  // sometimes share the size column but use type=WeaponPersonal.
+  // Personal/handheld weapons sometimes leak in with size > 0. Drop
+  // anything explicitly typed as personal.
   return out.filter((w) => {
     const t = (w.type ?? "").toLowerCase();
-    return t.includes("weaponship") || t.includes("weapongun") || t === "turret" || t.includes("mounted");
+    return !t.includes("personal");
   });
 }
 
@@ -239,17 +240,6 @@ export interface WeaponStats {
   mountKind: "fixed" | "gimbal" | "turret" | "any";
 }
 
-// Defensive accessor — walks a path through unknown jsonb without
-// throwing. Returns null if anything along the way is missing.
-function get(obj: unknown, ...path: (string | number)[]): unknown {
-  let cur: unknown = obj;
-  for (const k of path) {
-    if (cur == null || typeof cur !== "object") return null;
-    cur = (cur as Record<string | number, unknown>)[k];
-  }
-  return cur ?? null;
-}
-
 function num(x: unknown): number | null {
   if (typeof x === "number" && Number.isFinite(x)) return x;
   if (typeof x === "string") {
@@ -259,44 +249,95 @@ function num(x: unknown): number | null {
   return null;
 }
 
-/** Defensive extraction of combat stats from a weapon row's source_data.
- *  scunpacked's schema varies wildly between weapon types — we try the
- *  common paths and fall back to null when nothing matches. */
-export function extractWeaponStats(w: Item): WeaponStats {
-  const sd = w.source_data ?? {};
-  // Many ship weapons sit at sd.stdItem or sd.SCItem depending on the
-  // dump version. Walk both.
-  const std = (get(sd, "stdItem") ?? sd) as Record<string, unknown>;
+/** Recursively search the entire source_data tree for keys matching a
+ *  predicate. scunpacked's schema for ship weapons varies between
+ *  weapon kinds and dump versions — rather than trying to hardcode
+ *  every path, we walk the tree once and pull the first numeric value
+ *  whose key matches. Stops at first hit (depth-first). */
+function findFirstNumber(
+  root: unknown,
+  matchKey: (key: string) => boolean,
+  maxDepth = 10,
+): number | null {
+  if (root == null || maxDepth < 0) return null;
+  if (Array.isArray(root)) {
+    for (const v of root) {
+      const r = findFirstNumber(v, matchKey, maxDepth - 1);
+      if (r != null) return r;
+    }
+    return null;
+  }
+  if (typeof root !== "object") return null;
+  for (const [k, v] of Object.entries(root as Record<string, unknown>)) {
+    if (matchKey(k)) {
+      const n = num(v);
+      if (n != null && n > 0) return n;
+    }
+  }
+  for (const v of Object.values(root as Record<string, unknown>)) {
+    const r = findFirstNumber(v, matchKey, maxDepth - 1);
+    if (r != null) return r;
+  }
+  return null;
+}
 
-  // Damage info — typical path:
-  //   stdItem.SCItem.WeaponAction.fireActions[0].launchParams.SCAmmo.damageInfo
-  const fireAction =
-    get(std, "SCItem", "WeaponAction", "fireActions", 0) ??
-    get(std, "WeaponAction", "fireActions", 0) ??
-    get(std, "WeaponBase", "WeaponAction", "fireActions", 0);
-  const damageInfo =
-    get(fireAction, "launchParams", "SCAmmo", "damageInfo") ??
-    get(fireAction, "damageInfo");
-  const dmgPhys = num(get(damageInfo, "damagePhysical")) ?? 0;
-  const dmgEnergy = num(get(damageInfo, "damageEnergy")) ?? 0;
-  const dmgDist = num(get(damageInfo, "damageDistortion")) ?? 0;
-  const dmgThermal = num(get(damageInfo, "damageThermal")) ?? 0;
-  const dmgBio = num(get(damageInfo, "damageBiochemical")) ?? 0;
-  const totalDamage = dmgPhys + dmgEnergy + dmgDist + dmgThermal + dmgBio;
+/** Sum of all matching numeric keys at any depth — for damage that's
+ *  split across multiple subtypes (physical + energy + thermal etc). */
+function sumAllNumbers(
+  root: unknown,
+  matchKey: (key: string) => boolean,
+  maxDepth = 10,
+): number {
+  let total = 0;
+  function walk(node: unknown, depth: number) {
+    if (node == null || depth < 0) return;
+    if (Array.isArray(node)) {
+      for (const v of node) walk(v, depth - 1);
+      return;
+    }
+    if (typeof node !== "object") return;
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      if (matchKey(k)) {
+        const n = num(v);
+        if (n != null && n > 0) total += n;
+      } else {
+        walk(v, depth - 1);
+      }
+    }
+  }
+  walk(root, maxDepth);
+  return total;
+}
+
+/** Extract combat stats from a weapon's source_data jsonb.
+ *  Strategy: deep-search for known field names — scunpacked's schema
+ *  varies enough between weapon kinds that hardcoded paths fail. */
+export function extractWeaponStats(w: Item): WeaponStats {
+  const sd: unknown = w.source_data ?? {};
+
+  // Damage — sum any key matching damage*Physical/Energy/Distortion/etc.
+  // We avoid summing keys named "damage" by itself (too vague) and
+  // restrict to the damage-by-type breakdown.
+  const dmgPhys = sumAllNumbers(sd, (k) => /^damage(Physical|Kinetic)$/i.test(k));
+  const dmgEnergy = sumAllNumbers(sd, (k) => /^damage(Energy|Thermal)$/i.test(k));
+  const dmgDist = sumAllNumbers(sd, (k) => /^damageDistortion$/i.test(k));
+  const dmgBio = sumAllNumbers(sd, (k) => /^damageBiochemical$/i.test(k));
+  const totalDamage = dmgPhys + dmgEnergy + dmgDist + dmgBio;
   const alpha = totalDamage > 0 ? totalDamage : null;
 
-  // Fire rate — rounds per minute.
-  const fireRate =
-    num(get(fireAction, "fireRate")) ??
-    num(get(fireAction, "rateOfFire")) ??
-    num(get(std, "SCItem", "WeaponAction", "fireRate"));
+  // Fire rate — roundsPerMinute or fireRate (in scunpacked it's usually
+  // already in RPM). Some schemas use "rateOfFire" or store it in Hz.
+  let fireRate =
+    findFirstNumber(sd, (k) => /^(roundsPerMinute|fireRate|rateOfFire)$/i.test(k));
+  // If the value looks like Hz (well below typical RPM range), convert.
+  if (fireRate != null && fireRate < 50) fireRate = fireRate * 60;
 
   const dps = alpha != null && fireRate != null ? (alpha * fireRate) / 60 : null;
 
-  // Projectile speed
-  const projectileSpeed =
-    num(get(fireAction, "launchParams", "SCAmmo", "speed")) ??
-    num(get(fireAction, "launchParams", "speed"));
+  // Projectile / muzzle speed
+  const projectileSpeed = findFirstNumber(sd, (k) =>
+    /^(speed|muzzleVelocity|projectileVelocity)$/i.test(k),
+  );
 
   // Damage type — pick the dominant subtype.
   let damageType: WeaponStats["damageType"] = "unknown";
@@ -306,10 +347,18 @@ export function extractWeaponStats(w: Item): WeaponStats {
     else if (dmgEnergy === max) damageType = "energy";
     else damageType = "distortion";
   } else if (typeof w.classification === "string") {
-    // Fallback: classification string sometimes carries a hint.
     const c = w.classification.toLowerCase();
     if (c.includes("ballistic") || c.includes("kinetic")) damageType = "ballistic";
     else if (c.includes("energy") || c.includes("laser") || c.includes("plasma")) damageType = "energy";
+    else if (c.includes("distortion")) damageType = "distortion";
+  }
+  // Belt-and-suspenders: name often carries the type.
+  if (damageType === "unknown") {
+    const n = (w.name ?? "").toLowerCase();
+    if (/(repeater|cannon).*ballistic|gatling|gallant|tarantula|deadbolt|panther/.test(n))
+      damageType = "ballistic";
+    else if (/laser|plasma|distortion|disruptor/.test(n))
+      damageType = "energy";
   }
 
   // Mount kind — scunpacked sometimes puts this in tags.
@@ -319,9 +368,18 @@ export function extractWeaponStats(w: Item): WeaponStats {
   else if (tags.includes("gimbal")) mountKind = "gimbal";
   else if (tags.includes("turret")) mountKind = "turret";
 
+  // Size — prefer the column, fall back to source_data.stdItem.Size
+  // since the column was projected at ingest time and may be null for
+  // some rows.
+  let size = w.size ?? 0;
+  if (size === 0) {
+    const sdSize = findFirstNumber(sd, (k) => k === "Size", 4);
+    if (sdSize != null) size = Math.round(sdSize);
+  }
+
   return {
     name: w.name,
-    size: w.size ?? 0,
+    size,
     manufacturer: w.manufacturer,
     damageType,
     alpha,
@@ -418,26 +476,43 @@ export interface LoadoutResult {
 }
 
 /** Pick the best-scoring weapon for each hardpoint per the profile.
- *  Filters: weapon size must equal hardpoint size. (Up-sizing or down-
- *  sizing is in the game but rare — keep v1 strict.) */
+ *  Strict-size match. Profile decides the score; if no weapon scored
+ *  (e.g. all weapons missing DPS data), fall back to picking ANY
+ *  size-matched weapon so the slot still shows something useful. */
 export function computeLoadout(
   ship: ShipLoadoutDef,
   profile: ProfileDef,
   weapons: WeaponStats[],
 ): LoadoutResult {
   const slots: LoadoutSlot[] = ship.hardpoints.map((hp) => {
-    const candidates = weapons.filter((w) => {
+    // Step 1: strict size match + class restriction (if any).
+    const sizeMatched = weapons.filter((w) => {
       if (w.size !== hp.size) return false;
       if (hp.weaponClass && w.damageType !== hp.weaponClass) return false;
-      // Profile-disqualified weapons (e.g. ballistic-only excluding energy
-      // weapons) score -Infinity and won't be picked.
-      return Number.isFinite(profile.score(w));
+      return true;
     });
-    if (candidates.length === 0) {
-      return { hardpoint: hp, weapon: null, reason: `No size-${hp.size} weapon matches this profile` };
+    if (sizeMatched.length === 0) {
+      return { hardpoint: hp, weapon: null, reason: `No size-${hp.size} weapon in catalog` };
     }
-    candidates.sort((a, b) => profile.score(b) - profile.score(a));
-    return { hardpoint: hp, weapon: candidates[0] };
+    // Step 2: rank by profile score; finite scores win.
+    const scored = sizeMatched
+      .map((w) => ({ w, s: profile.score(w) }))
+      .filter((x) => Number.isFinite(x.s));
+    if (scored.length === 0) {
+      // Fallback: profile disqualified everything (e.g. Ballistic-Only on
+      // a slot where we have no ballistic stats yet). Pick by alpha or
+      // arbitrary first match so the user sees a candidate.
+      const fallback = sizeMatched
+        .slice()
+        .sort((a, b) => (b.alpha ?? 0) - (a.alpha ?? 0))[0];
+      return {
+        hardpoint: hp,
+        weapon: fallback,
+        reason: "Profile match weak — showing best size match (stats may be incomplete)",
+      };
+    }
+    scored.sort((a, b) => b.s - a.s);
+    return { hardpoint: hp, weapon: scored[0].w };
   });
 
   const filled = slots.filter((s) => s.weapon).length;
