@@ -26,7 +26,6 @@ function isDropdown(n: NavItem): n is DropdownItem {
 // the nav from sprawling.
 const PUBLIC_LINKS: NavItem[] = [
   { href: "/ask", label: "Ask" },
-  { href: "/map", label: "Map" },
   { href: "/blueprints", label: "Blueprints" },
   { href: "/resources", label: "Resources" },
   { href: "/crafting", label: "Crafting" },

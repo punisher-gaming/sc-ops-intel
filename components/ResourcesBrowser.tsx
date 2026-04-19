@@ -20,6 +20,7 @@ import {
   dismantleReturns,
   displayName as bpName,
   fetchBlueprintsThatYield,
+  refinedMaterialFromResourceName,
   prettyType as prettyBpType,
   type Blueprint,
 } from "@/lib/blueprints";
@@ -294,7 +295,10 @@ function ResourceDetail({ id }: { id: string }) {
         </p>
       </div>
 
-      <UsedInBlueprints resourceUuid={resource.id} resourceName={displayName(resource)} />
+      <UsedInBlueprints
+        material={refinedMaterialFromResourceName(resource.key) ?? refinedMaterialFromResourceName(resource.name) ?? displayName(resource)}
+        resourceName={displayName(resource)}
+      />
 
       <IntelPanel entityType="resource" entityId={resource.id} entityName={displayName(resource)} />
 
@@ -344,20 +348,20 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function UsedInBlueprints({
-  resourceUuid,
+  material,
   resourceName,
 }: {
-  resourceUuid: string;
+  material: string;
   resourceName: string;
 }) {
   const [rows, setRows] = useState<Blueprint[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchBlueprintsThatYield(resourceUuid)
+    fetchBlueprintsThatYield(material)
       .then(setRows)
       .catch((e) => setErr(e.message ?? String(e)));
-  }, [resourceUuid]);
+  }, [material]);
 
   return (
     <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
@@ -383,7 +387,7 @@ function UsedInBlueprints({
       {rows && rows.length > 0 && (
         <ul style={{ display: "flex", flexDirection: "column", gap: 6, listStyle: "none", maxHeight: 360, overflowY: "auto" }}>
           {rows.map((b) => {
-            const yieldEntry = dismantleReturns(b).find((r) => r.UUID === resourceUuid);
+            const yieldEntry = dismantleReturns(b).find((r) => r.Name === material);
             return (
               <li
                 key={b.id}

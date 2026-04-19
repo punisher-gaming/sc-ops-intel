@@ -14,6 +14,8 @@ import {
   fetchBlueprintMissionFamilies,
   fetchBlueprints,
   fetchBlueprintSources,
+  fetchBlueprintsThatYield,
+  fetchKnownDismantleMaterials,
   fetchOwnedBlueprintIds,
   formatCraftTime,
   markBlueprintOwned,
@@ -57,6 +59,15 @@ function BlueprintList() {
   const [selectedBodyParts, setSelectedBodyParts] = useState<Set<string>>(new Set());
   const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
   const [grade, setGrade] = useState("");
+  // Material-yield filter: pick a refined material (Aluminum, Tungsten, …)
+  // and the list narrows to blueprints whose dismantle returns it. We load
+  // the materials catalog once on mount, and on selection fetch the matching
+  // blueprint IDs (server-side jsonb containment) into a Set we intersect
+  // with the in-memory row list.
+  const [materials, setMaterials] = useState<Array<{ name: string; count: number }>>([]);
+  const [yieldsMaterial, setYieldsMaterial] = useState("");
+  const [yieldsMatchIds, setYieldsMatchIds] = useState<Set<string> | null>(null);
+  const [yieldsLoading, setYieldsLoading] = useState(false);
   const [onlyObtainable, setOnlyObtainable] = useState(false);
   const [hideOwned, setHideOwned] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -73,7 +84,23 @@ function BlueprintList() {
     fetchBlueprintMissionFamilies()
       .then(setMissionFamilies)
       .catch(() => {});
+    fetchKnownDismantleMaterials()
+      .then((ms) => setMaterials(ms.map((m) => ({ name: m.name, count: m.count }))))
+      .catch(() => {});
   }, []);
+
+  // When the material filter changes, re-fetch the matching blueprint IDs.
+  useEffect(() => {
+    if (!yieldsMaterial) {
+      setYieldsMatchIds(null);
+      return;
+    }
+    setYieldsLoading(true);
+    fetchBlueprintsThatYield(yieldsMaterial)
+      .then((bps) => setYieldsMatchIds(new Set(bps.map((b) => b.id))))
+      .catch(() => setYieldsMatchIds(new Set()))
+      .finally(() => setYieldsLoading(false));
+  }, [yieldsMaterial]);
 
   useEffect(() => {
     if (!user) {
@@ -141,6 +168,7 @@ function BlueprintList() {
         if (!part || !selectedBodyParts.has(part)) return false;
       }
       if (grade && r.output_grade !== grade) return false;
+      if (yieldsMatchIds && !yieldsMatchIds.has(r.id)) return false;
       if (hideOwned && owned.has(r.id)) return false;
       if (onlyObtainable) {
         const hasSource = idsWithSources.has(r.id);
@@ -183,11 +211,11 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMatchIds, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
-  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMaterial, onlyObtainable, hideOwned, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -228,6 +256,27 @@ function BlueprintList() {
             </option>
           ))}
         </select>
+        {/* Yields-this-material filter — derived from blueprint Dismantle.Returns.
+            Counts in parens are blueprints known to yield each material. */}
+        <select
+          value={yieldsMaterial}
+          onChange={(e) => setYieldsMaterial(e.target.value)}
+          className="select"
+          style={{ width: 220 }}
+          title="Show only blueprints that dismantle into this ore/material"
+        >
+          <option value="">Yields any material</option>
+          {materials.map((m) => (
+            <option key={m.name} value={m.name}>
+              Yields {m.name} ({m.count})
+            </option>
+          ))}
+        </select>
+        {yieldsLoading && (
+          <span style={{ alignSelf: "center", color: "var(--text-dim)", fontSize: "0.8rem" }}>
+            Searching…
+          </span>
+        )}
       </div>
 
       {/* Type switches (multi-select) */}

@@ -11,6 +11,9 @@ crons = ["0 3 * * *"]
 [vars]
 SUPABASE_URL = "https://rtdjkrrectaubywhhnxk.supabase.co"
 SC_WIKI_BASE = "https://api.star-citizen.wiki/api/v3"
+# Fallback only — the worker auto-detects patch version from the latest
+# StarCitizenWiki/scunpacked-data commit on every run. This value is used
+# only if GitHub is unreachable.
 CURRENT_GAME_VERSION = "4.7.1-LIVE"
 
 # Secrets set via: npx wrangler secret put SUPABASE_SECRET_KEY

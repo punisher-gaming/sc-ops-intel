@@ -42,7 +42,19 @@ if (!SUPABASE_URL || !SUPABASE_SECRET) {
 }
 
 const SOURCE = "https://scunpacked.com/api/shops.json";
-const GAME_VERSION = env.CURRENT_GAME_VERSION || "4.7.1";
+async function detectPatch() {
+  try {
+    const res = await fetch("https://sc-ops-intel-ingest.clint-150.workers.dev/patch");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await res.json();
+    return body.using || body.detected || env.CURRENT_GAME_VERSION || "4.7.1";
+  } catch (e) {
+    console.warn(`[ingest-shops] patch auto-detect failed (${e.message}); using fallback`);
+    return env.CURRENT_GAME_VERSION || "4.7.1";
+  }
+}
+const GAME_VERSION = await detectPatch();
+console.log(`[ingest-shops] patch ${GAME_VERSION}`);
 
 async function main() {
   console.log(`[ingest-shops] fetching ${SOURCE}`);

@@ -248,15 +248,21 @@ export async function unmarkBlueprintOwned(userId: string, blueprintId: string):
 }
 
 // Reverse lookup: which blueprints, when dismantled, yield the given
-// resource? This is our best proxy for "what blueprints use this resource"
-// — the game data doesn't expose direct crafting requirements per resource
-// (slots are abstract groups), but Dismantle.Returns is canonical.
+// refined material? This is our best proxy for "what blueprints use this
+// resource" — game data doesn't expose direct crafting requirements per
+// resource (slots are abstract groups), but Dismantle.Returns is canonical.
 //
-// Uses Postgres jsonb containment (@>) which scans 1k blueprints per call.
-// Without an index it's still sub-100ms; we'll add a GIN index later if it
-// shows up in latency.
+// IMPORTANT: matching is by NAME, not UUID. The `resources` table holds
+// MineableRock_* entries (e.g. UUID 1c949ce0... for Aluminum-bearing rock).
+// Blueprint Dismantle.Returns yield REFINED materials with their own UUIDs
+// (e.g. Aluminum = 48c7080a...). Different namespace. Names overlap reliably
+// (the rock name ends in "_Aluminum", the refined material name is "Aluminum"),
+// so a name-based containment query works for both.
+//
+// Uses Postgres jsonb containment (@>) which scans ~1k blueprints per call.
+// Sub-100ms without an index; we'll add GIN later if it shows up in latency.
 export async function fetchBlueprintsThatYield(
-  resourceUuid: string,
+  materialName: string,
 ): Promise<Blueprint[]> {
   const client = createClient();
   const { data, error } = await client
@@ -265,11 +271,57 @@ export async function fetchBlueprintsThatYield(
     .filter(
       "source_data->Dismantle->Returns",
       "cs",
-      JSON.stringify([{ UUID: resourceUuid }]),
+      JSON.stringify([{ Name: materialName }]),
     )
-    .limit(100);
+    .limit(200);
   if (error) throw error;
   return (data ?? []) as unknown as Blueprint[];
+}
+
+// Derive the refined-material name from a resource row's name/key.
+// "MineableRock_AsteroidCommon_Aluminum" → "Aluminum".
+// Falls back to the input itself if no underscore convention applies.
+export function refinedMaterialFromResourceName(s: string | null | undefined): string | null {
+  if (!s) return null;
+  const parts = s.split("_");
+  if (parts.length === 0) return s;
+  // Last segment is the material in scunpacked's naming convention.
+  return parts[parts.length - 1] || s;
+}
+
+// All distinct refined-material names known across the blueprint catalog,
+// sorted by frequency (most-yielded first) then alphabetically. Used to
+// power the "yields material X" filter on the /blueprints page.
+export async function fetchKnownDismantleMaterials(): Promise<
+  Array<{ name: string; uuid: string; count: number }>
+> {
+  const client = createClient();
+  const PAGE = 1000;
+  const counts = new Map<string, { uuid: string; count: number }>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("blueprints")
+      .select("source_data")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{ source_data: unknown }>;
+    for (const r of rows) {
+      const dm = (r.source_data as { Dismantle?: { Returns?: DismantleReturn[] } } | null)
+        ?.Dismantle;
+      const returns = dm?.Returns;
+      if (!Array.isArray(returns)) continue;
+      for (const x of returns) {
+        if (!x?.Name || !x?.UUID) continue;
+        const cur = counts.get(x.Name);
+        if (cur) cur.count += 1;
+        else counts.set(x.Name, { uuid: x.UUID, count: 1 });
+      }
+    }
+    if (rows.length < PAGE) break;
+  }
+  return Array.from(counts.entries())
+    .map(([name, v]) => ({ name, uuid: v.uuid, count: v.count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 export function uniqueValues<T extends keyof Blueprint>(

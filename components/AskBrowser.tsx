@@ -12,6 +12,7 @@ const EXAMPLES = [
   "Sniper rifle",
   "Polaris",
   "How to craft FS-9 LMG",
+  "What blueprints use Torite ore",
 ];
 
 export function AskBrowser() {
@@ -128,6 +129,7 @@ function AnswerView({ answer }: { answer: Answer }) {
       case "sell":
         return ["commodities", "blueprints", "resources", "ships"] as const;
       case "recipe":
+      case "uses":
         return ["blueprints", "resources", "ships", "commodities"] as const;
       case "ship":
         return ["ships", "blueprints", "resources", "commodities"] as const;

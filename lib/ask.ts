@@ -6,8 +6,14 @@
 // matches so the UI can hide them.
 
 import { createClient } from "./supabase/client";
+import {
+  fetchBlueprintsThatYield,
+  displayName as bpDisplayName,
+  dismantleReturns,
+  refinedMaterialFromResourceName,
+} from "./blueprints";
 
-export type Intent = "mine" | "buy" | "sell" | "recipe" | "ship" | "general";
+export type Intent = "mine" | "buy" | "sell" | "recipe" | "uses" | "ship" | "general";
 
 export type Hit = {
   id: string;
@@ -61,6 +67,9 @@ const STOP_WORDS = new Set([
 ]);
 
 const INTENT_RX: Array<{ rx: RegExp; intent: Intent }> = [
+  // "uses" comes BEFORE "recipe" so "what blueprints USE titanium" wins over
+  // "what blueprints make titanium". Also catches "what is X used for".
+  { rx: /\b(uses?|used|need|needs|requires?|consume|consumes)\b/i, intent: "uses" },
   { rx: /\b(mine|mining|harvest|harvesting|extract|extraction|gather)\b/i, intent: "mine" },
   { rx: /\b(buy|buying|purchase|where to buy)\b/i, intent: "buy" },
   { rx: /\b(sell|selling|where to sell)\b/i, intent: "sell" },
@@ -116,11 +125,25 @@ export async function ask(raw: string): Promise<Answer> {
   // Run all four searches in parallel; intent affects ordering of detail
   // (e.g. resource hits get "best spot" detail when intent is mine).
   const [resources, blueprints, commodities, ships] = await Promise.all([
-    intent === "mine" || intent === "general" ? findResources(term, true) : findResources(term, false),
-    intent === "recipe" || intent === "general" ? findBlueprints(term) : Promise.resolve([] as Hit[]),
+    // Always find resources — needed for the "what uses X" reverse lookup
+    // even when the user's wording leaned toward recipe/uses.
+    findResources(term, intent === "mine" || intent === "general"),
+    intent === "recipe" || intent === "uses" || intent === "general" ? findBlueprints(term) : Promise.resolve([] as Hit[]),
     intent === "buy" || intent === "sell" || intent === "general" ? findCommodities(term, intent) : Promise.resolve([] as Hit[]),
     intent === "ship" || intent === "general" ? findShips(term) : Promise.resolve([] as Hit[]),
   ]);
+
+  // Reverse lookup: if we matched any resource by name, find blueprints that
+  // dismantle into it. Triggers for "uses" / "recipe" intents and also for
+  // bare "general" queries like "Torite ore" — useful for both phrasings.
+  // Only runs against the TOP resource match to keep the query bounded.
+  let bpFromResource: Hit[] = [];
+  const wantReverse = intent === "uses" || intent === "recipe" || intent === "general";
+  if (wantReverse && resources.length > 0) {
+    const top = resources[0];
+    const material = refinedMaterialFromResourceName(top.name) ?? top.name;
+    bpFromResource = await findBlueprintsYielding(material, top.name);
+  }
 
   // For non-general intents, we still want to surface a cross-section if
   // the primary search comes up empty (e.g. user typed "buy fs-9" — there's
@@ -141,6 +164,15 @@ export async function ask(raw: string): Promise<Answer> {
     cm = await findCommodities(term, "buy");
   }
 
+  // Merge reverse-lookup blueprints with name-match blueprints, dedup by id.
+  // Reverse hits go FIRST when the intent is "uses" since that's the explicit
+  // ask; otherwise name matches lead.
+  if (bpFromResource.length > 0) {
+    const seen = new Set(bp.map((h) => h.id));
+    const extra = bpFromResource.filter((h) => !seen.has(h.id));
+    bp = intent === "uses" ? [...bpFromResource, ...bp.filter((h) => !bpFromResource.some((r) => r.id === h.id))] : [...bp, ...extra];
+  }
+
   return {
     query: input,
     intent,
@@ -150,6 +182,31 @@ export async function ask(raw: string): Promise<Answer> {
     ships: sh,
     total: res.length + bp.length + cm.length + sh.length,
   };
+}
+
+// Reverse lookup: blueprints whose dismantle yields the given resource.
+// We surface them as blueprint hits with "Dismantles into <resource>" detail
+// so the user immediately sees why each row is here.
+async function findBlueprintsYielding(material: string, resourceName: string): Promise<Hit[]> {
+  try {
+    const bps = await fetchBlueprintsThatYield(material);
+    return bps.slice(0, 8).map((b) => {
+      const yieldEntry = dismantleReturns(b).find((r) => r.Name === material);
+      const qty = yieldEntry?.QuantityScu;
+      const qtyStr = typeof qty === "number" ? ` (${qty} SCU)` : "";
+      return {
+        id: b.id,
+        name: bpDisplayName(b),
+        subtitle: [b.output_item_type, b.output_item_subtype, b.output_grade && `G${b.output_grade}`]
+          .filter(Boolean)
+          .join(" · "),
+        href: `/blueprints?id=${encodeURIComponent(b.id)}`,
+        detail: `Dismantles into ${resourceName}${qtyStr}`,
+      };
+    });
+  } catch {
+    return [];
+  }
 }
 
 async function findResources(term: string, withTopSpawn: boolean): Promise<Hit[]> {
