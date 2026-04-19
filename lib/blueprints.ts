@@ -166,27 +166,86 @@ export async function fetchBlueprintMissionFamilies(): Promise<{
   return { byBlueprint, families };
 }
 
-// Star system inference for blueprint sources. The catalog doesn't have
-// a clean "system" column — we infer it by scanning the source_name +
-// source_key strings for known system keywords. A blueprint can be
-// reachable in multiple systems (e.g. some content drops in both
-// Stanton + Pyro variants of an event), so we return a Set per blueprint.
+// Star system inference for blueprint sources. The catalog has no
+// system column, so we infer it from source_name / source_key by
+// keyword-matching known landmarks. The system name itself is rarely
+// in the string ("Stanton" / "Pyro" appear in <20% of source rows) —
+// most rows reference shop names, mission keys, or planet/moon
+// landmarks that uniquely identify a system. Hence the long keyword
+// lists below.
 //
-// Add a system here once it goes live in-game (Nyx is planned, not yet
-// shipped — keeping it in the list so the filter is forward-compatible).
+// A blueprint can map to multiple systems if its sources span them
+// (some event content drops in both Stanton + Pyro variants).
 const KNOWN_SYSTEMS = ["Stanton", "Pyro", "Nyx", "Castra", "Magnus"] as const;
 export type SystemName = (typeof KNOWN_SYSTEMS)[number];
+
+// Stanton landmarks: planets, moons, landing zones, station names, and
+// system-exclusive corp prefixes. All matched as case-insensitive
+// substrings against the combined source text.
+const STANTON_KEYWORDS = [
+  // System / abbreviations
+  "stanton", " stn ", "_stn_", "missionreward_stn", "_stn1", "_stn2",
+  // Planets
+  "hurston", "crusader", "arccorp", "microtech",
+  // Moons
+  "arial", "aberdeen", "magda", "ita",
+  "cellin", "daymar", "yela",
+  "lyria", "wala",
+  "calliope", "clio", "euterpe",
+  // Landing zones / cities
+  "lorville", "area18", "area 18", "orison", "new babbage", "new-babbage", "babbage",
+  // Stations
+  "port olisar", "port tressler", "everus harbor", "baijini point",
+  "seraphim station", "grim hex", "grimhex",
+  // Stanton-exclusive corps / prefixes
+  "hdms-", "hdms_", "hurston dynamics",
+  "shubin", "smca", "smcb", "smcc",
+  "rayari", "covalex", "greycat", "klescher",
+  // Frequent outpost/POI names
+  "bountiful harvest", "hickes research", "tram & myers", "tram and myers",
+  "samson & son", "samson and son", "kudre ore", "loveridge",
+  "bud's growery", "buds growery", "humboldt mines", "deakins research",
+  "benson mining", "gallete family",
+  "stanton gateway",
+] as const;
+
+// Pyro landmarks: planets, named outposts, factions, Pyro-exclusive
+// gateway stations.
+const PYRO_KEYWORDS = [
+  // System / abbreviations
+  "pyro", " pyr ", "_pyr_", "missionreward_pyr", "pyr1", "pyr2",
+  // Planets / moons
+  "monox", "bloom", "terminus", "pyro i", "pyro_i", "pyro ii", "pyro iii",
+  "pyro iv", "pyro v", "pyro vi",
+  // Major stations / landing zones
+  "ruin station", "ruin_station", "patch city", "endgame", "rustville",
+  "checkmate station", "checkmate_station", "rod's fuel", "rods fuel",
+  "pyro gateway",
+  // Pyro-exclusive factions
+  "headhunters", "frontier fighters", "citizens for pyro",
+  // Common Pyro POI names
+  "dudley & daughters", "ashburn industries",
+] as const;
+
+const NYX_KEYWORDS = ["nyx", "delamar", "levski"] as const;
+const CASTRA_KEYWORDS = ["castra"] as const;
+const MAGNUS_KEYWORDS = ["magnus", "borea", "mactans"] as const;
+
+function matchesAny(blob: string, keywords: readonly string[]): boolean {
+  for (const k of keywords) {
+    if (blob.includes(k)) return true;
+  }
+  return false;
+}
 
 function systemsFromText(...parts: Array<string | null | undefined>): Set<SystemName> {
   const blob = parts.filter(Boolean).join(" ").toLowerCase();
   const out = new Set<SystemName>();
-  for (const sys of KNOWN_SYSTEMS) {
-    if (blob.includes(sys.toLowerCase())) out.add(sys);
-  }
-  // Special-case: scunpacked sometimes uses "stn"/"pyr" abbreviations
-  // in source_key fragments. Catch those too.
-  if (/\bstn[_\s]/i.test(blob) || /missionreward_stn/i.test(blob)) out.add("Stanton");
-  if (/\bpyr[_\s]/i.test(blob) || /missionreward_pyr/i.test(blob)) out.add("Pyro");
+  if (matchesAny(blob, STANTON_KEYWORDS)) out.add("Stanton");
+  if (matchesAny(blob, PYRO_KEYWORDS)) out.add("Pyro");
+  if (matchesAny(blob, NYX_KEYWORDS)) out.add("Nyx");
+  if (matchesAny(blob, CASTRA_KEYWORDS)) out.add("Castra");
+  if (matchesAny(blob, MAGNUS_KEYWORDS)) out.add("Magnus");
   return out;
 }
 

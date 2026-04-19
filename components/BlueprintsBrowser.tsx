@@ -299,14 +299,16 @@ function BlueprintList() {
         </select>
         {/* Star system filter — inferred from source_name + source_key
             keywords on blueprint_sources rows. "All systems" is the
-            default; picking one hides blueprints with no system tag. */}
+            default; picking one hides blueprints with no system tag.
+            Some sources (raw UUIDs, opaque mission keys) don't expose
+            a landmark we can match — those blueprints fall through. */}
         {systems.systems.length > 0 && (
           <select
             value={selectedSystem}
             onChange={(e) => setSelectedSystem(e.target.value as SystemName | "")}
             className="select"
             style={{ width: 160 }}
-            title="Show only blueprints obtainable in this star system"
+            title="Show only blueprints obtainable in this star system. Inferred from source landmarks; some opaque sources may not be classified."
           >
             <option value="">All systems</option>
             {systems.systems.map((s) => (
