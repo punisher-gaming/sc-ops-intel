@@ -20,6 +20,7 @@ import {
   UEEInsignia,
   type Accent,
 } from "@/components/LoreArt";
+import { LoreImageEl } from "@/components/LoreImage";
 
 export function generateStaticParams() {
   return CHAPTERS.map((c) => ({ slug: c.slug }));
@@ -68,10 +69,14 @@ export default async function ChapterPage({
 
   return (
     <>
-      {/* ── Cinematic chapter cover ── */}
+      {/* ── Cinematic chapter cover — real image preferred, SVG fallback ── */}
       <section className="lore-chapter-hero">
         <div className="lore-chapter-hero-art">
-          <ArtFor kind={chapter.heroArt} />
+          {chapter.heroImage ? (
+            <LoreImageEl image={chapter.heroImage} credit="corner" />
+          ) : (
+            <ArtFor kind={chapter.heroArt} />
+          )}
         </div>
         <div className="lore-chapter-hero-overlay" />
         <div className="lore-chapter-hero-content">
@@ -147,11 +152,15 @@ function Panel({ panel, num }: { panel: LoreChapterPanel; num: number }) {
   const pad = String(num).padStart(2, "0");
   const accent: Accent | undefined = panel.accent as Accent | undefined;
 
-  if (panel.kind === "splash" && panel.art) {
+  if (panel.kind === "splash" && (panel.art || panel.image)) {
     return (
       <div className="lore-splash" data-accent={panel.accent ?? "cyan"}>
         <div className="lore-splash-art">
-          <ArtFor kind={panel.art} accent={accent} />
+          {panel.image ? (
+            <LoreImageEl image={panel.image} credit="corner" />
+          ) : panel.art ? (
+            <ArtFor kind={panel.art} accent={accent} />
+          ) : null}
         </div>
         <div className="lore-splash-panel-num">Panel {pad}</div>
         <div className="lore-splash-overlay">
@@ -172,7 +181,7 @@ function Panel({ panel, num }: { panel: LoreChapterPanel; num: number }) {
   }
 
   // hero / text with side art
-  if (panel.art && panel.artSide && panel.artSide !== "full") {
+  if ((panel.art || panel.image) && panel.artSide && panel.artSide !== "full") {
     return (
       <div
         className="lore-split"
@@ -180,7 +189,11 @@ function Panel({ panel, num }: { panel: LoreChapterPanel; num: number }) {
         data-accent={panel.accent ?? "cyan"}
       >
         <div className="lore-split-art">
-          <ArtFor kind={panel.art} accent={accent} />
+          {panel.image ? (
+            <LoreImageEl image={panel.image} credit="corner" />
+          ) : panel.art ? (
+            <ArtFor kind={panel.art} accent={accent} />
+          ) : null}
           <div className="lore-splash-panel-num">Panel {pad}</div>
         </div>
         <div className="lore-split-body">

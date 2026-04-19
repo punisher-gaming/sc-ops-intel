@@ -22,11 +22,21 @@ export default function LoreLayout({ children }: { children: React.ReactNode }) 
       <main className="lore-main">{children}</main>
       <footer className="lore-footer">
         <div>Verse Chronicle · CitizenDex</div>
-        <div style={{ marginTop: 4, opacity: 0.7, fontSize: "0.72rem", lineHeight: 1.7 }}>
-          All lore is original prose drawn from public sources. All artwork
-          is original SVG — no CIG-owned assets are reproduced on this site.
+        <div style={{ marginTop: 4, opacity: 0.72, fontSize: "0.72rem", lineHeight: 1.7, maxWidth: "72ch", margin: "4px auto 0" }}>
+          All prose is original. Images are courtesy of the{" "}
+          <a
+            href="https://starcitizen.tools"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--lore-cyan)", textDecoration: "none" }}
+          >
+            Star Citizen Wiki
+          </a>
+          {" "}(CC-BY-SA 4.0 community contributions and CIG fan-use art).
+          Every image on this site credits its source and links back to the
+          wiki page. Art © Cloud Imperium Games Corporation.
         </div>
-        <div style={{ marginTop: 4, opacity: 0.6, fontSize: "0.7rem" }}>
+        <div style={{ marginTop: 6, opacity: 0.55, fontSize: "0.7rem" }}>
           Hosted by Punisher Gaming · Unofficial fan site · No affiliation
           with Cloud Imperium Games
         </div>

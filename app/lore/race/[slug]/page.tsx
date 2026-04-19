@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RACES, getRace } from "@/lib/lore-data";
 import { RacePortrait } from "@/components/LoreArt";
+import { LoreImageEl } from "@/components/LoreImage";
 
 export function generateStaticParams() {
   return RACES.map((r) => ({ slug: r.slug }));
@@ -39,11 +40,17 @@ export default async function RaceDetail({
             borderRadius: 4,
             overflow: "hidden",
             background: "#020409",
+            position: "relative",
+            aspectRatio: "3 / 4",
           }}
         >
-          <RacePortrait
-            race={race.slug as "human" | "xian" | "banu" | "vanduul" | "tevarin"}
-          />
+          {race.heroImage ? (
+            <LoreImageEl image={race.heroImage} credit="corner" />
+          ) : (
+            <RacePortrait
+              race={race.slug as "human" | "xian" | "banu" | "vanduul" | "tevarin"}
+            />
+          )}
         </div>
         <div>
           <div className="lore-detail-eyebrow">

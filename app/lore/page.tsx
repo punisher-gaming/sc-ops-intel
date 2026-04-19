@@ -9,6 +9,8 @@ import {
 } from "@/components/LoreArt";
 import type { Accent } from "@/components/LoreArt";
 import { ComicCover } from "@/components/ComicCover";
+import { LoreImageEl } from "@/components/LoreImage";
+import type { LoreChapter } from "@/lib/lore-data";
 
 // Lore landing — cinematic cover, then scroll into the chapter grid,
 // species roster, and systems list. Every card is visual.
@@ -52,9 +54,9 @@ export default function LoreHome() {
               className="lore-chapter-card"
               style={{ padding: 0, overflow: "hidden" }}
             >
-              {/* Art header */}
-              <div style={{ height: 160, position: "relative", borderBottom: "1px solid var(--lore-border)" }}>
-                <ChapterArt slug={c.slug} />
+              {/* Art header — real image preferred, SVG fallback */}
+              <div style={{ height: 180, position: "relative", borderBottom: "1px solid var(--lore-border)" }}>
+                <ChapterArt chapter={c} />
                 <div
                   style={{
                     position: "absolute",
@@ -114,15 +116,21 @@ export default function LoreHome() {
             >
               <div
                 style={{
-                  height: 220,
+                  height: 260,
                   borderBottom: "1px solid var(--lore-border)",
                   background: "#020409",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
-                <RacePortrait
-                  race={r.slug as "human" | "xian" | "banu" | "vanduul" | "tevarin"}
-                  style={{ width: "100%", height: "100%", display: "block" }}
-                />
+                {r.heroImage ? (
+                  <LoreImageEl image={r.heroImage} credit="corner" />
+                ) : (
+                  <RacePortrait
+                    race={r.slug as "human" | "xian" | "banu" | "vanduul" | "tevarin"}
+                    style={{ width: "100%", height: "100%", display: "block" }}
+                  />
+                )}
               </div>
               <div style={{ padding: "1.25rem 1.25rem 1rem" }}>
                 <div className="lore-card-name">{r.name}</div>
@@ -157,17 +165,22 @@ export default function LoreHome() {
             >
               <div
                 style={{
-                  height: 160,
+                  height: 180,
                   borderBottom: "1px solid var(--lore-border)",
                   background: "#020409",
                   position: "relative",
+                  overflow: "hidden",
                 }}
               >
-                <PlanetOrbit
-                  accent={s.accent as Accent}
-                  planets={Math.min(Math.max(s.planets.length, 2), 6)}
-                  style={{ width: "100%", height: "100%", display: "block" }}
-                />
+                {s.heroImage ? (
+                  <LoreImageEl image={s.heroImage} credit="corner" />
+                ) : (
+                  <PlanetOrbit
+                    accent={s.accent as Accent}
+                    planets={Math.min(Math.max(s.planets.length, 2), 6)}
+                    style={{ width: "100%", height: "100%", display: "block" }}
+                  />
+                )}
                 <div
                   style={{
                     position: "absolute",
@@ -200,9 +213,12 @@ export default function LoreHome() {
   );
 }
 
-// Art selector for chapter thumbnails — deterministic per slug.
-function ChapterArt({ slug }: { slug: string }) {
-  switch (slug) {
+// Chapter thumbnail — real image preferred, SVG fallback keyed by slug.
+function ChapterArt({ chapter }: { chapter: LoreChapter }) {
+  if (chapter.heroImage) {
+    return <LoreImageEl image={chapter.heroImage} credit="corner" />;
+  }
+  switch (chapter.slug) {
     case "origins":       return <EarthScene />;
     case "early-empire":  return <SpaceScene accent="violet" seed={3} />;
     case "messer-era":    return <SpaceScene accent="red" seed={5} />;

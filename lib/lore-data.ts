@@ -6,9 +6,11 @@
 // /lore chapters without becoming a full wiki mirror. Each entry is
 // self-contained (title, blurb, themed color, notable cross-refs).
 //
-// All content is original prose or well-known public lore; no copied
-// wiki text. Images referenced by key — resolved in components so we
-// can swap real assets in later without editing data.
+// All prose is original. Images are hotlinked from Star Citizen Wiki
+// (media.starcitizen.tools) with credits shown on every image.
+// URLs live in lore-images.ts — edit there to swap in other art.
+
+import { IMG_CHAPTER, IMG_RACE, IMG_SYSTEM } from "./lore-images";
 
 // ────── CHAPTERS (eras of UEE history) ──────
 
@@ -41,7 +43,8 @@ export interface LoreChapter {
   yearsTo: number;
   blurb: string;        // 1–2 sentence description
   hero: string;         // theme key for hero tinting
-  heroArt: LoreArtKey;  // big hero illustration for chapter top
+  heroArt: LoreArtKey;  // SVG fallback if heroImage is not set
+  heroImage?: LoreImage; // real cover image — preferred when present
   glyph: string;        // single emoji/symbol for the chapter card
   events: LoreEvent[];
   // Narrative panels — mixed prose and panel blocks between events
@@ -87,6 +90,7 @@ export const CHAPTERS: LoreChapter[] = [
       "Humanity's first reach into the stars: fusion, colonies, and the discovery that jump points are real.",
     hero: "earth-blue",
     heroArt: "earth",
+    heroImage: IMG_CHAPTER.origins,
     glyph: "🜨",
     events: [
       { year: 2075, title: "Solar Max project goes online", tag: "tech",
@@ -140,6 +144,7 @@ export const CHAPTERS: LoreChapter[] = [
       "The UNE becomes the UPE, then begins making contact with civilizations humanity had always assumed weren't there.",
     hero: "violet-dawn",
     heroArt: "space",
+    heroImage: IMG_CHAPTER.earlyEmpire,
     glyph: "✺",
     events: [
       { year: 2380, title: "United Planets of Earth (UPE) replaces UNE", tag: "politics",
@@ -187,6 +192,7 @@ export const CHAPTERS: LoreChapter[] = [
       "Twenty-five generations of the Messer dynasty rule humanity. The Vanduul arrive. The Tevarin fall twice.",
     hero: "red-militant",
     heroArt: "destruction",
+    heroImage: IMG_CHAPTER.messerEra,
     glyph: "⌖",
     events: [
       { year: 2530, title: "The Xi'An Cold War begins", tag: "war",
@@ -254,6 +260,7 @@ export const CHAPTERS: LoreChapter[] = [
       "A century of reformist movements, culminating in the uprising of 2792 and the quiet execution of the last Messer.",
     hero: "green-dawn",
     heroArt: "city",
+    heroImage: IMG_CHAPTER.liberation,
     glyph: "☄",
     events: [
       { year: 2792, title: "The March on New Paris", tag: "politics",
@@ -295,6 +302,7 @@ export const CHAPTERS: LoreChapter[] = [
       "The UEE rebuilds as a democracy. Trade flourishes. But the Vanduul are no longer raiders — they are a tide.",
     hero: "gold-prosper",
     heroArt: "city",
+    heroImage: IMG_CHAPTER.goldenAge,
     glyph: "⚜",
     events: [
       { year: 2931, title: "Imperator Toi establishes the modern UEE", tag: "politics",
@@ -345,6 +353,7 @@ export const CHAPTERS: LoreChapter[] = [
       "The UEE you fly in. Stanton stabilized. Pyro opened. The Vanduul push deeper. The next jump point is always tomorrow.",
     hero: "cyan-live",
     heroArt: "jump-point",
+    heroImage: IMG_CHAPTER.currentEra,
     glyph: "⟳",
     events: [
       { year: 2944, title: "Project Synthesis begins", tag: "tech",
@@ -405,6 +414,7 @@ export interface LoreRace {
   body: string[];       // longer paragraphs
   culture: string;
   notable: string[];    // bullet list of notable traits
+  heroImage?: LoreImage; // real portrait — preferred over SVG RacePortrait
 }
 
 export const RACES: LoreRace[] = [
@@ -432,6 +442,7 @@ export const RACES: LoreRace[] = [
       "Maintains formal treaties with the Xi'An and Banu; ongoing war with the Vanduul",
       "The Fair Chance Act of 2789 is the UEE's most cited (and most bent) law",
     ],
+    heroImage: IMG_RACE.human,
   },
   {
     slug: "xian",
@@ -458,6 +469,7 @@ export const RACES: LoreRace[] = [
       "Aopoa ship manufacturer produces the Khartu-al, San'tok.yāi, and more",
       "Xi'An language syntax is tonal and contextual — humans rarely achieve true fluency",
     ],
+    heroImage: IMG_RACE.xian,
   },
   {
     slug: "banu",
@@ -484,6 +496,7 @@ export const RACES: LoreRace[] = [
       "Banu tongue is guttural and fast; nearly all Banu merchants speak passable human Standard",
       "Most Banu ships feature distinctive hexagonal hull plating and swappable module bays",
     ],
+    heroImage: IMG_RACE.banu,
   },
   {
     slug: "vanduul",
@@ -510,6 +523,7 @@ export const RACES: LoreRace[] = [
       "Scythe-class fighters are the most common Vanduul engagement",
       "No recorded Vanduul prisoner has ever spoken to an interrogator",
     ],
+    heroImage: IMG_RACE.vanduul,
   },
   {
     slug: "tevarin",
@@ -536,6 +550,7 @@ export const RACES: LoreRace[] = [
       "Corath'Thal's final speech is required reading in UEE civics courses",
       "The Esperia Talon (reproduction of a Tevarin fighter) is a favorite of competitive pilots",
     ],
+    heroImage: IMG_RACE.tevarin,
   },
 ];
 
@@ -555,6 +570,7 @@ export interface LoreSystem {
   notable: string[];
   accent: "cyan" | "amber" | "red" | "green" | "violet";
   glyph: string;
+  heroImage?: LoreImage;  // real banner image — preferred over SVG orbit
 }
 
 export const SYSTEMS: LoreSystem[] = [
@@ -580,6 +596,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "cyan",
     glyph: "☉",
+    heroImage: IMG_SYSTEM.sol,
   },
   {
     slug: "stanton",
@@ -603,6 +620,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "amber",
     glyph: "☆",
+    heroImage: IMG_SYSTEM.stanton,
   },
   {
     slug: "pyro",
@@ -626,6 +644,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "red",
     glyph: "☼",
+    heroImage: IMG_SYSTEM.pyro,
   },
   {
     slug: "terra",
@@ -649,6 +668,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "green",
     glyph: "⊕",
+    heroImage: IMG_SYSTEM.terra,
   },
   {
     slug: "croshaw",
@@ -672,6 +692,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "violet",
     glyph: "✦",
+    heroImage: IMG_SYSTEM.croshaw,
   },
   {
     slug: "odin",
@@ -695,6 +716,7 @@ export const SYSTEMS: LoreSystem[] = [
     ],
     accent: "cyan",
     glyph: "◉",
+    heroImage: IMG_SYSTEM.odin,
   },
 ];
 

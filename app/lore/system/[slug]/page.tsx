@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SYSTEMS, getSystem } from "@/lib/lore-data";
 import { PlanetOrbit } from "@/components/LoreArt";
 import type { Accent } from "@/components/LoreArt";
+import { LoreImageEl } from "@/components/LoreImage";
 
 export function generateStaticParams() {
   return SYSTEMS.map((s) => ({ slug: s.slug }));
@@ -24,11 +25,11 @@ export default async function SystemDetail({
         ← All systems
       </Link>
 
-      {/* Full-width orbital map banner */}
+      {/* Full-width banner — real system photo preferred, orbital map fallback */}
       <div
         style={{
           position: "relative",
-          height: 280,
+          height: 360,
           marginBottom: 24,
           borderRadius: 4,
           overflow: "hidden",
@@ -36,11 +37,15 @@ export default async function SystemDetail({
           background: "#020409",
         }}
       >
-        <PlanetOrbit
-          accent={sys.accent as Accent}
-          planets={Math.min(Math.max(sys.planets.length, 2), 6)}
-          style={{ width: "100%", height: "100%", display: "block" }}
-        />
+        {sys.heroImage ? (
+          <LoreImageEl image={sys.heroImage} credit="corner" />
+        ) : (
+          <PlanetOrbit
+            accent={sys.accent as Accent}
+            planets={Math.min(Math.max(sys.planets.length, 2), 6)}
+            style={{ width: "100%", height: "100%", display: "block" }}
+          />
+        )}
         <div
           style={{
             position: "absolute",
