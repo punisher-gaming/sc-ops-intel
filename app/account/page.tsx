@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { SavedFleets } from "@/components/SavedFleets";
+import { FleetImport } from "@/components/FleetImport";
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
 
@@ -37,6 +38,8 @@ export default function AccountPage() {
   const [rsiHandle, setRsiHandle] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [busy, setBusy] = useState(false);
+  // Bump this key to force SavedFleets to re-fetch after a successful import
+  const [fleetsKey, setFleetsKey] = useState(0);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -233,17 +236,13 @@ export default function AccountPage() {
           </form>
         </div>
 
-        <SavedFleets userId={user.id} />
+        <SavedFleets key={fleetsKey} userId={user.id} />
 
-        <div className="card" style={{ padding: "1.75rem", marginTop: "1rem" }}>
-          <div style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 8 }}>Hangar</div>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: 16 }}>
-            Import your purchased-ship list from your RSI pledges page. A guided flow will let
-            you paste the page HTML and we parse it locally — no credentials leave your browser.
-          </p>
-          <button disabled className="btn btn-disabled">
-            Import Hangar · Coming soon
-          </button>
+        <div style={{ marginTop: "1rem" }}>
+          <FleetImport
+            userId={user.id}
+            onSaved={() => setFleetsKey((k) => k + 1)}
+          />
         </div>
 
         <div className="card" style={{ padding: "1.75rem", marginTop: "1rem" }}>
