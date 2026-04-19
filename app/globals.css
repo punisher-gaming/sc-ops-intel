@@ -254,11 +254,13 @@ select {
 }
 .music-fab-label { display: inline; }
 
-/* Music open panel */
+/* Music open panel — z-index 35 so it paints above the search FAB
+   (z-index 30), guaranteeing the × close button is always clickable
+   even when the two floaters overlap on narrow screens. */
 .music-panel {
   position: fixed;
   left: 16px; top: 80px;
-  z-index: 30;
+  z-index: 35;
   width: 360px;
   padding: 12px 14px;
   border-radius: 10px;
@@ -269,31 +271,35 @@ select {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
+/* When the music panel is open on mobile, just hide the search FAB —
+   they'd otherwise stack in the same corner. The CSS :has() selector
+   lets one sibling react to another without any JS state sharing.
+   Supported in Safari 15.4+ / Chrome 105+ / Firefox 121+ (iOS Safari
+   on any current iPhone / iPad is fine). */
+@media (max-width: 900px) {
+  body:has(.music-panel) .search-fab { display: none; }
+}
+
 /* Global search pill — ⌘K trigger */
+/* Global search — always an icon-only circular button (desktop + mobile).
+   ⌘K keyboard shortcut still works via the JS handler; the button just
+   doesn't need to advertise it. */
 .search-fab {
   position: fixed;
   top: 80px; right: 16px;
   z-index: 30;
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 38px; padding: 0 14px;
-  border-radius: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
   background: rgba(10, 14, 22, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text-muted);
-  font-size: 0.9rem;
   cursor: pointer;
   backdrop-filter: blur(8px);
 }
-.search-fab-label { display: inline; }
-.search-fab-kbd {
-  margin-left: 6px;
-  padding: 1px 6px;
-  font-size: 0.7rem;
-  font-family: var(--font-mono);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  color: var(--text-dim);
-}
+.search-fab:hover { color: var(--text); border-color: rgba(77, 217, 255, 0.35); }
+.search-fab-label,
+.search-fab-kbd { display: none; }
 
 /* ≤900px — mobile layout:
    - Music panel stretches full-width (minus gutters) when open so its
