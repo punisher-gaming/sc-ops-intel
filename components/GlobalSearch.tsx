@@ -2,22 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchShips, type Ship } from "@/lib/ships";
-import { fetchBlueprints, displayName as bpName, type Blueprint } from "@/lib/blueprints";
-import { fetchResources, displayName as resName, type Resource } from "@/lib/resources";
+import { fetchShips } from "@/lib/ships";
+import { fetchBlueprints, displayName as bpName } from "@/lib/blueprints";
+import { fetchResources, displayName as resName } from "@/lib/resources";
+import { fetchItems, isPlaceholderName } from "@/lib/items";
 
-// Global search: one input in the nav that queries across ships,
-// blueprints, and resources. Loads the three catalogs lazily on first
-// focus, caches in-memory for the rest of the session. Results grouped
-// by type with top 5 from each.
+// Global floating search: indexes ships + blueprints + resources +
+// weapons + components on first open, caches in-memory for the session.
+// Errors surface in the UI rather than silently producing empty results.
+
+type EntryKind = "ship" | "blueprint" | "resource" | "weapon" | "component";
 
 type IndexEntry = {
   id: string;
   name: string;
   subtitle: string;
   href: string;
-  kind: "ship" | "blueprint" | "resource";
-  hay: string; // precomputed lowercase haystack
+  kind: EntryKind;
+  hay: string;
 };
 
 type IndexState =
@@ -30,10 +32,15 @@ let cache: IndexEntry[] | null = null;
 
 async function buildIndex(): Promise<IndexEntry[]> {
   if (cache) return cache;
-  const [ships, blueprints, resources] = await Promise.all([
-    fetchShips().catch(() => [] as Ship[]),
-    fetchBlueprints().catch(() => [] as Blueprint[]),
-    fetchResources().catch(() => [] as Resource[]),
+  // Run all five fetches in parallel. Any failure here propagates so the
+  // UI can show "search index failed: <reason>" instead of an empty,
+  // mysteriously-broken search.
+  const [ships, blueprints, resources, weapons, components] = await Promise.all([
+    fetchShips(),
+    fetchBlueprints(),
+    fetchResources(),
+    fetchItems("weapons"),
+    fetchItems("components"),
   ]);
 
   const out: IndexEntry[] = [];
@@ -69,6 +76,28 @@ async function buildIndex(): Promise<IndexEntry[]> {
       href: `/resources?id=${encodeURIComponent(r.id)}`,
       kind: "resource",
       hay: `${n} ${r.key} ${r.kind ?? ""}`.toLowerCase(),
+    });
+  }
+  for (const w of weapons) {
+    const n = isPlaceholderName(w.name) ? w.class_name : w.name;
+    out.push({
+      id: w.id,
+      name: n,
+      subtitle: [w.manufacturer, w.type, w.subtype].filter(Boolean).join(" · ") || "Weapon",
+      href: `/weapons?id=${encodeURIComponent(w.id)}`,
+      kind: "weapon",
+      hay: `${n} ${w.class_name} ${w.manufacturer ?? ""} ${w.type ?? ""} ${w.subtype ?? ""}`.toLowerCase(),
+    });
+  }
+  for (const c of components) {
+    const n = isPlaceholderName(c.name) ? c.class_name : c.name;
+    out.push({
+      id: c.id,
+      name: n,
+      subtitle: [c.manufacturer, c.type, c.subtype].filter(Boolean).join(" · ") || "Component",
+      href: `/components?id=${encodeURIComponent(c.id)}`,
+      kind: "component",
+      hay: `${n} ${c.class_name} ${c.manufacturer ?? ""} ${c.type ?? ""} ${c.subtype ?? ""}`.toLowerCase(),
     });
   }
   cache = out;
@@ -109,24 +138,40 @@ export function GlobalSearch() {
   }, [open, index.status]);
 
   const results = useMemo(() => {
-    if (index.status !== "ready") return { ships: [], blueprints: [], resources: [], total: 0 };
+    const empty = { ships: [], blueprints: [], resources: [], weapons: [], components: [], total: 0 };
+    if (index.status !== "ready") return empty;
     const qLower = q.trim().toLowerCase();
-    if (!qLower) return { ships: [], blueprints: [], resources: [], total: 0 };
+    if (!qLower) return empty;
     const ships: IndexEntry[] = [];
     const blueprints: IndexEntry[] = [];
     const resources: IndexEntry[] = [];
+    const weapons: IndexEntry[] = [];
+    const components: IndexEntry[] = [];
+    const cap = 5;
     for (const e of index.entries) {
       if (!e.hay.includes(qLower)) continue;
-      if (e.kind === "ship" && ships.length < 5) ships.push(e);
-      else if (e.kind === "blueprint" && blueprints.length < 5) blueprints.push(e);
-      else if (e.kind === "resource" && resources.length < 5) resources.push(e);
-      if (ships.length >= 5 && blueprints.length >= 5 && resources.length >= 5) break;
+      if (e.kind === "ship" && ships.length < cap) ships.push(e);
+      else if (e.kind === "blueprint" && blueprints.length < cap) blueprints.push(e);
+      else if (e.kind === "resource" && resources.length < cap) resources.push(e);
+      else if (e.kind === "weapon" && weapons.length < cap) weapons.push(e);
+      else if (e.kind === "component" && components.length < cap) components.push(e);
+      if (
+        ships.length >= cap && blueprints.length >= cap && resources.length >= cap &&
+        weapons.length >= cap && components.length >= cap
+      ) break;
     }
-    return { ships, blueprints, resources, total: ships.length + blueprints.length + resources.length };
+    return {
+      ships,
+      blueprints,
+      resources,
+      weapons,
+      components,
+      total: ships.length + blueprints.length + resources.length + weapons.length + components.length,
+    };
   }, [index, q]);
 
   const flat = useMemo(
-    () => [...results.ships, ...results.blueprints, ...results.resources],
+    () => [...results.ships, ...results.blueprints, ...results.resources, ...results.weapons, ...results.components],
     [results],
   );
 
@@ -150,17 +195,22 @@ export function GlobalSearch() {
         type="button"
         onClick={() => setOpen(true)}
         style={{
+          position: "fixed",
+          top: 80,
+          right: 16,
+          zIndex: 30,
           display: "inline-flex",
           alignItems: "center",
           gap: 8,
-          height: 32,
-          padding: "0 10px 0 12px",
-          borderRadius: 6,
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          height: 38,
+          padding: "0 14px",
+          borderRadius: 22,
+          background: "rgba(10,14,22,0.85)",
+          border: "1px solid rgba(255,255,255,0.12)",
           color: "var(--text-muted)",
-          fontSize: "0.85rem",
+          fontSize: "0.9rem",
           cursor: "pointer",
+          backdropFilter: "blur(8px)",
         }}
         aria-label="Search"
       >
@@ -194,8 +244,9 @@ export function GlobalSearch() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            zIndex: 100,
+            background: "rgba(0,0,0,0.65)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
             display: "flex",
             justifyContent: "center",
             paddingTop: "10vh",
@@ -275,6 +326,8 @@ export function GlobalSearch() {
                   {renderSection("Ships", results.ships, flat, cursor, () => setOpen(false))}
                   {renderSection("Blueprints", results.blueprints, flat, cursor, () => setOpen(false))}
                   {renderSection("Resources", results.resources, flat, cursor, () => setOpen(false))}
+                  {renderSection("Weapons", results.weapons, flat, cursor, () => setOpen(false))}
+                  {renderSection("Components", results.components, flat, cursor, () => setOpen(false))}
                 </>
               )}
             </div>

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { AuthButton } from "./AuthButton";
 import { PunisherSkull } from "./PunisherSkull";
 import { CURRENT_PATCH } from "./PatchPill";
-import { GlobalSearch } from "./GlobalSearch";
 import { useUser } from "@/lib/supabase/hooks";
 
 const PUBLIC_LINKS = [
@@ -51,7 +50,6 @@ export function Nav() {
           })}
         </div>
         <div className="site-nav-right">
-          <GlobalSearch />
           <span className="site-patch-pill">Patch {CURRENT_PATCH}</span>
           <AuthButton />
         </div>
