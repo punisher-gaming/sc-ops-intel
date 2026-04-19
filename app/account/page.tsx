@@ -8,6 +8,7 @@ import { SavedFleets } from "@/components/SavedFleets";
 import { FleetImport } from "@/components/FleetImport";
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
+import { fetchUnreadCount } from "@/lib/messages";
 
 type Profile = {
   id: string;
@@ -44,6 +45,12 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
   // Bump this key to force SavedFleets to re-fetch after a successful import
   const [fleetsKey, setFleetsKey] = useState(0);
+  // Live unread DM count for the Inbox quick-link badge.
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    fetchUnreadCount(user.id).then(setUnread);
+  }, [user]);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -170,8 +177,31 @@ export default function AccountPage() {
           <Link href="/notes" className="btn btn-secondary">
             📝 Your private notes
           </Link>
-          <Link href="/inbox" className="btn btn-secondary">
+          <Link
+            href="/inbox"
+            className="btn btn-secondary"
+            style={unread > 0 ? { borderColor: "var(--accent)", color: "var(--accent)" } : undefined}
+          >
             💬 Inbox
+            {unread > 0 && (
+              <span
+                style={{
+                  marginLeft: 8,
+                  minWidth: 20,
+                  padding: "0 6px",
+                  borderRadius: 10,
+                  background: "var(--alert)",
+                  color: "#fff",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
           </Link>
           <Link href="/community/auction/mine" className="btn btn-secondary">
             ⚖ Your AH listings

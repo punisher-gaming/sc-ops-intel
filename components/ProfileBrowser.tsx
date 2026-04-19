@@ -9,6 +9,7 @@ import { fetchShipsByIds, type Ship } from "@/lib/ships";
 import { RsiProfileCard } from "./RsiProfileCard";
 import { Hologram } from "./Hologram";
 import { displayNameFor, roleLabelFor } from "@/lib/owner";
+import { MessageButton } from "./MessageButton";
 
 // Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
@@ -172,6 +173,17 @@ export function ProfileBrowser() {
               {profile.bio}
             </p>
           )}
+          {/* DM this citizen — lands in their CitizenDex inbox + auto-
+              pushes to their Discord if they've set up notifications.
+              MessageButton hides itself when viewing your own profile. */}
+          <div style={{ marginTop: 12 }}>
+            <MessageButton
+              recipientId={profile.id}
+              recipientName={name}
+              label={`💬 Send ${name.split(" ")[0]} a message`}
+              className="btn btn-primary"
+            />
+          </div>
         </div>
       </div>
 
