@@ -829,12 +829,14 @@
   text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
 }
 
-/* SPEECH BUBBLE — pull-quote rendered like a comic balloon */
+/* SPEECH BUBBLE — pull-quote rendered like a comic balloon.
+   Anchored to the upper-RIGHT. Never extends past 46% width so it
+   can't collide with the SFX (which lives in the lower-LEFT). */
 .flipbook-story-bubble {
   position: absolute;
-  top: 28%; right: 6%;
-  z-index: 4;
-  max-width: 56%;
+  top: 22%; right: 5%;
+  z-index: 5;
+  max-width: 46%;
   background: #fff;
   color: #0a0e16;
   border: 2px solid #0a0e16;
@@ -872,14 +874,22 @@
   color: #444;
 }
 
-/* SFX — big KAPOW-style sound-effect lettering */
+/* SFX — big KAPOW-style sound-effect lettering.
+   Anchored to the lower-LEFT so it claims empty space diagonally
+   opposite the speech bubble's upper-right. max-width keeps long
+   SFX strings ("GARRON FALLS", "ORION FALLS") from crossing into
+   the right half of the page. z-index beneath the bubble so any
+   accidental overlap still looks right. */
 .flipbook-story-sfx {
   position: absolute;
   z-index: 3;
-  top: 38%; left: 50%;
-  transform: translate(-50%, -50%) rotate(-8deg);
+  bottom: 30%;
+  left: 5%;
+  max-width: 48%;
+  transform-origin: left bottom;
+  transform: rotate(-9deg);
   font-family: Impact, "Arial Black", sans-serif;
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(2rem, 6.5vw, 4.2rem);
   font-weight: 900;
   letter-spacing: 0.04em;
   color: #ffd84d;
@@ -896,9 +906,9 @@
   animation: sfx-pop 0.6s ease-out;
 }
 @keyframes sfx-pop {
-  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(0.4); }
-  60%  { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1.15); }
-  100% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+  0%   { opacity: 0; transform: rotate(-9deg) scale(0.4); }
+  60%  { opacity: 1; transform: rotate(-9deg) scale(1.12); }
+  100% { opacity: 1; transform: rotate(-9deg) scale(1); }
 }
 
 @media (max-width: 600px) {
@@ -906,9 +916,10 @@
   .flipbook-story-title { font-size: 1.05rem; }
   .flipbook-story-bottom-cap { padding: 1.1rem 1rem 1rem; }
   .flipbook-story-bottom-cap p { font-size: 0.85rem; }
-  .flipbook-story-bubble { max-width: 70%; right: 4%; top: 30%; }
-  .flipbook-story-bubble blockquote { font-size: 0.82rem; }
-  .flipbook-story-sfx { font-size: 2.2rem; }
+  /* Keep bubble and SFX on opposite sides of centerline — never touch */
+  .flipbook-story-bubble { max-width: 48%; right: 4%; top: 24%; }
+  .flipbook-story-bubble blockquote { font-size: 0.8rem; }
+  .flipbook-story-sfx { font-size: 2rem; max-width: 46%; bottom: 32%; }
 }
 
 /* ── Chapter page front face ──────────────────────────────── */
