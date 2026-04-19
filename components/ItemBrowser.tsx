@@ -16,6 +16,7 @@ import {
 } from "@/lib/items";
 import { CURRENT_PATCH } from "./PatchPill";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
+import { WhereToBuy } from "./WhereToBuy";
 
 const PAGE_SIZE = 50;
 
@@ -322,19 +323,7 @@ function ItemDetail({
         {itemClass(item) && <Stat label="Class" value={itemClass(item)!} />}
       </div>
 
-      {/* Where to buy — no canonical mapping in scunpacked for ship items.
-          Community submissions will populate this (next feature). */}
-      <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
-        <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 8 }}>
-          Where to buy
-        </div>
-        <p style={{ color: "var(--text-muted)", lineHeight: 1.6, fontSize: "0.9rem" }}>
-          Scunpacked doesn&apos;t map items to specific shops for ship
-          components. Until a community submission flow is built, check{" "}
-          <Link href="/trade-locations" style={{ color: "var(--accent)" }}>trade locations</Link>
-          {" "}for nearby terminals that match this item&apos;s role.
-        </p>
-      </div>
+      <WhereToBuy itemReference={item.id} />
 
       {item.source_data && (
         <div className="card" style={{ padding: "1.5rem" }}>
