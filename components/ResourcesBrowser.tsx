@@ -15,6 +15,7 @@ import {
   type Resource,
   type ResourceLocation,
 } from "@/lib/resources";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { IntelPanel } from "./IntelPanel";
 import {
@@ -56,8 +57,8 @@ function ResourceList() {
     return rows.filter((r) => {
       if (kind && r.kind !== kind) return false;
       if (qLower) {
-        const hay = `${displayName(r)} ${r.key} ${r.kind ?? ""}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${displayName(r)} ${r.key} ${r.kind ?? ""}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

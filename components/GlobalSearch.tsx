@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchShips } from "@/lib/ships";
+import { tokenMatch } from "@/lib/search";
 import { fetchBlueprints, displayName as bpName } from "@/lib/blueprints";
 import { fetchResources, displayName as resName } from "@/lib/resources";
 import { fetchItems, isPlaceholderName } from "@/lib/items";
@@ -148,8 +149,10 @@ export function GlobalSearch() {
     const weapons: IndexEntry[] = [];
     const components: IndexEntry[] = [];
     const cap = 5;
+    // Token match: query is split on whitespace, every token must appear
+    // in the haystack. Lets "Palatino Daystar" find "Palatino Arms Daystar".
     for (const e of index.entries) {
-      if (!e.hay.includes(qLower)) continue;
+      if (!tokenMatch(e.hay, qLower)) continue;
       if (e.kind === "ship" && ships.length < cap) ships.push(e);
       else if (e.kind === "blueprint" && blueprints.length < cap) blueprints.push(e);
       else if (e.kind === "resource" && resources.length < cap) resources.push(e);

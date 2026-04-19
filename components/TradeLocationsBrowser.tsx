@@ -11,6 +11,7 @@ import {
   type TradeLocation,
 } from "@/lib/commodities";
 import { CURRENT_PATCH } from "./PatchPill";
+import { tokenMatch } from "@/lib/search";
 import { AvailabilityList } from "./AvailabilityList";
 import { TradeLocationPrices } from "./TradeLocationPrices";
 
@@ -47,8 +48,8 @@ function TradeLocationList() {
       if (system && r.system !== system) return false;
       if (kind && r.kind !== kind) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.system ?? ""} ${r.planet ?? ""} ${r.place ?? ""} ${r.kind ?? ""}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${r.name} ${r.system ?? ""} ${r.planet ?? ""} ${r.place ?? ""} ${r.kind ?? ""}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

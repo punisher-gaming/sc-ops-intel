@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { prettyKind, type TradeLocation } from "@/lib/commodities";
+import { tokenMatch } from "@/lib/search";
 
 // Refineries are a subset of trade_locations whose class name contains
 // "Refin". Includes both the Stanton Refinery Wings (DC_*_RefineryWing)
@@ -74,8 +75,8 @@ export function RefineriesBrowser() {
       if (system && r.system !== system) return false;
       if (qLower) {
         const cls = (r.source_data as { ClassName?: string } | null)?.ClassName ?? "";
-        const hay = `${r.name} ${r.system ?? ""} ${r.planet ?? ""} ${r.place ?? ""} ${cls}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${r.name} ${r.system ?? ""} ${r.planet ?? ""} ${r.place ?? ""} ${cls}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

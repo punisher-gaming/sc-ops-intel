@@ -14,6 +14,7 @@ import {
   type GradeStyle,
   type Item,
 } from "@/lib/items";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
 import { WhereToBuy } from "./WhereToBuy";
@@ -94,8 +95,8 @@ function ItemList({
       if (grade && String(r.grade) !== grade) return false;
       if (cls && itemClass(r) !== cls) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.class_name} ${r.manufacturer ?? ""} ${r.subtype ?? ""} ${itemClass(r) ?? ""}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${r.name} ${r.class_name} ${r.manufacturer ?? ""} ${r.subtype ?? ""} ${itemClass(r) ?? ""}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

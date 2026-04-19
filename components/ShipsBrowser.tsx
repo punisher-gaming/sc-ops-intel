@@ -12,6 +12,7 @@ import {
   uniqueValues,
   type Ship,
 } from "@/lib/ships";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
 
@@ -112,8 +113,8 @@ function ShipList() {
       if (role && r.role !== role) return false;
       if (size && shipSize(r) !== size) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.manufacturer ?? ""} ${r.role ?? ""} ${shipSize(r)}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${r.name} ${r.manufacturer ?? ""} ${r.role ?? ""} ${shipSize(r)}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

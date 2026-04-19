@@ -27,6 +27,7 @@ import {
   type BlueprintSource,
 } from "@/lib/blueprints";
 import { useUser } from "@/lib/supabase/hooks";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { IntelPanel } from "./IntelPanel";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
@@ -193,8 +194,8 @@ function BlueprintList() {
         if (!match) return false;
       }
       if (qLower) {
-        const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""} ${r.key}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""} ${r.key}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

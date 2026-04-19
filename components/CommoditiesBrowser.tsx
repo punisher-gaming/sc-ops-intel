@@ -10,6 +10,7 @@ import {
   uniqueValuesC,
   type Commodity,
 } from "@/lib/commodities";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { AvailabilityList } from "./AvailabilityList";
 import { PricePanel } from "./PricePanel";
@@ -44,8 +45,8 @@ function CommodityList() {
     return rows.filter((r) => {
       if (kind && r.kind !== kind) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.code ?? ""} ${r.kind ?? ""}`.toLowerCase();
-        if (!hay.includes(qLower)) return false;
+        const hay = `${r.name} ${r.code ?? ""} ${r.kind ?? ""}`;
+        if (!tokenMatch(hay, qLower)) return false;
       }
       return true;
     });

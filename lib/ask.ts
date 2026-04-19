@@ -12,6 +12,7 @@ import {
   dismantleReturns,
   refinedMaterialFromResourceName,
 } from "./blueprints";
+import { applyTokenIlike, tokenize } from "./search";
 
 export type Intent = "mine" | "buy" | "sell" | "recipe" | "uses" | "ship" | "general";
 
@@ -211,11 +212,11 @@ async function findBlueprintsYielding(material: string, resourceName: string): P
 
 async function findResources(term: string, withTopSpawn: boolean): Promise<Hit[]> {
   const client = createClient();
-  const { data, error } = await client
-    .from("resources")
-    .select("id, name, kind")
-    .ilike("name", `%${term}%`)
-    .limit(5);
+  if (tokenize(term).length === 0) return [];
+  // Per-token ilike — every word in `term` must appear in name (any order)
+  let q = client.from("resources").select("id, name, kind");
+  q = applyTokenIlike(q, "name", term);
+  const { data, error } = await q.limit(5);
   if (error || !data || data.length === 0) return [];
 
   let topByResource = new Map<string, { system: string | null; location_name: string | null; probability: number | null }>();
@@ -254,11 +255,12 @@ async function findResources(term: string, withTopSpawn: boolean): Promise<Hit[]
 
 async function findBlueprints(term: string): Promise<Hit[]> {
   const client = createClient();
-  const { data, error } = await client
+  if (tokenize(term).length === 0) return [];
+  let q = client
     .from("blueprints")
-    .select("id, name, output_item_type, output_item_subtype, output_grade")
-    .ilike("name", `%${term}%`)
-    .limit(6);
+    .select("id, name, output_item_type, output_item_subtype, output_grade");
+  q = applyTokenIlike(q, "name", term);
+  const { data, error } = await q.limit(6);
   if (error || !data || data.length === 0) return [];
   return data.map((b) => ({
     id: b.id,
@@ -272,11 +274,10 @@ async function findBlueprints(term: string): Promise<Hit[]> {
 
 async function findCommodities(term: string, intent: "buy" | "sell" | "general"): Promise<Hit[]> {
   const client = createClient();
-  const { data, error } = await client
-    .from("commodities")
-    .select("id, name, kind")
-    .ilike("name", `%${term}%`)
-    .limit(5);
+  if (tokenize(term).length === 0) return [];
+  let q = client.from("commodities").select("id, name, kind");
+  q = applyTokenIlike(q, "name", term);
+  const { data, error } = await q.limit(5);
   if (error || !data || data.length === 0) return [];
   const verb = intent === "sell" ? "Where to sell" : "Where to buy";
   return data.map((c) => ({
@@ -290,11 +291,10 @@ async function findCommodities(term: string, intent: "buy" | "sell" | "general")
 
 async function findShips(term: string): Promise<Hit[]> {
   const client = createClient();
-  const { data, error } = await client
-    .from("ships")
-    .select("id, name, manufacturer, role, size_class")
-    .ilike("name", `%${term}%`)
-    .limit(5);
+  if (tokenize(term).length === 0) return [];
+  let q = client.from("ships").select("id, name, manufacturer, role, size_class");
+  q = applyTokenIlike(q, "name", term);
+  const { data, error } = await q.limit(5);
   if (error || !data || data.length === 0) return [];
   return data.map((s) => ({
     id: s.id,

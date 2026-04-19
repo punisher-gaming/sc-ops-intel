@@ -10,6 +10,7 @@ import {
   uniqueValues,
   type Blueprint,
 } from "@/lib/blueprints";
+import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 
 export function CraftingBrowser() {
@@ -35,8 +36,8 @@ export function CraftingBrowser() {
       .filter((r) => {
         if (type && r.output_item_type !== type) return false;
         if (qLower) {
-          const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""}`.toLowerCase();
-          if (!hay.includes(qLower)) return false;
+          const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""}`;
+          if (!tokenMatch(hay, qLower)) return false;
         }
         return true;
       })
