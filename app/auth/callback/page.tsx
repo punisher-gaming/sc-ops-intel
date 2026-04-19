@@ -129,7 +129,7 @@ export default function AuthCallback() {
     function finish() {
       // Strip ?code= off the URL so a back-navigation doesn't retrigger
       window.history.replaceState({}, "", "/auth/callback");
-      router.replace("/notes");
+      router.replace("/");
     }
 
     return () => {

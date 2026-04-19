@@ -24,7 +24,7 @@ export default function LoginPage() {
       setBusy(false);
       return;
     }
-    router.push("/notes");
+    router.push("/");
   }
 
   // Shared OAuth kickoff — supports any provider Supabase has configured.

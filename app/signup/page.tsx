@@ -31,7 +31,7 @@ export default function SignupPage() {
       return;
     }
     if (data.session) {
-      router.push("/notes");
+      router.push("/");
     } else {
       setMessage("Check your email for a confirmation link.");
       setBusy(false);
