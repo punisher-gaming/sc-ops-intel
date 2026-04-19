@@ -401,3 +401,151 @@ select {
 }
 .table-shell tbody tr:last-child td { border-bottom: none; }
 .table-shell tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+/* ====================================================================
+   Hologram — OG Star Wars "help me Obi-Wan" projection effect
+   --------------------------------------------------------------------
+   Combine four layers for the period-correct vibe:
+     1. Content tinted to that cyan-blue holo color via filter()
+     2. Repeating horizontal scanlines (CRT screendoor)
+     3. A vertical "rolling band" of interference that slowly scrolls
+        down the surface (Carrie Fisher's classic)
+     4. Subtle flicker + jitter on the whole thing
+   Apply the .hologram class to any block element to wrap its contents
+   in the projection. Use .hologram-stage for the optional projector
+   "cone" beneath (light-blue gradient flaring upward).
+   ==================================================================== */
+
+.hologram {
+  /* Vars let callers tune intensity without rewriting the rules */
+  --holo-color:   #7df9ff;          /* electric cyan */
+  --holo-color-2: #4dd9ff;
+  --holo-bloom:   rgba(125, 249, 255, 0.45);
+  position: relative;
+  display: inline-block;
+  isolation: isolate;            /* contain blend modes */
+  color: var(--holo-color);
+  text-shadow:
+    0 0 4px var(--holo-color),
+    0 0 14px var(--holo-bloom),
+    0 0 28px rgba(125,249,255,0.25);
+  filter: drop-shadow(0 0 12px var(--holo-bloom));
+  animation: holo-flicker 4.2s infinite steps(1, end);
+}
+
+/* Tint everything inside the hologram cyan and add a slight bloom. The
+   `filter` chain works for text AND images alike — perfect for wrapping
+   avatars or the wordmark without touching their internals. */
+.hologram > * {
+  filter:
+    drop-shadow(0 0 4px var(--holo-color))
+    brightness(1.05);
+  animation: holo-jitter 7s infinite ease-in-out;
+}
+
+/* Horizontal scanlines — fixed, very fine. Sit above content via z-index. */
+.hologram::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)        0px,
+    rgba(0,0,0,0)        2px,
+    rgba(0, 30, 40, 0.35) 3px,
+    rgba(0, 30, 40, 0.35) 3px
+  );
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+/* Rolling interference band — a soft cyan strip that scrolls top→bottom
+   on a slow loop. The classic "the projector is reading off a tape" gag. */
+.hologram::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(125,249,255,0.12) 35%,
+    rgba(125,249,255,0.20) 50%,
+    rgba(125,249,255,0.10) 65%,
+    transparent 100%
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 3;
+  animation: holo-roll 6s linear infinite;
+  border-radius: inherit;
+}
+
+/* Master flicker — opacity + a tiny vertical jump every few cycles.
+   Steps() makes it discrete rather than smooth, which reads as analog
+   signal noise instead of a CSS fade. */
+@keyframes holo-flicker {
+  0%, 7%, 12%, 24%, 30%, 60%, 67%, 80%, 100% { opacity: 1.0; }
+  3%   { opacity: 0.78; }
+  10%  { opacity: 0.92; }
+  16%  { opacity: 0.55; }   /* big drop ≈ projector hiccup */
+  18%  { opacity: 1.0; }
+  27%  { opacity: 0.85; }
+  62%  { opacity: 0.60; }
+  64%  { opacity: 1.0; }
+  72%  { opacity: 0.88; }
+  88%  { opacity: 0.74; }
+  91%  { opacity: 1.0; }
+}
+
+/* Sub-pixel jitter on the inner content — looks like a wobbling beam. */
+@keyframes holo-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  20%      { transform: translate(0.4px, -0.5px); }
+  40%      { transform: translate(-0.4px, 0.4px); }
+  60%      { transform: translate(0.5px, 0.3px); }
+  80%      { transform: translate(-0.3px, -0.4px); }
+}
+
+/* Top-to-bottom roll for the interference band */
+@keyframes holo-roll {
+  0%   { top: -30%; }
+  100% { top: 100%; }
+}
+
+/* Optional "projection cone" — flares up from below behind the hologram.
+   Wrap your .hologram in a .hologram-stage to add it. Pure decoration —
+   skip it for inline pills / small holograms. */
+.hologram-stage {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.5em;
+}
+.hologram-stage::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 92%;
+  height: 60%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at bottom,
+    rgba(125,249,255,0.28) 0%,
+    rgba(125,249,255,0.10) 40%,
+    transparent 70%
+  );
+  filter: blur(14px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Respect reduced-motion users — kill the flicker, keep the look */
+@media (prefers-reduced-motion: reduce) {
+  .hologram,
+  .hologram > *,
+  .hologram::after { animation: none; }
+}

@@ -7,6 +7,7 @@ import { fetchPublicProfile, type PublicProfile } from "@/lib/publicProfile";
 import { fetchPublicFleets, type Fleet } from "@/lib/fleets";
 import { fetchShipsByIds, type Ship } from "@/lib/ships";
 import { RsiProfileCard } from "./RsiProfileCard";
+import { Hologram } from "./Hologram";
 
 // Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
@@ -99,38 +100,44 @@ export function ProfileBrowser() {
           flexWrap: "wrap",
         }}
       >
-        {profile.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.avatar_url}
-            alt={`${name} avatar`}
-            width={72}
-            height={72}
-            style={{
-              borderRadius: "50%",
-              border: "1px solid rgba(255,255,255,0.15)",
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <div
-            aria-hidden
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: "50%",
-              background: "rgba(88,101,242,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.6rem",
-              fontWeight: 600,
-              color: "rgba(88,101,242,1)",
-            }}
-          >
-            {name.charAt(0).toUpperCase()}
-          </div>
-        )}
+        {/* Project the avatar as a Star Wars hologram — cyan-tinted, with
+            scanlines + rolling band + flicker. Reads as the rebel briefing
+            "we caught a holo of this player" vibe. */}
+        <Hologram stage>
+          {profile.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatar_url}
+              alt={`${name} avatar`}
+              width={72}
+              height={72}
+              style={{
+                borderRadius: "50%",
+                border: "1px solid rgba(125,249,255,0.35)",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+          ) : (
+            <div
+              aria-hidden
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                background: "rgba(125,249,255,0.12)",
+                border: "1px solid rgba(125,249,255,0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.6rem",
+                fontWeight: 600,
+              }}
+            >
+              {name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </Hologram>
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{name}</h1>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 6, color: "var(--text-muted)", fontSize: "0.85rem" }}>

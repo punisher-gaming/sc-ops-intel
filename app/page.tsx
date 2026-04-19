@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { StaffCredits } from "@/components/StaffCredits";
+import { Hologram } from "@/components/Hologram";
 
 export default function LandingPage() {
   return (
@@ -25,7 +26,11 @@ export default function LandingPage() {
             </div>
             <div className="brand-secondary">
               <span className="brand-bar" aria-hidden />
-              <span>SC OPS <span className="accent">//</span> INTEL</span>
+              {/* Hologram-projected subtitle — full Star Wars treatment:
+                  cyan tint, scanlines, rolling interference band, flicker */}
+              <Hologram stage>
+                SC OPS <span className="accent">//</span> INTEL
+              </Hologram>
               <span className="brand-bar" aria-hidden />
             </div>
           </div>
