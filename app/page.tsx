@@ -155,6 +155,16 @@ export default function LandingPage() {
               title="Ships"
               body="Every flyable hull. Hull HP, shields, speed, cargo, crew. Sortable, filterable."
             />
+            <FeatureCard
+              href="/community/auction"
+              title="⚖ Auction House"
+              body="User-to-user marketplace. WTS or WTB, pay in aUEC or any commodity. Discord pings when buyers bite. No real money — ever."
+            />
+            <FeatureCard
+              href="/ai"
+              title="🤖 AI Assistant"
+              body="Ask anything in plain English. Backed by our live catalog plus Star Citizen Wiki — answers in 2–3 seconds."
+            />
           </div>
         </section>
 
@@ -174,8 +184,11 @@ export default function LandingPage() {
               <StatusLine state="done" label="Commodities & trade locations" detail="194 commodities + 961 shops; community price submissions live" />
               <StatusLine state="done" label="Weapons & components" detail="Pulled from scunpacked items.json via local Node script; filterable catalogs" />
               <StatusLine state="done" label="Community forum" detail="User-created topics bumped by activity, voting, Discord identities" />
+              <StatusLine state="done" label="Auction House" detail="WTS + WTB listings, aUEC or commodity payments, Discord-webhook notifications when buyers bite" />
+              <StatusLine state="done" label="AI assistant" detail="Plain-English Q&A backed by our catalog + Star Citizen Wiki, powered by Cloudflare Workers AI" />
+              <StatusLine state="done" label="Lore Chronicle" detail="32-page comic-book history of the Verse with sticky timeline + cinematic page-flip" />
               <StatusLine state="done" label="Site music" detail="Moderator-uploaded tracks, floating player on every page" />
-              <StatusLine state="planned" label="Import Hangar" detail="Paste-based RSI fleet import, local parse" />
+              <StatusLine state="done" label="Hangar Import" detail="Hangarlink JSON drop-in — auto-matches your fleet to our ship catalog" />
             </ul>
           </div>
         </section>

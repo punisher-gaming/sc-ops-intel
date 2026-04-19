@@ -121,10 +121,16 @@ export async function createListing(input: {
   price_amount: number;
   price_currency: string;
   price_per_unit: boolean;
+  /** How many days until the listing auto-expires. Default 30 (matches DB). */
+  duration_days?: number;
   condition?: string;
   description?: string;
 }): Promise<AuctionListing> {
   const client = createClient();
+  // Compute expires_at on the client so the user sees the exact value
+  // they picked. DB default kicks in only if we omit the field.
+  const days = Math.max(1, Math.min(90, input.duration_days ?? 30));
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await client
     .from("auction_listings")
     .insert({
@@ -138,6 +144,7 @@ export async function createListing(input: {
       price_per_unit: input.price_per_unit,
       condition: input.condition ?? null,
       description: input.description ?? null,
+      expires_at: expiresAt,
     })
     .select("*")
     .single();

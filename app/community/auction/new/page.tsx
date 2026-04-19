@@ -27,6 +27,7 @@ export default function NewListingPage() {
   const [priceAmount, setPriceAmount] = useState<number>(0);
   const [priceCurrency, setPriceCurrency] = useState<string>("aUEC");
   const [pricePerUnit, setPricePerUnit] = useState(false);
+  const [durationDays, setDurationDays] = useState<number>(30);
   const [condition, setCondition] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -70,6 +71,7 @@ export default function NewListingPage() {
         price_amount: Math.round(priceAmount),
         price_currency: priceCurrency,
         price_per_unit: pricePerUnit,
+        duration_days: durationDays,
         condition: condition.trim() || undefined,
         description: description.trim() || undefined,
       });
@@ -243,6 +245,23 @@ export default function NewListingPage() {
             Price is <strong>per unit</strong> (otherwise it&apos;s the total for the lot)
           </label>
 
+          <Field label="Listing duration *">
+            <select
+              value={durationDays}
+              onChange={(e) => setDurationDays(parseInt(e.target.value, 10))}
+              className="select"
+            >
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days (default)</option>
+            </select>
+            <div className="label-mini" style={{ marginTop: 4 }}>
+              Auto-expires after this period. You can also cancel or
+              mark sold any time from the listing detail page.
+            </div>
+          </Field>
+
           <Field label="Condition (optional)">
             <input
               value={condition}
@@ -288,9 +307,27 @@ export default function NewListingPage() {
             </Link>
           </div>
 
+          <div
+            style={{
+              marginTop: 4,
+              padding: "10px 12px",
+              borderRadius: 6,
+              background: "rgba(77,217,255,0.06)",
+              border: "1px solid rgba(77,217,255,0.18)",
+              fontSize: "0.82rem",
+              color: "var(--text-muted)",
+              lineHeight: 1.55,
+            }}
+          >
+            🔔 <strong>Want a Discord ping when someone bites?</strong>{" "}
+            Set up a one-time webhook on your{" "}
+            <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>.
+            We&apos;ll DM you in your channel the moment a buyer expresses
+            interest or your listing is marked sold — handle and listing link
+            included so you can jump straight into the trade.
+          </div>
           <p style={{ marginTop: 4, color: "var(--text-dim)", fontSize: "0.78rem", lineHeight: 1.5 }}>
-            Listings expire after 30 days. You can mark sold or cancel anytime
-            from your listing detail page.
+            Cancel or mark sold any time from your listing detail page.
           </p>
         </form>
       </div>

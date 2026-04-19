@@ -269,12 +269,71 @@ export default function AccountPage() {
                   {webhookTesting ? "Testing…" : "Test"}
                 </button>
               </div>
-              <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 6, lineHeight: 1.55 }}>
-                Discord → your server → channel settings → Integrations → Webhooks → New Webhook → Copy URL.
-                When someone buys your auction listing or marks it sold, we&apos;ll post the
-                meet-up details into that channel. No bot needed; this is the same kind of
-                hook GitHub/Stripe use. Hit <em>Test</em> after you save to verify.
-              </div>
+              <details
+                style={{
+                  marginTop: 10,
+                  padding: "12px 14px",
+                  borderRadius: 6,
+                  background: "rgba(77,217,255,0.05)",
+                  border: "1px solid rgba(77,217,255,0.18)",
+                  color: "var(--text-muted)",
+                  fontSize: "0.82rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                <summary
+                  style={{ cursor: "pointer", color: "var(--accent)", fontWeight: 500, listStyle: "revert" }}
+                >
+                  🔔 How Discord notifications work — step-by-step
+                </summary>
+                <div style={{ marginTop: 12 }}>
+                  <p style={{ margin: "0 0 10px" }}>
+                    <strong>The short version:</strong> you give us a URL that
+                    points at one of your Discord channels. When something
+                    happens to your auction listing, we POST a message into
+                    that channel. No bot, no permissions on your account, no
+                    Discord login required.
+                  </p>
+                  <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
+                    Setup (one minute):
+                  </p>
+                  <ol style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
+                    <li>Open Discord. Pick a channel where you want to receive these pings — making a private <code>#auction-alerts</code> channel that only you can see is the most common choice.</li>
+                    <li>Right-click the channel → <strong>Edit Channel</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong> → <strong>New Webhook</strong>.</li>
+                    <li>Optionally rename it (e.g. &quot;CitizenDex&quot;) and pick an avatar. Then click <strong>Copy Webhook URL</strong>.</li>
+                    <li>Paste it into the field above and click <strong>Test</strong>. You&apos;ll see a test message in your channel within a second.</li>
+                    <li>Hit <strong>Save</strong> at the bottom of this form. Done.</li>
+                  </ol>
+                  <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
+                    What gets sent (and when):
+                  </p>
+                  <ul style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
+                    <li>
+                      <strong>🛒 Buyer interest</strong> — when a logged-in
+                      visitor clicks &quot;🔔 Ping seller&quot; on one of your
+                      WTS listings (or &quot;Ping buyer&quot; on a WTB listing),
+                      we send their Discord handle plus a link to the listing
+                      so you can jump in and DM them.
+                    </li>
+                    <li>
+                      <strong>🤝 Listing sold / filled</strong> — when you
+                      mark your own listing as SOLD/FILLED, we send a
+                      reminder ping with the buyer (or seller) handle plus
+                      the meet-up details so you don&apos;t lose track of who
+                      to find in-game.
+                    </li>
+                  </ul>
+                  <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
+                    Privacy &amp; safety:
+                  </p>
+                  <ul style={{ margin: "0 0 0", paddingLeft: "1.2rem" }}>
+                    <li>The webhook URL is a <em>per-channel write token</em> — anyone holding it can post to that channel. Don&apos;t paste it into other sites you don&apos;t trust.</li>
+                    <li>You can revoke it any time from Discord (delete the webhook). The next CitizenDex notification will silently fail and we&apos;ll just stop sending.</li>
+                    <li>We never @-everyone or @-here you. Discord&apos;s allowed_mentions block strips that out before forwarding.</li>
+                    <li>Webhook calls are CORS-relayed via our worker; your Discord credentials never touch our servers.</li>
+                  </ul>
+                </div>
+              </details>
             </label>
 
             {message && (
