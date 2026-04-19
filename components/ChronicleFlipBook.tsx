@@ -3,38 +3,33 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CHAPTERS } from "@/lib/lore-data";
+import { STORY_PAGES, type StoryPage } from "@/lib/lore-story";
 import { LoreImageEl } from "./LoreImage";
-import { EarthScene, SpaceScene, JumpPoint, CityScene, DestructionScene } from "./LoreArt";
+import { EarthScene } from "./LoreArt";
 
-// Auto-flipping comic book on /lore landing. Instead of a single cover
-// with a random peeking corner, this walks chronologically through every
-// chapter as pages that actually turn on the left spine.
+// Auto-flipping comic book on /lore landing — 14 pages reading
+// chronologically as a single narrative comic, not a table of contents.
 //
-// Page model (how it looks physically):
-//   - front cover (always visible first)
-//   - chapter pages stacked behind it, each with a FRONT face (chapter
-//     art + era number + title) and a BACK face (the previous era's
-//     closing note, styled as the comic's inside back cover)
-//   - as pages turn (rotateY from 0 to -180deg around the spine) they
-//     reveal the next chapter underneath
+// Page order:
+//   0       Front cover (Issue 01 / THE VERSE)
+//   1..N    Story pages from STORY_PAGES (one per pivotal event)
+//   N+1     Back cover (END OF VOLUME I + read-on CTA)
 //
-// The trick for stacking: we render every page absolutely positioned,
-// with z-index decreasing by index. Pages at indexes BELOW the current
-// one are rendered already-flipped (rotateY -180). Transitions run only
-// on the boundary page.
+// Each story page is laid out like a real comic panel: image fills the
+// page, top caption box gives the year stamp + headline, bottom caption
+// box gives the narrator's prose, optional speech-bubble pull-quote
+// floats over the art, and an oversized SFX word (KAPOW-style) drops
+// over the action when the page warrants it.
 
-const AUTOPLAY_MS = 5500;       // pause on each page
+const AUTOPLAY_MS = 7200;       // pause on each page (longer = readable)
 const FLIP_DURATION = 1600;     // ms for a page to fully turn
 
 export function ChronicleFlipBook() {
-  // idx 0 = front cover visible; 1..N = chapter N visible after turning
-  // that many pages. When idx === CHAPTERS.length + 1 we loop back.
   const [idx, setIdx] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
-  const total = CHAPTERS.length + 1; // cover + all chapters
+  const total = STORY_PAGES.length + 2; // cover + N story pages + back cover
 
-  // Respect reduced-motion — no autoplay, show a static grid of covers
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -52,30 +47,37 @@ export function ChronicleFlipBook() {
   }, [idx, autoplay, reducedMotion, total]);
 
   function go(n: number) {
-    setAutoplay(false);               // manual override wins
+    setAutoplay(false);
     setIdx(((n % total) + total) % total);
   }
 
-  // Reduced-motion fallback — show a static shelf of covers
   if (reducedMotion) {
     return <StaticShelf />;
   }
 
+  // What backdrop to show behind the book? The story page currently
+  // visible — its image, dimmed and blurred.
+  const backdropImage =
+    idx === 0 || idx === total - 1
+      ? null
+      : STORY_PAGES[idx - 1]?.image ?? null;
+
   return (
     <section className="flipbook-stage">
-      {/* Ambient art behind the book — shifts per chapter for extra life */}
       <div className="flipbook-backdrop" key={idx}>
-        <BackdropFor idx={idx} />
+        {backdropImage ? (
+          <LoreImageEl image={backdropImage} credit="hidden" />
+        ) : (
+          <EarthScene />
+        )}
         <div className="flipbook-backdrop-tint" />
       </div>
 
-      {/* The book itself */}
       <div className="flipbook-book">
         <div className="flipbook-spine" aria-hidden />
 
-        {/* Front cover — page 0 */}
+        {/* Page 0 — front cover */}
         <Page
-          className="flipbook-cover"
           turned={idx > 0}
           zBase={total + 1}
           layer={0}
@@ -83,40 +85,43 @@ export function ChronicleFlipBook() {
         >
           <FrontCoverFace />
           <BackFace
-            leftBlurb="Volume I of the Chronicle"
-            rightBlurb="A visual history of the Verse"
+            top="Volume I of the Chronicle"
+            bottom="A visual history of the Verse"
           />
         </Page>
 
-        {/* One "page" per chapter — the front face is THIS chapter */}
-        {CHAPTERS.map((c, i) => {
+        {/* Pages 1..N — story panels */}
+        {STORY_PAGES.map((page, i) => {
           const pageNum = i + 1;
           const turned = idx > pageNum;
           return (
             <Page
-              key={c.slug}
+              key={`story-${i}`}
               turned={turned}
               zBase={total + 1 - pageNum}
               layer={pageNum}
               duration={FLIP_DURATION}
             >
-              <ChapterFace chapter={c} />
+              <StoryPageFace page={page} pageNum={pageNum} total={STORY_PAGES.length} />
               <BackFace
-                leftBlurb={`End of Chapter ${c.num}`}
-                rightBlurb={c.title}
+                top={`Page ${pageNum} of ${STORY_PAGES.length}`}
+                bottom={`${page.year} UEE`}
               />
             </Page>
           );
         })}
 
-        {/* Back cover — always underneath everything so when all pages
-            are flipped, the reader sees the inside back cover */}
+        {/* Back cover — under everything */}
         <div className="flipbook-page flipbook-backcover" aria-hidden>
           <div className="flipbook-backcover-face">
             <div className="flipbook-backcover-eyebrow">— END OF VOLUME I —</div>
             <div className="flipbook-backcover-title">Read on</div>
-            <Link href="/lore/chapter/origins" className="btn btn-primary" style={{ marginTop: 14 }}>
-              Start from Chapter I →
+            <Link
+              href="/lore/chapter/origins"
+              className="btn btn-primary"
+              style={{ marginTop: 14 }}
+            >
+              Open the Chronicle →
             </Link>
           </div>
         </div>
@@ -135,11 +140,12 @@ export function ChronicleFlipBook() {
         <div className="flipbook-counter">
           {idx === 0 ? (
             <span className="flipbook-counter-cover">Cover</span>
+          ) : idx === total - 1 ? (
+            <span className="flipbook-counter-cover">— End —</span>
           ) : (
             <>
-              <span>Chapter</span>{" "}
-              <span className="flipbook-counter-num">{CHAPTERS[idx - 1]?.num}</span>{" "}
-              <span className="flipbook-counter-of">of {CHAPTERS.length}</span>
+              <span className="flipbook-counter-num">{STORY_PAGES[idx - 1].year}</span>{" "}
+              <span className="flipbook-counter-of">UEE · Page {idx} / {STORY_PAGES.length}</span>
             </>
           )}
         </div>
@@ -165,45 +171,35 @@ export function ChronicleFlipBook() {
 }
 
 // ── Page primitive ────────────────────────────────────────────────────
-// Each page is a flex card that rotates 180° around its left spine.
-// Contains two children (front + back faces) — we stack them with
-// absolute positioning + backface-visibility so the back appears
-// mirror-flipped (correct) when the page has turned.
 function Page({
   children,
   turned,
   zBase,
   layer,
   duration,
-  className = "",
 }: {
   children: [React.ReactNode, React.ReactNode];
   turned: boolean;
   zBase: number;
   layer: number;
   duration: number;
-  className?: string;
 }) {
   return (
     <div
-      className={`flipbook-page ${className}`}
+      className="flipbook-page"
       style={{
         transform: `rotateY(${turned ? -180 : 0}deg)`,
         zIndex: turned ? layer : zBase,
         transition: `transform ${duration}ms cubic-bezier(0.55, 0, 0.45, 1)`,
       }}
     >
-      <div className="flipbook-page-face flipbook-page-front">
-        {children[0]}
-      </div>
-      <div className="flipbook-page-face flipbook-page-back">
-        {children[1]}
-      </div>
+      <div className="flipbook-page-face flipbook-page-front">{children[0]}</div>
+      <div className="flipbook-page-face flipbook-page-back">{children[1]}</div>
     </div>
   );
 }
 
-// ── Front cover art ────────────────────────────────────────────────────
+// ── Front cover ───────────────────────────────────────────────────────
 function FrontCoverFace() {
   return (
     <>
@@ -240,70 +236,77 @@ function FrontCoverFace() {
   );
 }
 
-// ── Chapter page — front face ─────────────────────────────────────────
-function ChapterFace({ chapter }: { chapter: (typeof CHAPTERS)[number] }) {
+// ── Story page — the actual comic panel ──────────────────────────────
+function StoryPageFace({
+  page,
+  pageNum,
+  total,
+}: {
+  page: StoryPage;
+  pageNum: number;
+  total: number;
+}) {
   return (
     <>
-      <div className="flipbook-chapter-art">
-        {chapter.heroImage ? (
-          <LoreImageEl image={chapter.heroImage} credit="corner" />
-        ) : (
-          <ArtFallback slug={chapter.slug} />
-        )}
+      {/* Background art fills the page */}
+      <div className="flipbook-story-art">
+        <LoreImageEl image={page.image} credit="corner" />
       </div>
-      <div className="flipbook-chapter-overlay" />
-      <div className="flipbook-chapter-corner">CHAPTER {chapter.num}</div>
-      <div className="flipbook-chapter-title">
-        <div className="flipbook-chapter-years">
-          {chapter.yearsFrom} — {chapter.yearsTo}
+
+      {/* Page-number stamp top-right */}
+      <div className="flipbook-story-pagenum">
+        {String(pageNum).padStart(2, "0")} / {String(total).padStart(2, "0")}
+      </div>
+
+      {/* TOP CAPTION BOX — year + headline */}
+      <div className="flipbook-story-top-cap">
+        <div className="flipbook-story-year">{page.year}</div>
+        <div className="flipbook-story-title">{page.title}</div>
+      </div>
+
+      {/* SFX overlay — big stylized sound effect for action moments */}
+      {page.sfx && (
+        <div className="flipbook-story-sfx" aria-hidden>
+          {page.sfx}
         </div>
-        <h2>{chapter.title}</h2>
-        <div className="flipbook-chapter-sub">{chapter.subtitle}</div>
-        <p className="flipbook-chapter-blurb">{chapter.blurb}</p>
-        <Link
-          href={`/lore/chapter/${chapter.slug}`}
-          className="flipbook-chapter-cta"
-        >
-          Read Chapter {chapter.num} →
-        </Link>
+      )}
+
+      {/* SPEECH BUBBLE — pull-quote rendered as a comic balloon */}
+      {page.pullQuote && (
+        <div className="flipbook-story-bubble">
+          <blockquote>"{page.pullQuote.text}"</blockquote>
+          <cite>— {page.pullQuote.attribution}</cite>
+        </div>
+      )}
+
+      {/* BOTTOM CAPTION BOX — narrator prose + read-more link */}
+      <div className="flipbook-story-bottom-cap">
+        <p>{page.narration}</p>
+        {page.chapterSlug && (
+          <Link
+            href={`/lore/chapter/${page.chapterSlug}`}
+            className="flipbook-story-readmore"
+          >
+            Read this chapter in full →
+          </Link>
+        )}
       </div>
     </>
   );
 }
 
-// ── Back of a page — the "wrong side" shown while turning ─────────────
-function BackFace({ leftBlurb, rightBlurb }: { leftBlurb: string; rightBlurb: string }) {
+// ── Page back face ────────────────────────────────────────────────────
+function BackFace({ top, bottom }: { top: string; bottom: string }) {
   return (
     <div className="flipbook-back-face">
-      <div className="flipbook-back-top">{leftBlurb}</div>
+      <div className="flipbook-back-top">{top}</div>
       <div className="flipbook-back-grid" aria-hidden />
-      <div className="flipbook-back-bottom">{rightBlurb}</div>
+      <div className="flipbook-back-bottom">{bottom}</div>
     </div>
   );
 }
 
-// ── Ambient backdrop changes per page ──────────────────────────────────
-function BackdropFor({ idx }: { idx: number }) {
-  // idx 0 = cover (Earth). idx 1..N = that chapter's art.
-  const chapter = idx > 0 ? CHAPTERS[idx - 1] : null;
-  if (!chapter) return <EarthScene />;
-  if (chapter.heroImage) return <LoreImageEl image={chapter.heroImage} credit="hidden" />;
-  return <ArtFallback slug={chapter.slug} />;
-}
-
-function ArtFallback({ slug }: { slug: string }) {
-  switch (slug) {
-    case "origins":       return <EarthScene />;
-    case "early-empire":  return <SpaceScene accent="violet" seed={3} />;
-    case "messer-era":    return <DestructionScene accent="red" />;
-    case "liberation":    return <CityScene accent="green" />;
-    case "golden-age":    return <CityScene accent="amber" />;
-    case "current-era":   return <JumpPoint accent="cyan" />;
-    default:              return <SpaceScene />;
-  }
-}
-
-// ── Static fallback for reduced-motion users ──────────────────────────
+// ── Reduced-motion fallback ───────────────────────────────────────────
 function StaticShelf() {
   return (
     <section style={{ padding: "4rem 1.5rem 2rem" }}>

@@ -653,6 +653,191 @@
   background: var(--lore-cyan);
 }
 
+/* ── Story-page faces (comic narrative panels) ──────────────────────
+   Each story page renders the chapter's image full-bleed with comic
+   conventions layered over: top caption (year + headline), bottom
+   caption (narrator prose), optional speech bubble (pull-quote),
+   optional KAPOW-style SFX text. */
+
+.flipbook-story-art {
+  position: absolute;
+  inset: 0;
+}
+.flipbook-story-art > img,
+.flipbook-story-art > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.flipbook-story-art::after {
+  /* Subtle vignette so caption boxes pop */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 35%, rgba(2, 5, 12, 0.45) 90%);
+  pointer-events: none;
+}
+
+.flipbook-story-pagenum {
+  position: absolute;
+  top: 12px; right: 12px;
+  z-index: 5;
+  padding: 3px 9px;
+  background: rgba(2, 5, 12, 0.78);
+  border: 1px solid var(--lore-border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  color: var(--lore-cyan);
+}
+
+/* TOP CAPTION BOX — a yellow comic narration banner with year + title */
+.flipbook-story-top-cap {
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 4;
+  max-width: calc(100% - 90px);
+  background: linear-gradient(180deg, #fff7d6 0%, #ffeaa3 100%);
+  color: #0a0e16;
+  border: 2px solid #0a0e16;
+  border-radius: 3px;
+  padding: 8px 14px 10px;
+  box-shadow: 4px 4px 0 rgba(2, 5, 12, 0.85);
+  font-family: var(--font-mono);
+}
+.flipbook-story-year {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 2px;
+}
+.flipbook-story-title {
+  font-size: clamp(1.1rem, 2.6vw, 1.6rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+/* BOTTOM CAPTION — narrator prose, full-width band like a panel caption */
+.flipbook-story-bottom-cap {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 4;
+  background: linear-gradient(180deg, rgba(2, 5, 12, 0.4) 0%, rgba(2, 5, 12, 0.96) 60%);
+  padding: 1.6rem 1.5rem 1.4rem;
+  color: #fff;
+}
+.flipbook-story-bottom-cap p {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.92rem, 1.6vw, 1.05rem);
+  line-height: 1.55;
+  margin: 0 0 12px;
+  max-width: 56ch;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.flipbook-story-readmore {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lore-cyan);
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--lore-border-strong);
+}
+.flipbook-story-readmore:hover {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
+}
+
+/* SPEECH BUBBLE — pull-quote rendered like a comic balloon */
+.flipbook-story-bubble {
+  position: absolute;
+  top: 28%; right: 6%;
+  z-index: 4;
+  max-width: 56%;
+  background: #fff;
+  color: #0a0e16;
+  border: 2px solid #0a0e16;
+  border-radius: 16px;
+  padding: 14px 18px 10px;
+  box-shadow: 4px 4px 0 rgba(2, 5, 12, 0.85);
+  font-family: Georgia, "Times New Roman", serif;
+  transform: rotate(-1.5deg);
+}
+.flipbook-story-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -14px;
+  left: 28px;
+  width: 22px; height: 22px;
+  background: #fff;
+  border-right: 2px solid #0a0e16;
+  border-bottom: 2px solid #0a0e16;
+  transform: rotate(45deg);
+}
+.flipbook-story-bubble blockquote {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  font-style: italic;
+}
+.flipbook-story-bubble cite {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #444;
+}
+
+/* SFX — big KAPOW-style sound-effect lettering */
+.flipbook-story-sfx {
+  position: absolute;
+  z-index: 3;
+  top: 38%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #ffd84d;
+  -webkit-text-stroke: 3px #0a0e16;
+  text-stroke: 3px #0a0e16;
+  text-shadow:
+    0 0 30px rgba(0, 0, 0, 0.8),
+    6px 6px 0 #ff5a6a,
+    8px 8px 0 #0a0e16;
+  text-transform: uppercase;
+  line-height: 0.85;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: sfx-pop 0.6s ease-out;
+}
+@keyframes sfx-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(0.4); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1.15); }
+  100% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+}
+
+@media (max-width: 600px) {
+  .flipbook-story-top-cap { max-width: calc(100% - 80px); padding: 6px 10px 8px; }
+  .flipbook-story-title { font-size: 1.05rem; }
+  .flipbook-story-bottom-cap { padding: 1.1rem 1rem 1rem; }
+  .flipbook-story-bottom-cap p { font-size: 0.85rem; }
+  .flipbook-story-bubble { max-width: 70%; right: 4%; top: 30%; }
+  .flipbook-story-bubble blockquote { font-size: 0.82rem; }
+  .flipbook-story-sfx { font-size: 2.2rem; }
+}
+
 /* ── Chapter page front face ──────────────────────────────── */
 .flipbook-chapter-art { position: absolute; inset: 0; }
 .flipbook-chapter-art > svg,
