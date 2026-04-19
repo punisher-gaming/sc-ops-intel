@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
+import { StaffCredits } from "@/components/StaffCredits";
 
 export default function LandingPage() {
   return (
@@ -112,6 +113,8 @@ export default function LandingPage() {
             </ul>
           </div>
         </section>
+
+        <StaffCredits />
       </main>
       <footer className="site-footer">
         Punisher Gaming · SC OPS INTEL · Unofficial — no affiliation with CIG
