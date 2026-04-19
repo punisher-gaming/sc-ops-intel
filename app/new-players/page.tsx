@@ -102,7 +102,7 @@ export default function NewPlayersPage() {
           <Rung
             tier="EASY"
             title="Bunker missions"
-            body="Mission Manager → Mercenary → Clear Underground Facility. Fly to a planet-side bunker, clear NPCs inside, loot them. 40–80k aUEC per bunker. Bring a medium armor set + a rifle. If you die you lose your gear."
+            body="Mission Manager → Mercenary → Clear Underground Facility. Fly to a planet-side bunker, clear NPCs inside, loot them. 40–80k aUEC per bunker. Bring a medium armor set + a rifle. Your equipped armor and weapons are persistent — they stay with you when you die — but anything in your backpack (loot, MedPens, spare mags, ammo boxes) can be lost on the body. Loot, then stash back at your ship often."
           />
           <Rung
             tier="MEDIUM"
