@@ -136,7 +136,12 @@ export default function NotesPage() {
         <div className="page-header">
           <div className="accent-label">Account</div>
           <h1>Notes</h1>
-          <p>Private to you. Use them for loadouts, strategies, or crafting plans.</p>
+          <p>
+            These are <strong>your private notes</strong> — only you can see them.
+            No moderator, no other player, not even other admins. Use them for
+            loadouts, mission strategies, crafting plans, or anything else
+            you&apos;d jot in a personal logbook.
+          </p>
         </div>
 
         <div className="card" style={{ padding: "1.75rem", marginTop: "1rem" }}>
