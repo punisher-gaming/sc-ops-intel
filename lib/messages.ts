@@ -20,7 +20,11 @@ export interface DirectMessage {
   recipient_avatar?: string | null;
 }
 
-const COLS = `id, sender_id, recipient_id, body, context_listing_id, read_at, created_at,
+// Base columns on direct_messages itself — used by the insert path.
+const BASE_COLS = `id, sender_id, recipient_id, body, context_listing_id, read_at, created_at`;
+// Joined columns only available via the direct_messages_with_users view —
+// used by inbox + thread reads.
+const COLS = `${BASE_COLS},
   sender_name, sender_discord, sender_avatar,
   recipient_name, recipient_discord, recipient_avatar`;
 
@@ -55,7 +59,9 @@ export async function sendMessage(opts: {
       body: opts.body.trim(),
       context_listing_id: opts.context_listing_id ?? null,
     })
-    .select(COLS)
+    // Base cols only — joined seller/recipient info lives on the view,
+    // not the underlying table.
+    .select(BASE_COLS)
     .single();
   if (error) throw error;
 
