@@ -25,7 +25,7 @@ export default function NewListingPage() {
   // of the form lets the user post a buy request instead.
   const [listingType, setListingType] = useState<ListingType>("wts");
   const [itemName, setItemName] = useState("");
-  const [category, setCategory] = useState<AuctionCategory>("ship");
+  const [category, setCategory] = useState<AuctionCategory>("cargo");
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState<AuctionUnit>("each");
   const [qualityMin, setQualityMin] = useState<string>("");
@@ -191,6 +191,20 @@ export default function NewListingPage() {
             </div>
           </Field>
 
+          {/* Category first — picking it switches the typeahead's
+              backing catalog and pre-selects a sensible unit. */}
+          <Field label="Category *">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as AuctionCategory)}
+              className="select"
+            >
+              {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </Field>
+
           <Field label="Item name *">
             <ItemNameTypeahead
               category={category}
@@ -204,18 +218,6 @@ export default function NewListingPage() {
                   : "Start typing — e.g. Idris, Quantanium, Polaris BUK"
               }
             />
-          </Field>
-
-          <Field label="Category *">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as AuctionCategory)}
-              className="select"
-            >
-              {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
-                <option key={v} value={v}>{l}</option>
-              ))}
-            </select>
           </Field>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 14 }}>
