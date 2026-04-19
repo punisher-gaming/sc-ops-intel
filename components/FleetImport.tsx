@@ -36,6 +36,69 @@ function normalize(s: string): string {
 }
 
 function extractNames(input: unknown): string[] {
+  // === Hangarlink format detection ===
+  // The official-ish RSI hangar export tool emits:
+  //   { type: "hangarlink", version: 1, pledges: [...] }
+  // Each pledge is a purchased pledge. Two ways the ship name shows up:
+  //   1. Solo ship pledges: items[] contains only Skin/Insurance (no Ship
+  //      kind), so the ship name has to be parsed from `contains` which
+  //      reads "<Ship Name> and N items".
+  //   2. Pack pledges: items[] contains entries with kind === "Ship" whose
+  //      `title` is the actual ship name. We collect every Ship item.
+  // Skip pledgeType === "upgrade" (CCUs aren't actual hangared ships) and
+  // any pledge that yields nothing useful from either path.
+  if (
+    input &&
+    typeof input === "object" &&
+    !Array.isArray(input) &&
+    (input as { type?: unknown }).type === "hangarlink" &&
+    Array.isArray((input as { pledges?: unknown }).pledges)
+  ) {
+    const pledges = (input as { pledges: unknown[] }).pledges;
+    const out: string[] = [];
+    for (const raw of pledges) {
+      if (!raw || typeof raw !== "object") continue;
+      const p = raw as Record<string, unknown>;
+      if (p.pledgeType === "upgrade" || p.pledgeType === "other") continue;
+
+      // Collect kind="Ship" items first (handles packs)
+      const items = Array.isArray(p.items) ? (p.items as unknown[]) : [];
+      let foundShipItem = false;
+      for (const it of items) {
+        if (!it || typeof it !== "object") continue;
+        const i = it as Record<string, unknown>;
+        if (i.kind === "Ship" && typeof i.title === "string" && i.title.trim()) {
+          out.push(i.title.trim());
+          foundShipItem = true;
+        }
+      }
+
+      // If no Ship items were listed, parse the ship name from `contains`
+      // for solo ship pledges. The string follows one of these shapes:
+      //   "Aurora MR and 4 items"           → "Aurora MR"
+      //   "A.T.L.S. and 6 Month Insurance"  → "A.T.L.S."
+      //   "Cutlass Black"                   → "Cutlass Black"
+      //   "16 ships and 16 items"           → SKIP (it's a pack we can't
+      //                                       enumerate without RSI looking
+      //                                       up the package contents)
+      if (!foundShipItem && typeof p.contains === "string") {
+        const c = p.contains.trim();
+        if (!c) continue;
+        // Skip pure ship/item counts — those mean an opaque pack
+        if (/^\d+\s+ships?(\s+and\s+.*)?$/i.test(c)) continue;
+        if (/^\d+\s+items?$/i.test(c)) continue;
+        // Strip "and …" suffix (insurance, items count, etc.)
+        const m = c.match(/^(.+?)\s+and\s+.+$/i);
+        const name = m ? m[1].trim() : c;
+        // Belt-and-suspenders: drop if the captured name is still a count
+        if (!/^\d+\s+ships?$/i.test(name) && name) {
+          out.push(name);
+        }
+      }
+    }
+    return out;
+  }
+
   // Drill through wrapper objects to find an array
   if (input && typeof input === "object" && !Array.isArray(input)) {
     const obj = input as Record<string, unknown>;
