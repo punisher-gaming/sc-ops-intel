@@ -16,6 +16,13 @@ import {
 } from "@/lib/resources";
 import { CURRENT_PATCH } from "./PatchPill";
 import { IntelPanel } from "./IntelPanel";
+import {
+  dismantleReturns,
+  displayName as bpName,
+  fetchBlueprintsThatYield,
+  prettyType as prettyBpType,
+  type Blueprint,
+} from "@/lib/blueprints";
 
 const PAGE_SIZE = 50;
 
@@ -287,6 +294,8 @@ function ResourceDetail({ id }: { id: string }) {
         </p>
       </div>
 
+      <UsedInBlueprints resourceUuid={resource.id} resourceName={displayName(resource)} />
+
       <IntelPanel entityType="resource" entityId={resource.id} entityName={displayName(resource)} />
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
@@ -330,6 +339,84 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="card" style={{ padding: "14px 16px" }}>
       <div className="label-mini" style={{ marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>{value}</div>
+    </div>
+  );
+}
+
+function UsedInBlueprints({
+  resourceUuid,
+  resourceName,
+}: {
+  resourceUuid: string;
+  resourceName: string;
+}) {
+  const [rows, setRows] = useState<Blueprint[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchBlueprintsThatYield(resourceUuid)
+      .then(setRows)
+      .catch((e) => setErr(e.message ?? String(e)));
+  }, [resourceUuid]);
+
+  return (
+    <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+      <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 8 }}>
+        Used in (yields when dismantled)
+      </div>
+      <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginBottom: 14, lineHeight: 1.5 }}>
+        Blueprints whose crafted item dismantles into <strong>{resourceName}</strong>.
+        The game data doesn&apos;t expose direct crafting requirements (slots
+        are abstract — Frame, Barrel, etc.), so dismantle yields are the best
+        bridge between resources and recipes.
+      </p>
+
+      {err && <ErrorBar text={err} />}
+      {rows === null && !err && (
+        <div style={{ color: "var(--text-dim)" }}>Searching blueprints…</div>
+      )}
+      {rows && rows.length === 0 && !err && (
+        <div style={{ color: "var(--text-dim)" }}>
+          No blueprints in the catalog dismantle into this resource.
+        </div>
+      )}
+      {rows && rows.length > 0 && (
+        <ul style={{ display: "flex", flexDirection: "column", gap: 6, listStyle: "none", maxHeight: 360, overflowY: "auto" }}>
+          {rows.map((b) => {
+            const yieldEntry = dismantleReturns(b).find((r) => r.UUID === resourceUuid);
+            return (
+              <li
+                key={b.id}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                  <Link href={`/blueprints?id=${encodeURIComponent(b.id)}`} style={{ color: "var(--accent)", fontWeight: 500, fontSize: "0.9rem" }}>
+                    {bpName(b)}
+                  </Link>
+                  {yieldEntry && (
+                    <span style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
+                      {yieldEntry.QuantityScu < 0.01
+                        ? yieldEntry.QuantityScu.toExponential(1)
+                        : yieldEntry.QuantityScu.toFixed(3)}{" "}
+                      SCU
+                    </span>
+                  )}
+                </div>
+                <div className="label-mini" style={{ marginTop: 4 }}>
+                  {prettyBpType(b.output_item_type)}
+                  {b.output_item_subtype && ` · ${b.output_item_subtype}`}
+                  {b.output_grade && ` · Grade ${b.output_grade}`}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

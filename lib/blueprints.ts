@@ -247,6 +247,31 @@ export async function unmarkBlueprintOwned(userId: string, blueprintId: string):
   if (error) throw error;
 }
 
+// Reverse lookup: which blueprints, when dismantled, yield the given
+// resource? This is our best proxy for "what blueprints use this resource"
+// — the game data doesn't expose direct crafting requirements per resource
+// (slots are abstract groups), but Dismantle.Returns is canonical.
+//
+// Uses Postgres jsonb containment (@>) which scans 1k blueprints per call.
+// Without an index it's still sub-100ms; we'll add a GIN index later if it
+// shows up in latency.
+export async function fetchBlueprintsThatYield(
+  resourceUuid: string,
+): Promise<Blueprint[]> {
+  const client = createClient();
+  const { data, error } = await client
+    .from("blueprints")
+    .select(LIST_COLS + ", source_data")
+    .filter(
+      "source_data->Dismantle->Returns",
+      "cs",
+      JSON.stringify([{ UUID: resourceUuid }]),
+    )
+    .limit(100);
+  if (error) throw error;
+  return (data ?? []) as unknown as Blueprint[];
+}
+
 export function uniqueValues<T extends keyof Blueprint>(
   blueprints: Blueprint[],
   key: T,
