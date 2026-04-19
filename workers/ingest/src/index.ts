@@ -11,6 +11,7 @@ import { ingestCommodityAvailability } from "./ingest/availability";
 import { ingestItems } from "./ingest/items";
 import { fetchRsiProfile } from "./rsi";
 import { handleAiChat } from "./ai";
+import { handleNotifyDiscord } from "./notify";
 
 const ROUTES = `
 SC OPS INTEL ingest worker
@@ -43,6 +44,12 @@ export default {
     // Workers AI (llama-3.1 8B instruct).
     if (url.pathname === "/ai/chat") {
       return handleAiChat(req, env);
+    }
+
+    // Discord webhook proxy — frontend can't post to discord.com
+    // directly because of CORS, so this route validates + relays.
+    if (url.pathname === "/notify/discord") {
+      return handleNotifyDiscord(req);
     }
 
     // RSI profile passthrough — /rsi/<handle>. Public read-only, served

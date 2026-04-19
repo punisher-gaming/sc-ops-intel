@@ -13,6 +13,7 @@ type Profile = {
   display_name: string | null;
   rsi_handle: string | null;
   bio: string | null;
+  discord_webhook_url: string | null;
 };
 
 function oauthProvider(user: { app_metadata?: Record<string, unknown> } | null): string | null {
@@ -36,6 +37,8 @@ export default function AccountPage() {
   const { user, loading: userLoading } = useUser();
   const [displayName, setDisplayName] = useState("");
   const [rsiHandle, setRsiHandle] = useState("");
+  const [discordWebhook, setDiscordWebhook] = useState("");
+  const [webhookTesting, setWebhookTesting] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [busy, setBusy] = useState(false);
   // Bump this key to force SavedFleets to re-fetch after a successful import
@@ -68,6 +71,7 @@ export default function AccountPage() {
         ]);
         setDisplayName(p?.display_name ?? metaName ?? "");
         setRsiHandle(p?.rsi_handle ?? "");
+        setDiscordWebhook(p?.discord_webhook_url ?? "");
         setLoadingProfile(false);
       });
   }, [user, userLoading, router]);
@@ -83,11 +87,40 @@ export default function AccountPage() {
       .update({
         display_name: displayName || null,
         rsi_handle: rsiHandle.trim() || null,
+        discord_webhook_url: discordWebhook.trim() || null,
       })
       .eq("id", user.id);
     setBusy(false);
     setMessage(error ? { kind: "error", text: error.message } : { kind: "ok", text: "Saved." });
     setTimeout(() => setMessage(null), 3000);
+  }
+
+  // Send a test message to whatever webhook is currently typed in the
+  // input — saved or not. Lets the user verify their channel before
+  // committing the URL to their profile.
+  async function handleTestWebhook() {
+    const url = discordWebhook.trim();
+    if (!url) {
+      setMessage({ kind: "error", text: "Paste a webhook URL first." });
+      return;
+    }
+    setWebhookTesting(true);
+    try {
+      const { postDiscordNotice } = await import("@/lib/notify");
+      const ok = await postDiscordNotice({
+        webhookUrl: url,
+        content:
+          "✅ CitizenDex test notification — your auction notifications are wired up correctly.",
+      });
+      setMessage(
+        ok
+          ? { kind: "ok", text: "Test sent — check your Discord channel." }
+          : { kind: "error", text: "Couldn't reach Discord. Double-check the URL." },
+      );
+    } finally {
+      setWebhookTesting(false);
+      setTimeout(() => setMessage(null), 5000);
+    }
   }
 
   async function handleSignOut() {
@@ -210,6 +243,37 @@ export default function AccountPage() {
               <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 6, lineHeight: 1.5 }}>
                 If set, we fetch your <strong>public</strong> RSI profile — orgs, badges, join
                 date. We never request your RSI password.
+              </div>
+            </label>
+
+            <label>
+              <div className="label-mini" style={{ marginBottom: 6 }}>
+                Discord webhook URL (optional) — for auction notifications
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="url"
+                  value={discordWebhook}
+                  onChange={(e) => setDiscordWebhook(e.target.value)}
+                  placeholder="https://discord.com/api/webhooks/…"
+                  className="input"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={handleTestWebhook}
+                  disabled={webhookTesting || !discordWebhook.trim()}
+                  className="btn btn-secondary"
+                  style={{ height: 40, padding: "0 14px", fontSize: "0.82rem" }}
+                >
+                  {webhookTesting ? "Testing…" : "Test"}
+                </button>
+              </div>
+              <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 6, lineHeight: 1.55 }}>
+                Discord → your server → channel settings → Integrations → Webhooks → New Webhook → Copy URL.
+                When someone buys your auction listing or marks it sold, we&apos;ll post the
+                meet-up details into that channel. No bot needed; this is the same kind of
+                hook GitHub/Stripe use. Hit <em>Test</em> after you save to verify.
               </div>
             </label>
 

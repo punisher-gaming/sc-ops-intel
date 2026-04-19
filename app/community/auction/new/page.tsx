@@ -8,7 +8,9 @@ import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
   createListing,
+  fetchCurrencyOptions,
   type AuctionCategory,
+  type CurrencyOption,
 } from "@/lib/auction";
 
 export default function NewListingPage() {
@@ -17,12 +19,21 @@ export default function NewListingPage() {
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState<AuctionCategory>("ship");
   const [quantity, setQuantity] = useState(1);
-  const [priceAuec, setPriceAuec] = useState<number>(0);
+  const [priceAmount, setPriceAmount] = useState<number>(0);
+  const [priceCurrency, setPriceCurrency] = useState<string>("aUEC");
   const [pricePerUnit, setPricePerUnit] = useState(false);
   const [condition, setCondition] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Currency options pulled from the live commodities catalog (+ aUEC)
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([
+    { value: "aUEC", label: "aUEC (in-game credits)", isAuec: true },
+  ]);
+  useEffect(() => {
+    fetchCurrencyOptions().then(setCurrencies).catch(() => { /* keep default */ });
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -38,7 +49,7 @@ export default function NewListingPage() {
       setErr("Item name is required.");
       return;
     }
-    if (priceAuec < 0) {
+    if (priceAmount < 0) {
       setErr("Price can't be negative.");
       return;
     }
@@ -50,7 +61,8 @@ export default function NewListingPage() {
         item_name: itemName.trim(),
         item_category: category,
         quantity,
-        price_auec: Math.round(priceAuec),
+        price_amount: Math.round(priceAmount),
+        price_currency: priceCurrency,
         price_per_unit: pricePerUnit,
         condition: condition.trim() || undefined,
         description: description.trim() || undefined,
@@ -62,6 +74,20 @@ export default function NewListingPage() {
     }
   }
 
+  // Group commodities by kind so the dropdown is browsable. aUEC stays
+  // pinned at the top.
+  const grouped = (() => {
+    const auec = currencies.filter((c) => c.isAuec);
+    const rest = currencies.filter((c) => !c.isAuec);
+    const byKind = new Map<string, CurrencyOption[]>();
+    for (const c of rest) {
+      const k = c.kind?.trim() || "Other";
+      if (!byKind.has(k)) byKind.set(k, []);
+      byKind.get(k)!.push(c);
+    }
+    return { auec, byKind };
+  })();
+
   return (
     <PageShell>
       <div className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem", maxWidth: 720 }}>
@@ -72,10 +98,10 @@ export default function NewListingPage() {
           <div className="accent-label">New Listing</div>
           <h1>Sell an item</h1>
           <p>
-            <strong style={{ color: "var(--alert)" }}>aUEC only.</strong>{" "}
-            Real-money trades, cash equivalents, or off-platform payment
-            requests will be removed and your account flagged. The actual
-            trade happens in-game between you and the buyer.
+            Accept payment in <strong>aUEC</strong> or any in-game{" "}
+            <strong>commodity</strong> (Gold, Quantanium, Tungsten, etc.).{" "}
+            <strong style={{ color: "var(--alert)" }}>No real money.</strong>{" "}
+            The actual trade happens in-game between you and the buyer.
           </p>
         </div>
 
@@ -114,19 +140,43 @@ export default function NewListingPage() {
                 className="input"
               />
             </Field>
-            <Field label="Price (aUEC) *">
+            <Field label="Asking price *">
               <input
                 type="number"
                 min={0}
-                step={1000}
+                step={1}
                 required
-                value={priceAuec}
-                onChange={(e) => setPriceAuec(parseFloat(e.target.value) || 0)}
+                value={priceAmount}
+                onChange={(e) => setPriceAmount(parseFloat(e.target.value) || 0)}
                 placeholder="500000"
                 className="input"
               />
             </Field>
           </div>
+
+          <Field label="Currency *">
+            <select
+              value={priceCurrency}
+              onChange={(e) => setPriceCurrency(e.target.value)}
+              className="select"
+            >
+              {grouped.auec.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+              {Array.from(grouped.byKind.entries()).map(([kind, opts]) => (
+                <optgroup key={kind} label={kind}>
+                  {opts.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <div className="label-mini" style={{ marginTop: 4 }}>
+              {priceCurrency === "aUEC"
+                ? "Buyer pays in in-game credits."
+                : `Buyer pays in ${priceCurrency} — typically traded in SCU at a refinery or trade location.`}
+            </div>
+          </Field>
 
           <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.9rem", color: "var(--text-muted)" }}>
             <input
@@ -135,7 +185,7 @@ export default function NewListingPage() {
               onChange={(e) => setPricePerUnit(e.target.checked)}
               style={{ accentColor: "var(--accent)" }}
             />
-            Price is <strong>per unit</strong> (otherwise it&apos;s the total for all)
+            Price is <strong>per unit</strong> (otherwise it&apos;s the total for the lot)
           </label>
 
           <Field label="Condition (optional)">

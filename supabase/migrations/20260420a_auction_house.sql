@@ -1,8 +1,9 @@
 -- Permanent user-to-user auction house. Sellers list items they own
 -- in-game; buyers browse + contact the seller via Discord (handle is
--- already on profiles). All prices are in aUEC ONLY — no real money,
--- no cash-equivalents, never. This is a ledger of intent, not a
--- payment processor; the trade itself happens in-game.
+-- already on profiles). Pricing supports aUEC OR any in-game commodity
+-- (Gold, Quantanium, Tungsten, etc.) — never real money. This is a
+-- ledger of intent, not a payment processor; the trade itself happens
+-- in-game.
 --
 -- Rows are owned by their poster (RLS on user_id). Anyone can SELECT
 -- listings that are status='active'. Buyers don't write to this table
@@ -12,10 +13,9 @@ create table if not exists public.auction_listings (
     id              uuid primary key default gen_random_uuid(),
     user_id         uuid not null references auth.users(id) on delete cascade,
 
-    -- What's being sold. We keep things flexible: free-text item name
-    -- + optional category from a controlled list. We don't FK into the
-    -- ships/weapons/blueprints catalogs because users sell things we
-    -- don't catalog (paints, hangar decorations, packages, etc.).
+    -- What's being sold. Free-text item name + controlled category list.
+    -- Not FK'd into ships/weapons/blueprints because users sell things
+    -- we don't catalog (paints, hangar decorations, packages, etc.).
     item_name       text not null check (char_length(item_name) between 2 and 120),
     item_category   text not null
         check (item_category in (
@@ -25,11 +25,14 @@ create table if not exists public.auction_listings (
 
     quantity        int not null default 1 check (quantity between 1 and 9999),
 
-    price_auec      bigint not null check (price_auec >= 0 and price_auec <= 1000000000000),
+    -- Pricing — currency is either 'aUEC' or any commodity name from the
+    -- commodities catalog ('Gold', 'Quantanium', 'Tungsten', etc.). Free
+    -- text rather than enum so it's painless to add new commodities.
+    price_amount    bigint not null check (price_amount >= 0 and price_amount <= 1000000000000),
+    price_currency  text   not null default 'aUEC' check (char_length(price_currency) between 1 and 64),
     price_per_unit  boolean not null default false, -- true = per-unit; false = total
 
-    -- Optional details
-    condition       text,                          -- e.g. "new", "used"
+    condition       text,                          -- e.g. "new", "used", "LTI"
     description     text check (description is null or char_length(description) <= 2000),
 
     status          text not null default 'active'
@@ -49,50 +52,39 @@ create index if not exists auction_listings_user_idx
     on public.auction_listings (user_id, created_at desc);
 create index if not exists auction_listings_category_idx
     on public.auction_listings (item_category, status, created_at desc);
+create index if not exists auction_listings_currency_idx
+    on public.auction_listings (price_currency, status)
+    where status = 'active';
 
 -- ── RLS ──
 alter table public.auction_listings enable row level security;
 
--- Anyone (anon + authed) can see active listings
 drop policy if exists "auction_listings public read active" on public.auction_listings;
 create policy "auction_listings public read active" on public.auction_listings
-    for select
-    using (status = 'active');
+    for select using (status = 'active');
 
--- Owner can see all their own listings (incl. sold/cancelled)
 drop policy if exists "auction_listings owner read" on public.auction_listings;
 create policy "auction_listings owner read" on public.auction_listings
-    for select
-    using (auth.uid() = user_id);
+    for select using (auth.uid() = user_id);
 
--- Only the owner can insert their own listings
 drop policy if exists "auction_listings owner insert" on public.auction_listings;
 create policy "auction_listings owner insert" on public.auction_listings
-    for insert
-    with check (auth.uid() = user_id);
+    for insert with check (auth.uid() = user_id);
 
--- Only the owner can update / delete their own listings
 drop policy if exists "auction_listings owner update" on public.auction_listings;
 create policy "auction_listings owner update" on public.auction_listings
-    for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "auction_listings owner delete" on public.auction_listings;
 create policy "auction_listings owner delete" on public.auction_listings
-    for delete
-    using (auth.uid() = user_id);
+    for delete using (auth.uid() = user_id);
 
--- updated_at trigger using the existing helper
 drop trigger if exists auction_listings_set_updated_at on public.auction_listings;
 create trigger auction_listings_set_updated_at
     before update on public.auction_listings
     for each row execute function public.set_updated_at();
 
--- A view that joins listings with the seller's display info so the
--- browse page doesn't need a second query. Surfaces only the safe
--- profile fields (display_name, discord_handle, avatar_url).
--- SECURITY INVOKER so RLS on auction_listings is honored.
+-- Joined view with seller display info for browse pages
 create or replace view public.auction_listings_with_seller as
     select
         l.*,

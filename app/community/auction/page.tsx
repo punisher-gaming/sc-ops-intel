@@ -6,9 +6,11 @@ import { PageShell } from "@/components/PageShell";
 import {
   CATEGORY_LABELS,
   fetchActiveListings,
-  formatAuec,
+  fetchCurrencyOptions,
+  formatPrice,
   type AuctionCategory,
   type AuctionListing,
+  type CurrencyOption,
 } from "@/lib/auction";
 import { useUser } from "@/lib/supabase/hooks";
 
@@ -17,6 +19,8 @@ export default function AuctionHomePage() {
   const [listings, setListings] = useState<AuctionListing[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [category, setCategory] = useState<AuctionCategory | "">("");
+  const [currency, setCurrency] = useState<string>("");
+  const [currencyOpts, setCurrencyOpts] = useState<CurrencyOption[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -27,14 +31,19 @@ export default function AuctionHomePage() {
   }, [search]);
 
   useEffect(() => {
+    fetchCurrencyOptions().then(setCurrencyOpts).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     setListings(null);
     fetchActiveListings({
       category: category || undefined,
+      currency: currency || undefined,
       search: debouncedSearch || undefined,
     })
       .then(setListings)
       .catch((e) => setErr((e as Error).message ?? String(e)));
-  }, [category, debouncedSearch]);
+  }, [category, currency, debouncedSearch]);
 
   return (
     <PageShell>
@@ -83,6 +92,20 @@ export default function AuctionHomePage() {
             <option value="">All categories</option>
             {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="select"
+            style={{ width: 200 }}
+            title="Filter by accepted currency"
+          >
+            <option value="">All currencies</option>
+            {currencyOpts.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.isAuec ? "💰 aUEC" : `🪙 ${c.label}`}
+              </option>
             ))}
           </select>
           {user && (
@@ -145,12 +168,15 @@ function ListingCard({ listing }: { listing: AuctionListing }) {
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 10 }}>
         <div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.1rem", color: "var(--text)" }}>
-            {formatAuec(listing.price_auec)}
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.05rem", color: "var(--text)" }}>
+            {formatPrice(listing.price_amount, listing.price_currency)}
           </div>
           <div className="label-mini" style={{ marginTop: 2 }}>
             {listing.price_per_unit ? "per unit" : "total"}
             {listing.quantity > 1 && ` · qty ${listing.quantity}`}
+            {listing.price_currency !== "aUEC" && (
+              <span style={{ marginLeft: 6, color: "var(--accent)" }}>· commodity trade</span>
+            )}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>

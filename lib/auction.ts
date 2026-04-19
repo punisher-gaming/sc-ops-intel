@@ -20,7 +20,10 @@ export interface AuctionListing {
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
-  price_auec: number;
+  /** Quantity of currency the seller wants. */
+  price_amount: number;
+  /** "aUEC" or any commodity name (Gold, Quantanium, Tungsten, …). */
+  price_currency: string;
   price_per_unit: boolean;
   condition: string | null;
   description: string | null;
@@ -37,14 +40,16 @@ export interface AuctionListing {
   seller_is_moderator?: boolean | null;
 }
 
-const COLS = `id, user_id, item_name, item_category, quantity, price_auec,
-  price_per_unit, condition, description, status, sold_to_handle,
+const COLS = `id, user_id, item_name, item_category, quantity,
+  price_amount, price_currency, price_per_unit,
+  condition, description, status, sold_to_handle,
   created_at, updated_at, expires_at,
   seller_display_name, seller_discord, seller_avatar,
   seller_is_admin, seller_is_moderator`;
 
 export async function fetchActiveListings(opts?: {
   category?: AuctionCategory;
+  currency?: string;
   search?: string;
   limit?: number;
 }): Promise<AuctionListing[]> {
@@ -56,6 +61,7 @@ export async function fetchActiveListings(opts?: {
     .order("created_at", { ascending: false })
     .limit(opts?.limit ?? 200);
   if (opts?.category) q = q.eq("item_category", opts.category);
+  if (opts?.currency) q = q.eq("price_currency", opts.currency);
   if (opts?.search && opts.search.trim()) {
     q = q.ilike("item_name", `%${opts.search.trim()}%`);
   }
@@ -103,7 +109,8 @@ export async function createListing(input: {
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
-  price_auec: number;
+  price_amount: number;
+  price_currency: string;
   price_per_unit: boolean;
   condition?: string;
   description?: string;
@@ -116,7 +123,8 @@ export async function createListing(input: {
       item_name: input.item_name,
       item_category: input.item_category,
       quantity: input.quantity,
-      price_auec: input.price_auec,
+      price_amount: input.price_amount,
+      price_currency: input.price_currency,
       price_per_unit: input.price_per_unit,
       condition: input.condition ?? null,
       description: input.description ?? null,
@@ -145,6 +153,42 @@ export async function deleteListing(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Currencies + commodities ──
+
+// Pull the commodity list from the catalog and pre-pend aUEC. Used by
+// the New Listing form's currency dropdown and the browse-page filter.
+// Returns lightweight {value, label} options; cached in-memory per page
+// load since the commodity catalog rarely changes.
+export interface CurrencyOption {
+  value: string;        // exact string we store in price_currency
+  label: string;        // human label (often == value)
+  isAuec?: boolean;
+  kind?: string | null; // commodity kind for grouping in UI (Metal, Gas, etc.)
+}
+
+export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
+  const client = createClient();
+  // Just commodity names + kinds — we don't need full rows
+  const { data, error } = await client
+    .from("commodities")
+    .select("name, kind")
+    .order("name", { ascending: true })
+    .range(0, 9999);
+  if (error) {
+    // If commodities aren't available, at least give the user aUEC
+    return [{ value: "aUEC", label: "aUEC", isAuec: true }];
+  }
+  const opts: CurrencyOption[] = [
+    { value: "aUEC", label: "aUEC (in-game credits)", isAuec: true },
+  ];
+  for (const c of (data ?? []) as Array<{ name: string; kind: string | null }>) {
+    const name = c.name?.trim();
+    if (!name) continue;
+    opts.push({ value: name, label: name, kind: c.kind });
+  }
+  return opts;
+}
+
 // ── Helpers ──
 
 export const CATEGORY_LABELS: Record<AuctionCategory, string> = {
@@ -160,9 +204,23 @@ export const CATEGORY_LABELS: Record<AuctionCategory, string> = {
   other: "Other",
 };
 
+/**
+ * Format a price for display. aUEC gets the K/M/B abbreviation since
+ * the numbers go big; commodity prices are usually small SCU counts so
+ * they render plain ("12 SCU Gold", "350 Tungsten").
+ */
+export function formatPrice(amount: number, currency: string): string {
+  if (currency === "aUEC") {
+    if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(2)}B aUEC`;
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(2)}M aUEC`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K aUEC`;
+    return `${amount.toLocaleString()} aUEC`;
+  }
+  // Commodity payment — show units of the commodity (typically SCU)
+  return `${amount.toLocaleString()} ${currency}`;
+}
+
+// Backward-compat alias — old callers still use formatAuec().
 export function formatAuec(n: number): string {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B aUEC`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M aUEC`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K aUEC`;
-  return `${n.toLocaleString()} aUEC`;
+  return formatPrice(n, "aUEC");
 }

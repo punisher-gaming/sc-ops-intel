@@ -9,10 +9,11 @@ import {
   CATEGORY_LABELS,
   deleteListing,
   fetchListing,
-  formatAuec,
+  formatPrice,
   updateListingStatus,
   type AuctionListing,
 } from "@/lib/auction";
+import { notifyUser } from "@/lib/notify";
 
 // Listing detail. Anyone can view (RLS lets anon SELECT active rows;
 // the owner can also see their non-active ones). Owner sees Edit-style
@@ -53,12 +54,57 @@ function ListingDetail() {
     if (!listing) return;
     setBusy(true);
     try {
-      await updateListingStatus(listing.id, "sold", soldHandle.trim() || undefined);
-      setListing({ ...listing, status: "sold", sold_to_handle: soldHandle.trim() || null });
+      const buyer = soldHandle.trim();
+      await updateListingStatus(listing.id, "sold", buyer || undefined);
+      setListing({ ...listing, status: "sold", sold_to_handle: buyer || null });
+      // Best-effort Discord notification — fires to seller's webhook
+      // if they configured one. Non-fatal.
+      const priceStr = formatPrice(listing.price_amount, listing.price_currency);
+      const lines = [
+        `🤝 **Listing marked SOLD** — meet your buyer in-game!`,
+        `**Item:** ${listing.item_name}`,
+        `**Price:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
+        ...(buyer ? [`**Buyer:** @${buyer}`] : []),
+        `**Listing:** https://citizendex.com/community/auction/listing?id=${listing.id}`,
+      ];
+      notifyUser(listing.user_id, lines.join("\n")).catch(() => {});
     } catch (e) {
       setErr((e as Error).message ?? String(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  // Buyer-side: ping the seller via Discord that you're interested.
+  // Runs only when the seller has a webhook configured. Cheap nudge so
+  // the seller jumps into Discord and starts the trade conversation.
+  const [pingSent, setPingSent] = useState(false);
+  const [pingBusy, setPingBusy] = useState(false);
+  async function pingSeller() {
+    if (!listing || !user) return;
+    setPingBusy(true);
+    try {
+      const buyerHandle =
+        // Prefer Discord username from auth metadata so seller knows who to DM
+        ((user.user_metadata?.user_name as string | undefined) ||
+          (user.user_metadata?.preferred_username as string | undefined) ||
+          (user.email as string | undefined) ||
+          "a citizen") ?? "a citizen";
+      const priceStr = formatPrice(listing.price_amount, listing.price_currency);
+      const lines = [
+        `🛒 **New buyer interested in your auction listing**`,
+        `**Item:** ${listing.item_name}`,
+        `**Price:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
+        `**Buyer:** @${buyerHandle}`,
+        `**Listing:** https://citizendex.com/community/auction/listing?id=${listing.id}`,
+        ``,
+        `Reply on Discord to coordinate the in-game meet-up.`,
+      ];
+      const ok = await notifyUser(listing.user_id, lines.join("\n"));
+      if (ok) setPingSent(true);
+      else setErr("Seller hasn't set up Discord notifications. Contact them via the handle above.");
+    } finally {
+      setPingBusy(false);
     }
   }
   async function cancelListing() {
@@ -134,12 +180,28 @@ function ListingDetail() {
             <div>
               <div className="label-mini">Asking price</div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "2rem", color: "var(--accent)", lineHeight: 1.1 }}>
-                {formatAuec(listing.price_auec)}
+                {formatPrice(listing.price_amount, listing.price_currency)}
               </div>
               <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 4 }}>
                 {listing.price_per_unit ? "per unit" : "total for the lot"}
                 {listing.quantity > 1 && ` · qty ${listing.quantity}`}
               </div>
+              {listing.price_currency !== "aUEC" && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: "6px 10px",
+                    background: "rgba(255,184,77,0.08)",
+                    border: "1px solid rgba(255,184,77,0.25)",
+                    borderRadius: 4,
+                    color: "var(--warn)",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  🪙 Commodity trade — buyer delivers <strong>{listing.price_currency}</strong>{" "}
+                  in-game (typically by SCU at a refinery or trade location)
+                </div>
+              )}
             </div>
             <div style={{ textAlign: "right" }}>
               <div className="label-mini">Listed</div>
@@ -189,22 +251,47 @@ function ListingDetail() {
             </Link>
           </div>
           {!isOwner && listing.status === "active" && (
-            <div
-              style={{
-                marginTop: 14,
-                padding: "12px 14px",
-                borderRadius: 6,
-                background: "rgba(77,217,255,0.06)",
-                border: "1px solid rgba(77,217,255,0.2)",
-                fontSize: "0.88rem",
-                color: "var(--text)",
-                lineHeight: 1.55,
-              }}
-            >
-              💬 To buy: message the seller on Discord (handle above) or via
-              their CitizenDex profile. Agree on a meet-up location in-game,
-              then trade. <strong>aUEC only — never send real money.</strong>
-            </div>
+            <>
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: "12px 14px",
+                  borderRadius: 6,
+                  background: "rgba(77,217,255,0.06)",
+                  border: "1px solid rgba(77,217,255,0.2)",
+                  fontSize: "0.88rem",
+                  color: "var(--text)",
+                  lineHeight: 1.55,
+                }}
+              >
+                💬 To buy: message the seller on Discord (handle above) or via
+                their CitizenDex profile. Agree on a meet-up location in-game,
+                then trade. <strong>{listing.price_currency === "aUEC"
+                  ? "aUEC only — never send real money."
+                  : `Trade pays in ${listing.price_currency} in-game — never real money.`}</strong>
+              </div>
+              {user && (
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={pingSeller}
+                    disabled={pingBusy || pingSent}
+                    className="btn btn-secondary"
+                    style={{ width: "100%" }}
+                  >
+                    {pingSent
+                      ? "✓ Seller notified"
+                      : pingBusy
+                        ? "Pinging…"
+                        : "🔔 Ping seller on Discord"}
+                  </button>
+                  <div className="label-mini" style={{ marginTop: 4 }}>
+                    Sends a Discord ping to the seller&apos;s configured channel —
+                    only works if they&apos;ve set up a webhook on their account.
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

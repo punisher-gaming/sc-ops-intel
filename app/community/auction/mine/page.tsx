@@ -8,7 +8,7 @@ import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
   fetchMyListings,
-  formatAuec,
+  formatPrice,
   type AuctionListing,
 } from "@/lib/auction";
 
@@ -74,7 +74,7 @@ export default function MyListingsPage() {
                     <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)" }}>{l.item_name}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.05rem" }}>{formatAuec(l.price_auec)}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.05rem" }}>{formatPrice(l.price_amount, l.price_currency)}</div>
                     <div className="label-mini" style={{ marginTop: 2 }}>
                       {l.price_per_unit ? "per unit" : "total"}
                       {l.quantity > 1 && ` · qty ${l.quantity}`}
