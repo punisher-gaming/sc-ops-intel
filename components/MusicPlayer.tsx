@@ -150,7 +150,7 @@ export function MusicPlayer() {
       />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div className="label-mini">Now {playing ? "playing" : "paused"}</div>
           <div style={{ fontSize: "0.9rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {track.title}
@@ -158,6 +158,23 @@ export function MusicPlayer() {
           {track.artist && (
             <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {track.artist}
+            </div>
+          )}
+          {track.uploader_name && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, color: "var(--text-dim)", fontSize: "0.7rem" }}>
+              {track.uploader_avatar && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={track.uploader_avatar}
+                  alt=""
+                  width={16}
+                  height={16}
+                  style={{ borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)", objectFit: "cover" }}
+                />
+              )}
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                Added by {track.uploader_name}
+              </span>
             </div>
           )}
         </div>

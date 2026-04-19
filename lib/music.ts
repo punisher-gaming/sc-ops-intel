@@ -11,12 +11,15 @@ export interface MusicTrack {
   enabled: boolean;
   uploaded_by: string | null;
   created_at: string;
+  // Resolved client-side via chat_authors() RPC (Discord avatar/name lookup)
+  uploader_name?: string | null;
+  uploader_avatar?: string | null;
 }
 
 const COLS =
   "id, title, artist, storage_path, public_url, duration_sec, display_order, enabled, uploaded_by, created_at";
 
-// Public-facing: only enabled tracks, in display order
+// Public-facing: only enabled tracks, in display order, with uploader info
 export async function fetchPublishedTracks(): Promise<MusicTrack[]> {
   const client = createClient();
   const { data, error } = await client
@@ -26,7 +29,39 @@ export async function fetchPublishedTracks(): Promise<MusicTrack[]> {
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as MusicTrack[];
+  const tracks = (data ?? []) as MusicTrack[];
+  await enrichWithUploaders(tracks);
+  return tracks;
+}
+
+async function enrichWithUploaders(tracks: MusicTrack[]): Promise<void> {
+  const uids = Array.from(
+    new Set(tracks.map((t) => t.uploaded_by).filter((u): u is string => !!u)),
+  );
+  if (uids.length === 0) return;
+  const client = createClient();
+  // chat_authors() is a SECURITY DEFINER RPC that joins profiles + auth.users
+  // metadata. Same helper used by the community thread cards.
+  const { data, error } = await client.rpc("chat_authors", { uids });
+  if (error || !data) return;
+  const map = new Map<
+    string,
+    { display_name: string | null; avatar_url: string | null }
+  >();
+  for (const a of data as Array<{
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  }>) {
+    map.set(a.id, { display_name: a.display_name, avatar_url: a.avatar_url });
+  }
+  for (const t of tracks) {
+    if (t.uploaded_by) {
+      const a = map.get(t.uploaded_by);
+      t.uploader_name = a?.display_name ?? null;
+      t.uploader_avatar = a?.avatar_url ?? null;
+    }
+  }
 }
 
 // Admin-facing: all tracks regardless of enabled flag
