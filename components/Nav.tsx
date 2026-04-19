@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "./AuthButton";
-import { PunisherSkull } from "./PunisherSkull";
 import { CURRENT_PATCH } from "./PatchPill";
 import { useUser } from "@/lib/supabase/hooks";
 
@@ -58,9 +57,8 @@ export function Nav() {
     <nav className="site-nav">
       <div className="site-nav-inner">
         <Link href="/" className="site-nav-brand">
-          <PunisherSkull size={22} />
           <span>
-            SC OPS <span className="accent">INTEL</span>
+            CITIZEN<span className="accent">DEX</span>
           </span>
         </Link>
         <div className="site-nav-links">

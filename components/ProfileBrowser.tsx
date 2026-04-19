@@ -8,6 +8,7 @@ import { fetchPublicFleets, type Fleet } from "@/lib/fleets";
 import { fetchShipsByIds, type Ship } from "@/lib/ships";
 import { RsiProfileCard } from "./RsiProfileCard";
 import { Hologram } from "./Hologram";
+import { displayNameFor, isOwner, roleLabelFor } from "@/lib/owner";
 
 // Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
@@ -84,8 +85,13 @@ export function ProfileBrowser() {
     );
   }
 
-  const name = profile.display_name || profile.discord_username || "Player";
-  const role = profile.is_admin ? "Admin" : profile.is_moderator ? "Moderator" : null;
+  const rawName = profile.display_name || profile.discord_username || "Player";
+  const name = displayNameFor(profile.id, rawName);
+  const role = roleLabelFor(profile.id, {
+    is_admin: profile.is_admin,
+    is_moderator: profile.is_moderator,
+  });
+  const owner = isOwner(profile.id);
 
   return (
     <div className="container" style={{ paddingTop: "2rem" }}>
@@ -150,7 +156,11 @@ export function ProfileBrowser() {
             {role && (
               <span
                 style={{
-                  color: profile.is_admin ? "var(--accent)" : "var(--warn)",
+                  color: owner
+                    ? "var(--warn)"
+                    : profile.is_admin
+                      ? "var(--accent)"
+                      : "var(--warn)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   fontWeight: 600,

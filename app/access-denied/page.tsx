@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 // routes here.
 //
 // Visual: full-screen red strobe + glitched "ACCESS DENIED" headline +
-// PUNISHER GAMING security stamp. Plays once on mount, then settles to a
+// CITIZENDEX security stamp. Plays once on mount, then settles to a
 // steady-state warning so it's not seizure-territory if they linger.
 
 export default function AccessDeniedPage() {
@@ -99,7 +99,7 @@ export default function AccessDeniedPage() {
           textTransform: "uppercase",
         }}
       >
-        ▰ PUNISHER GAMING SECURITY ▰
+        ▰ CITIZENDEX SECURITY ▰
       </div>
 
       <div

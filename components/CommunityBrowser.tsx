@@ -23,6 +23,7 @@ import {
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
 import { EmojiPicker } from "./EmojiPicker";
+import { displayNameFor, isOwner } from "@/lib/owner";
 
 // All threads (topics) in one feed. Sorted hot/new/top. Schema still has
 // chat_categories under the hood — we silently slot every new topic into
@@ -533,7 +534,8 @@ function AuthorPill({ author }: { author?: Author }) {
   if (!author) {
     return <span className="label-mini">unknown</span>;
   }
-  const name = author.display_name ?? "user";
+  const name = displayNameFor(author.id, author.display_name ?? "user");
+  const owner = isOwner(author.id);
   // Wraps the whole pill in a Link to the public profile page so any
   // community comment is one click away from the user's fleets/intel.
   return (
@@ -572,10 +574,13 @@ function AuthorPill({ author }: { author?: Author }) {
         </span>
       )}
       <span style={{ color: "var(--text)", fontWeight: 500 }}>{name}</span>
-      {author.is_admin && <span className="badge badge-accent" style={{ fontSize: "0.6rem" }}>admin</span>}
-      {author.is_moderator && !author.is_admin && (
+      {owner ? (
+        <span className="badge badge-warn" style={{ fontSize: "0.6rem" }}>owner</span>
+      ) : author.is_admin ? (
+        <span className="badge badge-accent" style={{ fontSize: "0.6rem" }}>admin</span>
+      ) : author.is_moderator ? (
         <span className="badge badge-success" style={{ fontSize: "0.6rem" }}>mod</span>
-      )}
+      ) : null}
     </Link>
   );
 }

@@ -17,19 +17,17 @@ export default function LandingPage() {
               <span className="brand-corner br" aria-hidden />
               <h1
                 className="brand-primary"
-                data-text="PUNISHER · GAMING"
+                data-text="CITIZEN · DEX"
               >
-                <span>PUNISHER</span>
+                <span>CITIZEN</span>
                 <span className="brand-dot" aria-hidden>·</span>
-                <span>GAMING</span>
+                <span>DEX</span>
               </h1>
             </div>
             <div className="brand-secondary">
               <span className="brand-bar" aria-hidden />
               {/* Hologram-projected subtitle — full Star Wars treatment:
-                  cyan tint, scanlines, rolling interference band, flicker.
-                  Sized up vs. the surrounding brand-secondary so it reads
-                  more like a Princess-Leia projection than a tiny caption. */}
+                  cyan tint, scanlines, rolling interference band, flicker. */}
               <Hologram
                 stage
                 style={{
@@ -39,15 +37,15 @@ export default function LandingPage() {
                   padding: "0.4em 0.6em",
                 }}
               >
-                SC OPS <span className="accent">//</span> INTEL
+                THE STAR CITIZEN <span className="accent">//</span> DATABASE
               </Hologram>
               <span className="brand-bar" aria-hidden />
             </div>
           </div>
           <p className="tagline">
-            Star Citizen operations database. Blueprints, resources, crafting
+            The Star Citizen database. Blueprints, resources, crafting
             recipes, commodities, ships — auto-synced every patch. Save notes.
-            Hunt pirates.
+            Track your fleet. Trade intel.
           </p>
           <div className="cta-row">
             <Link href="/blueprints" className="btn btn-primary">
@@ -132,7 +130,10 @@ export default function LandingPage() {
         <StaffCredits />
       </main>
       <footer className="site-footer">
-        Punisher Gaming · SC OPS INTEL · Unofficial — no affiliation with CIG
+        <div>CITIZENDEX · Unofficial — no affiliation with CIG</div>
+        <div style={{ marginTop: 4, fontSize: "0.72rem", color: "var(--text-dim)" }}>
+          Hosted by <strong>Punisher Gaming</strong>
+        </div>
       </footer>
     </>
   );

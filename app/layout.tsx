@@ -4,9 +4,9 @@ import { MusicPlayer } from "@/components/MusicPlayer";
 import { GlobalSearch } from "@/components/GlobalSearch";
 
 export const metadata: Metadata = {
-  title: "SC OPS INTEL · Punisher Gaming",
+  title: "CITIZENDEX · Star Citizen operations intel",
   description:
-    "Star Citizen operations intel — ships, blueprints, resources, crafting. Auto-synced every patch. Punisher Gaming.",
+    "Star Citizen operations intel — ships, blueprints, resources, crafting. Auto-synced every patch.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
