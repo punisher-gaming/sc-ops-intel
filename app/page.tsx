@@ -27,8 +27,18 @@ export default function LandingPage() {
             <div className="brand-secondary">
               <span className="brand-bar" aria-hidden />
               {/* Hologram-projected subtitle — full Star Wars treatment:
-                  cyan tint, scanlines, rolling interference band, flicker */}
-              <Hologram stage>
+                  cyan tint, scanlines, rolling interference band, flicker.
+                  Sized up vs. the surrounding brand-secondary so it reads
+                  more like a Princess-Leia projection than a tiny caption. */}
+              <Hologram
+                stage
+                style={{
+                  fontSize: "clamp(1.6rem, 4.5vw, 2.6rem)",
+                  letterSpacing: "0.32em",
+                  fontWeight: 700,
+                  padding: "0.4em 0.6em",
+                }}
+              >
                 SC OPS <span className="accent">//</span> INTEL
               </Hologram>
               <span className="brand-bar" aria-hidden />
