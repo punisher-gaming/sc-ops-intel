@@ -135,16 +135,18 @@ export function MusicPlayer() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open music player"
-        className="music-fab"
+        className="music-fab music-fab-holo"
       >
-        <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>♪</span>
-        <span className="music-fab-label"> Music</span>
+        <span className="music-fab-spin">
+          <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>♪</span>
+          <span className="music-fab-label"> Music</span>
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="music-panel">
+    <div className="music-panel music-panel-holo">
       <audio
         ref={audioRef}
         src={track.public_url}
