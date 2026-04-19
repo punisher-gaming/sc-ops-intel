@@ -26,8 +26,9 @@ function isDropdown(n: NavItem): n is DropdownItem {
 const PUBLIC_LINKS: NavItem[] = [
   { href: "/ask", label: "Ask" },
   { href: "/blueprints", label: "Blueprints" },
-  { href: "/resources", label: "Resources" },
   { href: "/crafting", label: "Crafting" },
+  { href: "/resources", label: "Resources" },
+  { href: "/ships", label: "Ships" },
   {
     label: "Trade",
     href: "/commodities",
@@ -37,7 +38,6 @@ const PUBLIC_LINKS: NavItem[] = [
       { href: "/refineries", label: "Refineries" },
     ],
   },
-  { href: "/ships", label: "Ships" },
   { href: "/weapons", label: "Weapons" },
   { href: "/components", label: "Components" },
   { href: "/community", label: "Community" },

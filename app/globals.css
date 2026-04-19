@@ -294,6 +294,17 @@ select {
   margin: 0;
 }
 
+/* Clean white+cyan wordmark (CITIZENDEX) — overrides the red+cyan ghost
+   so the hero matches the nav-corner mark: white CITIZEN + cyan DEX. */
+.brand-wordmark {
+  text-shadow: 0 0 50px rgba(77, 217, 255, 0.25);
+  letter-spacing: 0.04em;
+}
+.brand-wordmark .accent {
+  color: var(--accent);
+  text-shadow: 0 0 24px rgba(77, 217, 255, 0.55);
+}
+
 .brand-primary .brand-dot {
   display: inline-block;
   color: var(--accent);

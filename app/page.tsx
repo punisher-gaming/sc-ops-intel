@@ -16,12 +16,10 @@ export default function LandingPage() {
               <span className="brand-corner bl" aria-hidden />
               <span className="brand-corner br" aria-hidden />
               <h1
-                className="brand-primary"
-                data-text="CITIZEN · DEX"
+                className="brand-primary brand-wordmark"
+                data-text="CITIZENDEX"
               >
-                <span>CITIZEN</span>
-                <span className="brand-dot" aria-hidden>·</span>
-                <span>DEX</span>
+                CITIZEN<span className="accent">DEX</span>
               </h1>
             </div>
             <div className="brand-secondary">
@@ -61,8 +59,11 @@ export default function LandingPage() {
           <div
             style={{
               display: "grid",
-              gap: "1rem",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "0.6rem",
+              // Tighter minmax so all six stats fit a single row on any
+              // non-phone viewport. 6 × 150px = 900px — fits container-wide
+              // without forcing a wrap.
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
             }}
           >
             <LiveStat label="Ships" count="295" href="/ships" />
@@ -144,11 +145,11 @@ function LiveStat({ label, count, href }: { label: string; count: string; href: 
     <Link
       href={href}
       className="card card-hover"
-      style={{ padding: "1.25rem 1.5rem", display: "block", textDecoration: "none" }}
+      style={{ padding: "0.75rem 1rem", display: "block", textDecoration: "none" }}
     >
       <div
         style={{
-          fontSize: "2.25rem",
+          fontSize: "1.65rem",
           fontWeight: 700,
           letterSpacing: "-0.02em",
           color: "var(--accent)",
@@ -158,7 +159,7 @@ function LiveStat({ label, count, href }: { label: string; count: string; href: 
       >
         {count}
       </div>
-      <div className="label-mini" style={{ marginTop: 8 }}>
+      <div className="label-mini" style={{ marginTop: 5, fontSize: "0.65rem" }}>
         {label}
       </div>
     </Link>
