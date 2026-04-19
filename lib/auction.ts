@@ -19,6 +19,16 @@ export type AuctionStatus = "active" | "sold" | "cancelled" | "expired";
  *  the same as before. */
 export type ListingType = "wts" | "wtb";
 
+/** Unit the quantity is measured in.
+ *  - "each"  → discrete items (a ship, a weapon)
+ *  - "scu"   → standard cargo SCU (raw commodities)
+ *  - "cscu"  → Crafting SCU (refined materials, used by the crafting system) */
+export type AuctionUnit = "each" | "scu" | "cscu";
+
+/** Minimum acceptable quality for refined materials (1-1000 in-game).
+ *  Use null to mean "any quality / not specified". */
+export type QualityMin = number | null;
+
 export interface AuctionListing {
   id: string;
   user_id: string;
@@ -26,6 +36,10 @@ export interface AuctionListing {
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
+  /** Unit the quantity is in. Defaults to "each" so legacy rows render as before. */
+  unit: AuctionUnit;
+  /** Minimum quality (1-1000) — only meaningful for refined materials, typically with unit=cscu. */
+  quality_min: number | null;
   /** Quantity of currency the seller wants. */
   price_amount: number;
   /** "aUEC" or any commodity name (Gold, Quantanium, Tungsten, …). */
@@ -47,6 +61,7 @@ export interface AuctionListing {
 }
 
 const COLS = `id, user_id, listing_type, item_name, item_category, quantity,
+  unit, quality_min,
   price_amount, price_currency, price_per_unit,
   condition, description, status, sold_to_handle,
   created_at, updated_at, expires_at,
@@ -118,6 +133,8 @@ export async function createListing(input: {
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
+  unit?: AuctionUnit;
+  quality_min?: number | null;
   price_amount: number;
   price_currency: string;
   price_per_unit: boolean;
@@ -137,6 +154,8 @@ export async function createListing(input: {
       item_name: input.item_name,
       item_category: input.item_category,
       quantity: input.quantity,
+      unit: input.unit ?? "each",
+      quality_min: input.quality_min ?? null,
       price_amount: input.price_amount,
       price_currency: input.price_currency,
       price_per_unit: input.price_per_unit,
@@ -195,6 +214,9 @@ export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
   }
   const opts: CurrencyOption[] = [
     { value: "aUEC", label: "aUEC (in-game credits)", isAuec: true },
+    // Well-known non-commodity trade tokens — handy as currencies but
+    // they don't live in the commodities table.
+    ...SPECIAL_CURRENCIES,
   ];
   for (const c of (data ?? []) as Array<{ name: string; kind: string | null }>) {
     const name = c.name?.trim();
@@ -203,6 +225,17 @@ export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
   }
   return opts;
 }
+
+/** Currencies that aren't commodities but are commonly used in trades.
+ *  Wikelo Favors come from the Wikelo's Treasure Hoard NPC trade loop;
+ *  RMC + Construction Material come from salvage; CM is the standard
+ *  unit for engineering / repair contracts. */
+const SPECIAL_CURRENCIES: CurrencyOption[] = [
+  { value: "Wikelo Favors", label: "Wikelo Favors", kind: "Trade tokens" },
+  { value: "RMC", label: "RMC (Recycled Material Composite)", kind: "Trade tokens" },
+  { value: "Construction Material", label: "Construction Material", kind: "Trade tokens" },
+  { value: "Custom", label: "Custom (type your own)…", kind: "Trade tokens" },
+];
 
 // ── Item-name suggestions (typeahead) ──
 //
@@ -282,6 +315,19 @@ export function formatPrice(amount: number, currency: string): string {
 export function formatAuec(n: number): string {
   return formatPrice(n, "aUEC");
 }
+
+/** Render quantity + unit ("10 CSCU", "350 SCU", "qty 3"). */
+export function formatQuantity(qty: number, unit: AuctionUnit): string {
+  if (unit === "scu") return `${qty.toLocaleString()} SCU`;
+  if (unit === "cscu") return `${qty.toLocaleString()} CSCU`;
+  return `qty ${qty.toLocaleString()}`;
+}
+
+export const UNIT_LABELS: Record<AuctionUnit, string> = {
+  each: "Each (whole items)",
+  scu: "SCU (cargo)",
+  cscu: "CSCU (refined / crafting)",
+};
 
 // ── Listing-type display helpers ──
 // Centralised labels so WTS / WTB language is consistent everywhere.

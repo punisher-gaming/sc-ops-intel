@@ -11,6 +11,7 @@ import {
   deleteListing,
   fetchListing,
   formatPrice,
+  formatQuantity,
   updateListingStatus,
   type AuctionListing,
 } from "@/lib/auction";
@@ -210,7 +211,13 @@ function ListingDetail() {
               </div>
               <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 4 }}>
                 {listing.price_per_unit ? "per unit" : "total for the lot"}
-                {listing.quantity > 1 && ` · qty ${listing.quantity}`}
+                {(listing.quantity > 1 || listing.unit !== "each") &&
+                  ` · ${formatQuantity(listing.quantity, listing.unit)}`}
+                {listing.quality_min != null && (
+                  <span style={{ marginLeft: 6, color: "var(--warn)" }}>
+                    · Q {listing.quality_min}+
+                  </span>
+                )}
               </div>
               {listing.price_currency !== "aUEC" && (
                 <div

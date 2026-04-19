@@ -10,6 +10,7 @@ import {
   LISTING_TYPE_LABELS,
   fetchMyListings,
   formatPrice,
+  formatQuantity,
   type AuctionListing,
 } from "@/lib/auction";
 
@@ -94,7 +95,11 @@ export default function MyListingsPage() {
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.05rem" }}>{formatPrice(l.price_amount, l.price_currency)}</div>
                     <div className="label-mini" style={{ marginTop: 2 }}>
                       {l.price_per_unit ? "per unit" : "total"}
-                      {l.quantity > 1 && ` · qty ${l.quantity}`}
+                      {(l.quantity > 1 || l.unit !== "each") &&
+                        ` · ${formatQuantity(l.quantity, l.unit)}`}
+                      {l.quality_min != null && (
+                        <span style={{ color: "var(--warn)", marginLeft: 4 }}>· Q {l.quality_min}+</span>
+                      )}
                     </div>
                   </div>
                 </div>

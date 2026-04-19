@@ -9,9 +9,11 @@ import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
   LISTING_TYPE_LABELS,
+  UNIT_LABELS,
   createListing,
   fetchCurrencyOptions,
   type AuctionCategory,
+  type AuctionUnit,
   type CurrencyOption,
   type ListingType,
 } from "@/lib/auction";
@@ -25,6 +27,11 @@ export default function NewListingPage() {
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState<AuctionCategory>("ship");
   const [quantity, setQuantity] = useState(1);
+  const [unit, setUnit] = useState<AuctionUnit>("each");
+  const [qualityMin, setQualityMin] = useState<string>("");
+  // When the user picks "Custom" from the currency dropdown, this is
+  // where they type the custom currency name.
+  const [customCurrency, setCustomCurrency] = useState<string>("");
   const [priceAmount, setPriceAmount] = useState<number>(0);
   const [priceCurrency, setPriceCurrency] = useState<string>("aUEC");
   const [pricePerUnit, setPricePerUnit] = useState(false);
@@ -40,6 +47,13 @@ export default function NewListingPage() {
   useEffect(() => {
     fetchCurrencyOptions().then(setCurrencies).catch(() => { /* keep default */ });
   }, []);
+
+  // When the user picks a different category, suggest a sensible unit
+  // default. Cargo → SCU, everything else → each. They can still override.
+  useEffect(() => {
+    setUnit(category === "cargo" ? "scu" : "each");
+    setQualityMin("");
+  }, [category]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -59,6 +73,23 @@ export default function NewListingPage() {
       setErr("Price can't be negative.");
       return;
     }
+    // Resolve currency: if "Custom" was picked, the user typed the
+    // actual name in the secondary text box.
+    const resolvedCurrency =
+      priceCurrency === "Custom" ? customCurrency.trim() : priceCurrency;
+    if (!resolvedCurrency) {
+      setErr("Pick a currency or enter a custom one.");
+      return;
+    }
+    // Quality validation — must be 1..1000 if specified.
+    let qm: number | null = null;
+    if (qualityMin.trim()) {
+      qm = parseInt(qualityMin, 10);
+      if (!Number.isFinite(qm) || qm < 1 || qm > 1000) {
+        setErr("Minimum quality must be between 1 and 1000.");
+        return;
+      }
+    }
     setBusy(true);
     setErr(null);
     try {
@@ -68,8 +99,10 @@ export default function NewListingPage() {
         item_name: itemName.trim(),
         item_category: category,
         quantity,
+        unit,
+        quality_min: qm,
         price_amount: Math.round(priceAmount),
-        price_currency: priceCurrency,
+        price_currency: resolvedCurrency,
         price_per_unit: pricePerUnit,
         condition: condition.trim() || undefined,
         description: description.trim() || undefined,
@@ -185,7 +218,7 @@ export default function NewListingPage() {
             </select>
           </Field>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 14 }}>
             <Field label="Quantity">
               <input
                 type="number"
@@ -195,6 +228,17 @@ export default function NewListingPage() {
                 onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
                 className="input"
               />
+            </Field>
+            <Field label="Unit">
+              <select
+                value={unit}
+                onChange={(e) => setUnit(e.target.value as AuctionUnit)}
+                className="select"
+              >
+                {(Object.keys(UNIT_LABELS) as AuctionUnit[]).map((u) => (
+                  <option key={u} value={u}>{UNIT_LABELS[u]}</option>
+                ))}
+              </select>
             </Field>
             <Field label={`${LISTING_TYPE_LABELS[listingType].priceLabel} *`}>
               <input
@@ -209,6 +253,26 @@ export default function NewListingPage() {
               />
             </Field>
           </div>
+
+          {unit === "cscu" && (
+            <Field label="Minimum quality (optional)">
+              <input
+                type="number"
+                min={1}
+                max={1000}
+                value={qualityMin}
+                onChange={(e) => setQualityMin(e.target.value)}
+                placeholder="e.g. 750  (means 750 or higher)"
+                className="input"
+              />
+              <div className="label-mini" style={{ marginTop: 4 }}>
+                Refined materials are scored <strong>1–1000</strong>. Whatever
+                you put here means &quot;<strong>this quality or higher</strong>&quot;
+                — buyers asking for 750+ won&apos;t see anything below it.
+                Leave blank for any quality.
+              </div>
+            </Field>
+          )}
 
           <Field label="Currency *">
             <select
@@ -227,10 +291,22 @@ export default function NewListingPage() {
                 </optgroup>
               ))}
             </select>
+            {priceCurrency === "Custom" && (
+              <input
+                value={customCurrency}
+                onChange={(e) => setCustomCurrency(e.target.value)}
+                placeholder="Type the currency name — e.g. 2 Wikelo Favors, OreScan Vouchers, Nine Tails creds"
+                maxLength={64}
+                className="input"
+                style={{ marginTop: 6 }}
+              />
+            )}
             <div className="label-mini" style={{ marginTop: 4 }}>
               {priceCurrency === "aUEC"
                 ? "Buyer pays in in-game credits."
-                : `Buyer pays in ${priceCurrency} — typically traded in SCU at a refinery or trade location.`}
+                : priceCurrency === "Custom"
+                ? "Whatever you type here will appear on the listing as the payment unit."
+                : `Buyer pays in ${priceCurrency} — typically traded at a refinery, trade location, or NPC.`}
             </div>
           </Field>
 

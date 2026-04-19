@@ -9,6 +9,7 @@ import {
   fetchActiveListings,
   fetchCurrencyOptions,
   formatPrice,
+  formatQuantity,
   type AuctionCategory,
   type AuctionListing,
   type CurrencyOption,
@@ -223,7 +224,11 @@ function ListingCard({ listing }: { listing: AuctionListing }) {
           </div>
           <div className="label-mini" style={{ marginTop: 2 }}>
             {isWtb ? "buying budget" : listing.price_per_unit ? "per unit" : "total"}
-            {listing.quantity > 1 && ` · qty ${listing.quantity}`}
+            {(listing.quantity > 1 || listing.unit !== "each") &&
+              ` · ${formatQuantity(listing.quantity, listing.unit)}`}
+            {listing.quality_min != null && (
+              <span style={{ marginLeft: 6, color: "var(--warn)" }}>· Q {listing.quality_min}+</span>
+            )}
             {listing.price_currency !== "aUEC" && (
               <span style={{ marginLeft: 6, color: "var(--accent)" }}>· {listing.price_currency}</span>
             )}
