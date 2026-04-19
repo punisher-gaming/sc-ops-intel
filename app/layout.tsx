@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { WeatherTicker } from "@/components/WeatherTicker";
 
 export const metadata: Metadata = {
   title: "CITIZENDEX · Star Citizen operations intel",
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <div className="page-vignette" />
+        <WeatherTicker />
         {children}
         <MusicPlayer />
         <GlobalSearch />

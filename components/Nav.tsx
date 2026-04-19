@@ -40,6 +40,7 @@ const PUBLIC_LINKS: NavItem[] = [
   },
   { href: "/weapons", label: "Weapons" },
   { href: "/components", label: "Components" },
+  { href: "/planets", label: "Planets" },
   { href: "/lore", label: "Lore" },
   {
     label: "Community",

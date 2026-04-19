@@ -121,16 +121,14 @@ export async function createListing(input: {
   price_amount: number;
   price_currency: string;
   price_per_unit: boolean;
-  /** How many days until the listing auto-expires. Default 30 (matches DB). */
-  duration_days?: number;
   condition?: string;
   description?: string;
 }): Promise<AuctionListing> {
   const client = createClient();
-  // Compute expires_at on the client so the user sees the exact value
-  // they picked. DB default kicks in only if we omit the field.
-  const days = Math.max(1, Math.min(90, input.duration_days ?? 30));
-  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  // Listings auto-expire 7 days after posting. If a buyer bites and the
+  // user marks it sold/filled, the row stays around regardless. Keeping
+  // this fixed so the UI stays simple — no picker, no surprises.
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await client
     .from("auction_listings")
     .insert({

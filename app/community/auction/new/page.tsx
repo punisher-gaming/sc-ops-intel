@@ -27,7 +27,6 @@ export default function NewListingPage() {
   const [priceAmount, setPriceAmount] = useState<number>(0);
   const [priceCurrency, setPriceCurrency] = useState<string>("aUEC");
   const [pricePerUnit, setPricePerUnit] = useState(false);
-  const [durationDays, setDurationDays] = useState<number>(30);
   const [condition, setCondition] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -71,7 +70,6 @@ export default function NewListingPage() {
         price_amount: Math.round(priceAmount),
         price_currency: priceCurrency,
         price_per_unit: pricePerUnit,
-        duration_days: durationDays,
         condition: condition.trim() || undefined,
         description: description.trim() || undefined,
       });
@@ -245,23 +243,6 @@ export default function NewListingPage() {
             Price is <strong>per unit</strong> (otherwise it&apos;s the total for the lot)
           </label>
 
-          <Field label="Listing duration *">
-            <select
-              value={durationDays}
-              onChange={(e) => setDurationDays(parseInt(e.target.value, 10))}
-              className="select"
-            >
-              <option value={3}>3 days</option>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days (default)</option>
-            </select>
-            <div className="label-mini" style={{ marginTop: 4 }}>
-              Auto-expires after this period. You can also cancel or
-              mark sold any time from the listing detail page.
-            </div>
-          </Field>
-
           <Field label="Condition (optional)">
             <input
               value={condition}
@@ -327,7 +308,9 @@ export default function NewListingPage() {
             included so you can jump straight into the trade.
           </div>
           <p style={{ marginTop: 4, color: "var(--text-dim)", fontSize: "0.78rem", lineHeight: 1.5 }}>
-            Cancel or mark sold any time from your listing detail page.
+            Listings auto-expire after <strong>7 days</strong>. Cancel or mark
+            sold any time from your listing detail page — sold/filled listings
+            stay around as a record of the trade.
           </p>
         </form>
       </div>
