@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { fetchPublicProfile, type PublicProfile } from "@/lib/publicProfile";
 import { fetchPublicFleets, type Fleet } from "@/lib/fleets";
 import { fetchShipsByIds, type Ship } from "@/lib/ships";
+import { RsiProfileCard } from "./RsiProfileCard";
 
 // Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
@@ -160,6 +161,13 @@ export function ProfileBrowser() {
           )}
         </div>
       </div>
+
+      {/* RSI public profile (only when user has set their handle) */}
+      {profile.rsi_handle && (
+        <div style={{ marginTop: "1.25rem" }}>
+          <RsiProfileCard handle={profile.rsi_handle} />
+        </div>
+      )}
 
       {/* Fleets */}
       <div style={{ marginTop: "1.25rem" }}>

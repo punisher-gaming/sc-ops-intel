@@ -9,6 +9,7 @@ import { ingestBlueprints } from "./ingest/blueprints";
 import { ingestShops } from "./ingest/shops";
 import { ingestCommodityAvailability } from "./ingest/availability";
 import { ingestItems } from "./ingest/items";
+import { fetchRsiProfile } from "./rsi";
 
 const ROUTES = `
 SC OPS INTEL ingest worker
@@ -34,6 +35,38 @@ export default {
 
     if (url.pathname === "/health") {
       return Response.json({ ok: true, version: env.CURRENT_GAME_VERSION });
+    }
+
+    // RSI profile passthrough — /rsi/<handle>. Public read-only, served
+    // directly off the edge cache (1h TTL via Worker fetch options). CORS
+    // open since the frontend is served from a different origin.
+    if (url.pathname.startsWith("/rsi/")) {
+      const handle = decodeURIComponent(url.pathname.slice("/rsi/".length));
+      const cors = {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, OPTIONS",
+        "cache-control": "public, max-age=600",
+      };
+      if (req.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: cors });
+      }
+      try {
+        const data = await fetchRsiProfile(handle);
+        if (!data) {
+          return new Response(JSON.stringify({ ok: false, error: "not_found" }), {
+            status: 404,
+            headers: { "content-type": "application/json", ...cors },
+          });
+        }
+        return new Response(JSON.stringify(data), {
+          headers: { "content-type": "application/json", ...cors },
+        });
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ ok: false, error: (e as Error).message ?? String(e) }),
+          { status: 502, headers: { "content-type": "application/json", ...cors } },
+        );
+      }
     }
 
     if (url.pathname === "/patch") {
