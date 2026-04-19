@@ -24,8 +24,16 @@ const COLS = `id, sender_id, recipient_id, body, context_listing_id, read_at, cr
   sender_name, sender_discord, sender_avatar,
   recipient_name, recipient_discord, recipient_avatar`;
 
+/** Result of sending a message — includes whether the Discord push
+ *  actually landed so callers can show feedback. */
+export interface SendResult {
+  message: DirectMessage;
+  /** true if the recipient had a webhook AND Discord accepted it. */
+  pushedToDiscord: boolean;
+}
+
 /** Insert a new DM, then best-effort push to the recipient's Discord
- *  webhook (if they've configured one). Returns the saved row. */
+ *  webhook (if they've configured one). */
 export async function sendMessage(opts: {
   recipient_id: string;
   body: string;
@@ -36,7 +44,7 @@ export async function sendMessage(opts: {
   context_label?: string;
   /** Page URL to deep-link back to from Discord. */
   link?: string;
-}): Promise<DirectMessage> {
+}): Promise<SendResult> {
   const client = createClient();
   const { data, error } = await client
     .from("direct_messages")
@@ -50,8 +58,11 @@ export async function sendMessage(opts: {
   if (error) throw error;
 
   // Best-effort Discord push — failures don't break the message send.
+  // We DO surface whether it landed via the returned `pushedToDiscord`
+  // flag so the UI can confirm or nudge.
+  let pushedToDiscord = false;
   try {
-    await fetch(NOTIFY_USER_URL, {
+    const res = await fetch(NOTIFY_USER_URL, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -62,11 +73,13 @@ export async function sendMessage(opts: {
         link: opts.link ?? null,
       }),
     });
+    const body = (await res.json().catch(() => ({}))) as { pushed?: boolean };
+    pushedToDiscord = Boolean(body.pushed);
   } catch {
     /* ignore — message is already in the inbox */
   }
 
-  return data as DirectMessage;
+  return { message: data as DirectMessage, pushedToDiscord };
 }
 
 /** Mark every message in a thread (between current user and other user)

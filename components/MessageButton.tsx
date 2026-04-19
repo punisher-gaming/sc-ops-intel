@@ -44,6 +44,7 @@ export function MessageButton({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [pushed, setPushed] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +52,7 @@ export function MessageButton({
     setBusy(true);
     setErr(null);
     try {
-      await sendMessage({
+      const res = await sendMessage({
         recipient_id: recipientId,
         body: body.trim(),
         context_listing_id: contextListingId,
@@ -60,6 +61,7 @@ export function MessageButton({
         link: link ?? (typeof window !== "undefined" ? window.location.href : undefined),
       });
       setSent(true);
+      setPushed(res.pushedToDiscord);
       setBody("");
     } catch (e) {
       setErr((e as Error).message ?? String(e));
@@ -146,11 +148,14 @@ export function MessageButton({
                     border: "1px solid rgba(74,222,128,0.3)",
                     color: "var(--success)",
                     fontSize: "0.9rem",
+                    lineHeight: 1.5,
                   }}
                 >
-                  ✓ Message sent. They&apos;ll see it in their inbox the next
-                  time they&apos;re online — and if they&apos;ve set up Discord
-                  notifications, they got a ping there too.
+                  ✓ Message saved to {recipientName}&apos;s inbox.
+                  <br />
+                  {pushed
+                    ? <>📡 <strong>Also pushed to their Discord</strong> — they&apos;ll see it instantly.</>
+                    : <>💤 They haven&apos;t set up Discord notifications, so they&apos;ll only see it when they next visit CitizenDex.</>}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" onClick={() => setSent(false)} className="btn btn-secondary">

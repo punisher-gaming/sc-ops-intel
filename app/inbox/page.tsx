@@ -8,6 +8,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { useUser } from "@/lib/supabase/hooks";
+import { fetchUserWebhook } from "@/lib/notify";
 import {
   fetchInbox,
   fetchThread,
@@ -37,6 +38,14 @@ function Inbox() {
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [lastPushNote, setLastPushNote] = useState<string | null>(null);
+  // Does the current user have Discord notifications wired up? If not,
+  // we surface a one-line nag so they know to enable it for live pushes.
+  const [hasWebhook, setHasWebhook] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    fetchUserWebhook(user.id).then((url) => setHasWebhook(!!url));
+  }, [user]);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   // Auth guard
@@ -87,15 +96,22 @@ function Inbox() {
         user.email?.split("@")[0];
       const otherThread = threads?.find((t) => t.other_user_id === otherId);
       const link = typeof window !== "undefined" ? window.location.origin + `/inbox?with=${user.id}` : undefined;
-      const sent = await sendMessage({
+      const res = await sendMessage({
         recipient_id: otherId,
         body: body.trim(),
         sender_name: senderName,
         context_label: otherThread ? `chat with ${otherThread.other_name}` : undefined,
         link,
       });
-      setThread((prev) => (prev ? [...prev, sent] : [sent]));
+      setThread((prev) => (prev ? [...prev, res.message] : [res.message]));
       setBody("");
+      setLastPushNote(
+        res.pushedToDiscord
+          ? "📡 Pushed to their Discord too"
+          : "💤 They don't have Discord notifications set up — they'll see this on next visit",
+      );
+      // Clear the push hint after a moment so it doesn't pile up.
+      setTimeout(() => setLastPushNote(null), 6000);
       // Refresh inbox so the latest-message preview updates
       fetchInbox(user.id).then(setThreads);
     } catch (e) {
@@ -111,10 +127,30 @@ function Inbox() {
         <div className="accent-label">Direct messages</div>
         <h1>Inbox</h1>
         <p>
-          In-site chat. Auto-pushed to your Discord too if you&apos;ve set up{" "}
-          <Link href="/account" style={{ color: "var(--accent)" }}>notifications</Link>.
+          In-site chat. Replies you send auto-push to the other person&apos;s
+          Discord if they&apos;ve set up notifications.
         </p>
       </div>
+
+      {hasWebhook === false && (
+        <div
+          className="card"
+          style={{
+            padding: "12px 16px",
+            marginBottom: 14,
+            borderLeft: "3px solid var(--warn)",
+            background: "rgba(245,185,71,0.06)",
+            fontSize: "0.88rem",
+            lineHeight: 1.55,
+          }}
+        >
+          🔔 <strong>Want incoming messages pushed to your Discord?</strong>{" "}
+          Set up a one-time webhook on your{" "}
+          <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>{" "}
+          — every DM and listing-interest ping then DMs you in your Discord
+          channel.
+        </div>
+      )}
 
       <div
         style={{
@@ -313,6 +349,22 @@ function Inbox() {
                   }}
                 >
                   {err}
+                </div>
+              )}
+              {lastPushNote && (
+                <div
+                  style={{
+                    margin: 12,
+                    marginTop: 0,
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    background: "rgba(77,217,255,0.06)",
+                    border: "1px solid rgba(77,217,255,0.18)",
+                    color: "var(--text-muted)",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  {lastPushNote}
                 </div>
               )}
             </>
