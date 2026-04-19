@@ -186,9 +186,9 @@ export default function NewListingPage() {
               webhook on your{" "}
               <Link href="/account" style={{ color: "var(--accent)" }}>
                 account page
-              </Link>{" "}
-              — every in-site DM and listing-interest ping then auto-forwards
-              to your Discord channel.
+              </Link>.{" "}
+              No Discord server you control? Make a private one in 30 seconds
+              — the account page walks you through it click-by-click.
             </div>
           </div>
         )}

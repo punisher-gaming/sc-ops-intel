@@ -333,6 +333,28 @@ export default function AccountPage() {
                   {webhookTesting ? "Testing…" : "Test"}
                 </button>
               </div>
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: "12px 14px",
+                  borderRadius: 6,
+                  background: "rgba(245,185,71,0.06)",
+                  border: "1px solid rgba(245,185,71,0.25)",
+                  color: "var(--text-muted)",
+                  fontSize: "0.82rem",
+                  lineHeight: 1.55,
+                }}
+              >
+                <strong style={{ color: "var(--warn)" }}>
+                  &ldquo;I don&apos;t have a Discord server I control&rdquo;
+                </strong>{" "}
+                — no problem. Discord&apos;s API blocks external services from
+                DMing users directly (anti-spam), but you can spin up a private
+                server <em>just for yourself</em> in literally 30 seconds. It
+                stays empty except for your own bot pings — most power-users
+                already have one. See the walkthrough below for the click path.
+              </div>
+
               <details
                 style={{
                   marginTop: 10,
@@ -348,52 +370,82 @@ export default function AccountPage() {
                 <summary
                   style={{ cursor: "pointer", color: "var(--accent)", fontWeight: 500, listStyle: "revert" }}
                 >
-                  🔔 How Discord notifications work — step-by-step
+                  🔔 How Discord notifications work — full walkthrough
                 </summary>
                 <div style={{ marginTop: 12 }}>
                   <p style={{ margin: "0 0 10px" }}>
                     <strong>The short version:</strong> you give us a URL that
                     points at one of your Discord channels. When something
-                    happens to your auction listing, we POST a message into
-                    that channel. No bot, no permissions on your account, no
-                    Discord login required.
+                    happens — a buyer pings you, an in-site DM arrives, a
+                    listing sells — we POST a message into that channel. No
+                    bot, no permissions on your account, no Discord login.
                   </p>
+
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
-                    Setup (one minute):
+                    Step 1 — Make sure you have a server (skip if you do):
                   </p>
                   <ol style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
-                    <li>Open Discord. Pick a channel where you want to receive these pings — making a private <code>#auction-alerts</code> channel that only you can see is the most common choice.</li>
-                    <li>Right-click the channel → <strong>Edit Channel</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong> → <strong>New Webhook</strong>.</li>
-                    <li>Optionally rename it (e.g. &quot;CitizenDex&quot;) and pick an avatar. Then click <strong>Copy Webhook URL</strong>.</li>
-                    <li>Paste it into the field above and click <strong>Test</strong>. You&apos;ll see a test message in your channel within a second.</li>
-                    <li>Hit <strong>Save</strong> at the bottom of this form. Done.</li>
+                    <li>In Discord&apos;s left sidebar, click the green <strong>+</strong> button under your server list (&quot;Add a Server&quot;).</li>
+                    <li>Pick <strong>Create My Own</strong> → <strong>For me and my friends</strong>.</li>
+                    <li>Name it anything — &quot;<em>My Notifications</em>&quot; or &quot;<em>Bot Spam</em>&quot; is what most people pick. Skip the icon, hit <strong>Create</strong>.</li>
+                    <li>You now have a private server with one channel (<code>#general</code>) that only you can see. That&apos;s your DM-replacement.</li>
                   </ol>
+
+                  <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
+                    Step 2 — Make a webhook in that channel:
+                  </p>
+                  <ol style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
+                    <li>Right-click the channel (<code>#general</code> is fine) → <strong>Edit Channel</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong> → <strong>New Webhook</strong>.</li>
+                    <li>Optionally rename it &quot;CitizenDex&quot; and pick an avatar. Click <strong>Copy Webhook URL</strong>.</li>
+                    <li>Paste the URL into the field above and click <strong>Test</strong>. A test message appears in your channel in &lt;1 second.</li>
+                    <li>Hit <strong>Save</strong> at the bottom of this form. Done — Discord will go &quot;ping!&quot; on your phone every time something happens to your listings.</li>
+                  </ol>
+
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
                     What gets sent (and when):
                   </p>
                   <ul style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
                     <li>
-                      <strong>🛒 Buyer interest</strong> — when a logged-in
-                      visitor clicks &quot;🔔 Ping seller&quot; on one of your
-                      WTS listings (or &quot;Ping buyer&quot; on a WTB listing),
-                      we send their Discord handle plus a link to the listing
-                      so you can jump in and DM them.
+                      <strong>💬 In-site direct messages</strong> — when
+                      another citizen DMs you on CitizenDex, the body of
+                      their message appears in your Discord channel with a
+                      link back to your inbox.
+                    </li>
+                    <li>
+                      <strong>🛒 Buyer / seller interest</strong> — when
+                      someone clicks &quot;🔔 Quick Discord ping&quot; on
+                      one of your auction listings, we forward their handle
+                      plus the listing link.
                     </li>
                     <li>
                       <strong>🤝 Listing sold / filled</strong> — when you
-                      mark your own listing as SOLD/FILLED, we send a
-                      reminder ping with the buyer (or seller) handle plus
-                      the meet-up details so you don&apos;t lose track of who
-                      to find in-game.
+                      mark your own listing SOLD/FILLED, we send a reminder
+                      ping with the counterparty handle so you don&apos;t lose
+                      track of who to find in-game.
                     </li>
                   </ul>
+
+                  <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
+                    Why not just DM me directly?
+                  </p>
+                  <p style={{ margin: "0 0 10px" }}>
+                    Discord&apos;s policy: external services can&apos;t initiate
+                    DMs to users without going through a Discord <em>bot</em>
+                    that you&apos;ve installed and accepted DMs from. We&apos;d
+                    have to ship a CitizenDex bot, get it added to a server
+                    you&apos;re already in, and ask you to opt in — much heavier
+                    than the 60-second webhook path above. The personal server
+                    trick gets you the same outcome (Discord notifies you on
+                    all your devices instantly) without any of that overhead.
+                  </p>
+
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
                     Privacy &amp; safety:
                   </p>
                   <ul style={{ margin: "0 0 0", paddingLeft: "1.2rem" }}>
                     <li>The webhook URL is a <em>per-channel write token</em> — anyone holding it can post to that channel. Don&apos;t paste it into other sites you don&apos;t trust.</li>
-                    <li>You can revoke it any time from Discord (delete the webhook). The next CitizenDex notification will silently fail and we&apos;ll just stop sending.</li>
-                    <li>We never @-everyone or @-here you. Discord&apos;s allowed_mentions block strips that out before forwarding.</li>
+                    <li>Revoke it any time from Discord (delete the webhook). Next CitizenDex notification silently fails and we just stop sending.</li>
+                    <li>We never @-everyone or @-here. Discord&apos;s allowed_mentions block strips that out before forwarding.</li>
                     <li>Webhook calls are CORS-relayed via our worker; your Discord credentials never touch our servers.</li>
                   </ul>
                 </div>

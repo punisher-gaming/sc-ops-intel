@@ -145,10 +145,10 @@ function Inbox() {
           }}
         >
           🔔 <strong>Want incoming messages pushed to your Discord?</strong>{" "}
-          Set up a one-time webhook on your{" "}
-          <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>{" "}
-          — every DM and listing-interest ping then DMs you in your Discord
-          channel.
+          One-time webhook setup on your{" "}
+          <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>.{" "}
+          No server of your own? You can spin up a private one in 30 seconds
+          — the walkthrough on the account page covers the whole click path.
         </div>
       )}
 
