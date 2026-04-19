@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { StaffCredits } from "@/components/StaffCredits";
+import { OwnerNote } from "@/components/OwnerNote";
 import { Hologram } from "@/components/Hologram";
 
 export default function LandingPage() {
@@ -128,6 +129,7 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <OwnerNote />
         <StaffCredits />
       </main>
       <footer className="site-footer">
