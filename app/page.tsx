@@ -59,10 +59,17 @@ export default function LandingPage() {
               Browse Ships
             </Link>
           </div>
-          {/* Secondary CTA aimed squarely at brand-new citizens. Slightly
-              smaller than the main pair so it reads as supplemental
-              rather than competing with Browse. */}
-          <div style={{ marginTop: 16, textAlign: "center" }}>
+          {/* Secondary CTA row — supplemental to the main Browse buttons.
+              Stacks to a single column on narrow screens. */}
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              justifyContent: "center",
+              flexWrap: "wrap",
+              gap: 10,
+            }}
+          >
             <Link
               href="/new-players"
               style={{
@@ -79,6 +86,23 @@ export default function LandingPage() {
               }}
             >
               🚀 New to Star Citizen? Start here →
+            </Link>
+            <Link
+              href="/lore"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 18px",
+                borderRadius: 999,
+                fontSize: "0.9rem",
+                color: "var(--accent)",
+                background: "rgba(77,217,255,0.06)",
+                border: "1px solid rgba(77,217,255,0.25)",
+                textDecoration: "none",
+              }}
+            >
+              📖 Read the Chronicle · Lore of the Verse →
             </Link>
           </div>
         </section>
