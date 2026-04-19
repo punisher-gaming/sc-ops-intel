@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SYSTEMS, getSystem } from "@/lib/lore-data";
+import { PlanetOrbit } from "@/components/LoreArt";
+import type { Accent } from "@/components/LoreArt";
 
 export function generateStaticParams() {
   return SYSTEMS.map((s) => ({ slug: s.slug }));
@@ -22,13 +24,40 @@ export default async function SystemDetail({
         ← All systems
       </Link>
 
-      <header className="lore-detail-header">
-        <div className="lore-detail-eyebrow">
-          {sys.glyph} Star System
+      {/* Full-width orbital map banner */}
+      <div
+        style={{
+          position: "relative",
+          height: 280,
+          marginBottom: 24,
+          borderRadius: 4,
+          overflow: "hidden",
+          border: "1px solid var(--card-accent, var(--lore-cyan))",
+          background: "#020409",
+        }}
+      >
+        <PlanetOrbit
+          accent={sys.accent as Accent}
+          planets={Math.min(Math.max(sys.planets.length, 2), 6)}
+          style={{ width: "100%", height: "100%", display: "block" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 0, right: 0, bottom: 0,
+            padding: "1.5rem 2rem",
+            background: "linear-gradient(0deg, rgba(2,5,12,0.92) 0%, transparent 100%)",
+          }}
+        >
+          <div className="lore-detail-eyebrow" style={{ marginBottom: 4 }}>
+            {sys.glyph} Star System
+          </div>
+          <h1 className="lore-detail-title" style={{ margin: 0, fontSize: "clamp(1.6rem, 4vw, 2.8rem)" }}>
+            {sys.name}
+          </h1>
+          <p className="lore-detail-sub" style={{ marginTop: 4 }}>{sys.subtitle}</p>
         </div>
-        <h1 className="lore-detail-title">{sys.name}</h1>
-        <p className="lore-detail-sub">{sys.subtitle}</p>
-      </header>
+      </div>
 
       <div className="lore-detail-stats">
         <Stat label="Classification" value={sys.kind} />

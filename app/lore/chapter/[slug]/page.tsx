@@ -1,13 +1,57 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CHAPTERS, getChapter, type LoreChapterPanel } from "@/lib/lore-data";
+import {
+  CHAPTERS,
+  getChapter,
+  type LoreArtKey,
+  type LoreChapterPanel,
+} from "@/lib/lore-data";
+import {
+  BattleScene,
+  CityScene,
+  DestructionScene,
+  EarthScene,
+  JumpPoint,
+  PlanetOrbit,
+  ShipFighter,
+  ShipTrader,
+  ShipVanduul,
+  SpaceScene,
+  UEEInsignia,
+  type Accent,
+} from "@/components/LoreArt";
 
-// generateStaticParams + dynamicParams = false → every chapter route is
-// pre-rendered at build time. Static export ready.
 export function generateStaticParams() {
   return CHAPTERS.map((c) => ({ slug: c.slug }));
 }
 export const dynamicParams = false;
+
+// ── Art router ───────────────────────────────────────────────────
+// Every art-key maps to one of the LoreArt SVG components. Pass
+// through the accent from the panel so war scenes go red, discovery
+// goes cyan, diplomacy goes violet, commerce goes amber, etc.
+function ArtFor({
+  kind,
+  accent,
+}: {
+  kind: LoreArtKey;
+  accent?: Accent;
+}) {
+  const a: Accent | undefined = accent;
+  switch (kind) {
+    case "space":         return <SpaceScene accent={a ?? "cyan"} />;
+    case "earth":         return <EarthScene accent={a ?? "cyan"} />;
+    case "jump-point":    return <JumpPoint accent={a ?? "cyan"} />;
+    case "city":          return <CityScene accent={a ?? "amber"} />;
+    case "destruction":   return <DestructionScene accent={a ?? "red"} />;
+    case "battle":        return <BattleScene accent={a ?? "red"} />;
+    case "planet-orbit":  return <PlanetOrbit accent={a ?? "cyan"} />;
+    case "uee-insignia":  return <UEEInsignia accent={a ?? "cyan"} />;
+    case "ship-fighter":  return <ShipFighter accent={a ?? "cyan"} />;
+    case "ship-vanduul":  return <ShipVanduul accent={a ?? "red"} />;
+    case "ship-trader":   return <ShipTrader accent={a ?? "amber"} />;
+  }
+}
 
 export default async function ChapterPage({
   params,
@@ -18,25 +62,29 @@ export default async function ChapterPage({
   const chapter = getChapter(slug);
   if (!chapter) notFound();
 
-  // Adjacent chapters for the bottom nav. CHAPTERS array is already in
-  // chronological order so we can just walk by index.
   const idx = CHAPTERS.findIndex((c) => c.slug === slug);
   const prev = idx > 0 ? CHAPTERS[idx - 1] : null;
   const next = idx < CHAPTERS.length - 1 ? CHAPTERS[idx + 1] : null;
 
   return (
     <>
-      {/* Hero band */}
-      <section className="lore-hero" style={{ minHeight: "55vh", paddingBottom: 0 }}>
-        <div className="lore-hero-eyebrow">Chapter {chapter.num}</div>
-        <h1 className="lore-hero-title">{chapter.title}</h1>
-        <div className="lore-hero-sub">
-          {chapter.yearsFrom} — {chapter.yearsTo}
+      {/* ── Cinematic chapter cover ── */}
+      <section className="lore-chapter-hero">
+        <div className="lore-chapter-hero-art">
+          <ArtFor kind={chapter.heroArt} />
         </div>
-        <p className="lore-hero-body">{chapter.subtitle}.</p>
+        <div className="lore-chapter-hero-overlay" />
+        <div className="lore-chapter-hero-content">
+          <div className="lore-hero-eyebrow">Chapter {chapter.num}</div>
+          <h1 className="lore-hero-title">{chapter.title}</h1>
+          <div className="lore-hero-sub">
+            {chapter.yearsFrom} — {chapter.yearsTo} · UEE Calendar
+          </div>
+          <p className="lore-hero-body">{chapter.subtitle}.</p>
+        </div>
       </section>
 
-      {/* Two-column: sticky timeline left, comic panels right */}
+      {/* ── Two-column: sticky timeline + comic stream ── */}
       <div className="lore-chapter-layout">
         <aside className="lore-timeline">
           <div className="lore-timeline-title">◢ Timeline</div>
@@ -49,14 +97,14 @@ export default async function ChapterPage({
           ))}
         </aside>
 
-        <article>
+        <article className="lore-comic-stream">
           {chapter.panels.map((p, i) => (
-            <Panel key={i} panel={p} />
+            <Panel key={i} panel={p} num={i + 1} />
           ))}
         </article>
       </div>
 
-      {/* Adjacent chapter nav */}
+      {/* ── Chapter-to-chapter nav ── */}
       <nav
         style={{
           maxWidth: 1200,
@@ -95,37 +143,69 @@ export default async function ChapterPage({
   );
 }
 
-function Panel({ panel }: { panel: LoreChapterPanel }) {
+function Panel({ panel, num }: { panel: LoreChapterPanel; num: number }) {
+  const pad = String(num).padStart(2, "0");
+  const accent: Accent | undefined = panel.accent as Accent | undefined;
+
+  if (panel.kind === "splash" && panel.art) {
+    return (
+      <div className="lore-splash" data-accent={panel.accent ?? "cyan"}>
+        <div className="lore-splash-art">
+          <ArtFor kind={panel.art} accent={accent} />
+        </div>
+        <div className="lore-splash-panel-num">Panel {pad}</div>
+        <div className="lore-splash-overlay">
+          {panel.title && <h3>{panel.title}</h3>}
+          {panel.caption && <p className="lore-splash-caption">{panel.caption}</p>}
+        </div>
+      </div>
+    );
+  }
+
   if (panel.kind === "quote") {
     return (
-      <div
-        className="lore-panel lore-panel-quote"
-        data-accent={panel.accent ?? "cyan"}
-      >
+      <div className="lore-bubble" data-accent={panel.accent ?? "cyan"}>
         <blockquote>{panel.quote}</blockquote>
         {panel.attribution && <cite>{panel.attribution}</cite>}
       </div>
     );
   }
-  if (panel.kind === "hero") {
+
+  // hero / text with side art
+  if (panel.art && panel.artSide && panel.artSide !== "full") {
     return (
-      <div className="lore-panel lore-panel-hero">
-        {panel.title && <h3>{panel.title}</h3>}
-        {panel.body && <p>{panel.body}</p>}
+      <div
+        className="lore-split"
+        data-side={panel.artSide}
+        data-accent={panel.accent ?? "cyan"}
+      >
+        <div className="lore-split-art">
+          <ArtFor kind={panel.art} accent={accent} />
+          <div className="lore-splash-panel-num">Panel {pad}</div>
+        </div>
+        <div className="lore-split-body">
+          {panel.title && <h3>{panel.title}</h3>}
+          {panel.body && <p>{panel.body}</p>}
+        </div>
       </div>
     );
   }
-  // Default: text panel
+
+  // Fallback — art-less text/hero panel
   return (
-    <div className="lore-panel">
+    <div className={`lore-panel ${panel.kind === "hero" ? "lore-panel-hero" : ""}`}>
+      <div className="lore-splash-panel-num" style={{ position: "absolute", top: -10, left: 14 }}>
+        Panel {pad}
+      </div>
       {panel.title && (
         <h3
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "1.2rem",
+            fontSize: "1.25rem",
             color: "var(--lore-cyan)",
             margin: "0 0 12px",
             letterSpacing: "0.04em",
+            textTransform: "uppercase",
           }}
         >
           {panel.title}

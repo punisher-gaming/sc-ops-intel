@@ -408,6 +408,239 @@
 }
 .lore-panel p:last-child { margin-bottom: 0; }
 
+/* ═══════════ Comic-book layouts ═══════════ */
+
+/* Full-bleed splash — cover-worthy single-art panel. Image fills the card
+   end to end; title + caption overlay the bottom-left corner with a dark
+   gradient for legibility. */
+.lore-splash {
+  position: relative;
+  margin: 1.5rem 0;
+  border: 1px solid var(--lore-border-strong);
+  border-radius: 4px;
+  overflow: hidden;
+  aspect-ratio: 21 / 9;
+  min-height: 280px;
+}
+.lore-splash-art {
+  position: absolute;
+  inset: 0;
+}
+.lore-splash-art > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lore-splash-overlay {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 2rem 2.5rem 1.75rem;
+  background: linear-gradient(0deg, rgba(2, 5, 12, 0.92) 0%, rgba(2, 5, 12, 0.6) 60%, transparent 100%);
+}
+.lore-splash-panel-num {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-cyan);
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.7);
+  background: rgba(2, 5, 12, 0.7);
+  padding: 4px 10px;
+  border: 1px solid var(--lore-border);
+}
+.lore-splash h3 {
+  font-family: var(--font-mono);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+.lore-splash-caption {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--lore-text-dim);
+  letter-spacing: 0.04em;
+  margin: 0;
+  max-width: 70ch;
+}
+.lore-splash[data-accent="red"] .lore-splash-panel-num,
+.lore-splash[data-accent="red"] h3 { color: var(--lore-red); }
+.lore-splash[data-accent="amber"] .lore-splash-panel-num,
+.lore-splash[data-accent="amber"] h3 { color: var(--lore-warn); }
+.lore-splash[data-accent="green"] .lore-splash-panel-num { color: var(--lore-green); }
+.lore-splash[data-accent="violet"] .lore-splash-panel-num { color: var(--lore-violet); }
+
+/* Split panel — art on one side, prose on the other. alternates for
+   visual rhythm down the page. */
+.lore-split {
+  position: relative;
+  margin: 1.5rem 0;
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--lore-border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--lore-panel);
+  min-height: 300px;
+}
+.lore-split[data-side="left"] { grid-template-columns: 45% 1fr; }
+.lore-split[data-side="right"] { grid-template-columns: 1fr 45%; }
+@media (max-width: 760px) {
+  .lore-split[data-side="left"],
+  .lore-split[data-side="right"] { grid-template-columns: 1fr; }
+}
+.lore-split-art {
+  position: relative;
+  background: #020409;
+  min-height: 260px;
+  overflow: hidden;
+}
+.lore-split-art > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lore-split[data-side="left"] .lore-split-art  { border-right: 1px solid var(--lore-border); }
+.lore-split[data-side="right"] .lore-split-art { border-left: 1px solid var(--lore-border); order: 2; }
+@media (max-width: 760px) {
+  .lore-split[data-side="right"] .lore-split-art { order: 0; border-left: none; border-bottom: 1px solid var(--lore-border); }
+  .lore-split[data-side="left"] .lore-split-art { border-right: none; border-bottom: 1px solid var(--lore-border); }
+}
+.lore-split-body {
+  padding: 2rem 2.25rem;
+  align-self: center;
+}
+.lore-split-body h3 {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lore-cyan);
+  margin: 0 0 1rem;
+  text-shadow: 0 0 16px rgba(77, 217, 255, 0.35);
+}
+.lore-split[data-accent="red"] .lore-split-body h3 { color: var(--lore-red); text-shadow: 0 0 16px rgba(255, 90, 106, 0.4); }
+.lore-split[data-accent="amber"] .lore-split-body h3 { color: var(--lore-warn); text-shadow: 0 0 16px rgba(255, 184, 77, 0.4); }
+.lore-split[data-accent="green"] .lore-split-body h3 { color: var(--lore-green); text-shadow: 0 0 16px rgba(101, 230, 154, 0.4); }
+.lore-split[data-accent="violet"] .lore-split-body h3 { color: var(--lore-violet); text-shadow: 0 0 16px rgba(181, 140, 255, 0.4); }
+.lore-split-body p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--lore-text);
+  margin: 0;
+}
+
+/* Speech-bubble quote — tail-pointer on the attribution side */
+.lore-bubble {
+  position: relative;
+  margin: 2rem 0;
+  padding: 2rem 2.5rem 1.5rem;
+  background: rgba(10, 18, 32, 0.85);
+  border: 1px solid var(--lore-border-strong);
+  border-radius: 18px;
+  max-width: 640px;
+}
+.lore-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -16px;
+  left: 48px;
+  width: 32px;
+  height: 32px;
+  background: rgba(10, 18, 32, 0.85);
+  border-right: 1px solid var(--lore-border-strong);
+  border-bottom: 1px solid var(--lore-border-strong);
+  transform: rotate(45deg);
+}
+.lore-bubble blockquote {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.5;
+  color: #fff;
+  font-style: italic;
+  font-family: var(--font-mono);
+}
+.lore-bubble cite {
+  display: block;
+  margin-top: 1.25rem;
+  font-style: normal;
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lore-cyan);
+  font-family: var(--font-mono);
+}
+.lore-bubble[data-accent="red"] { border-color: var(--lore-red); }
+.lore-bubble[data-accent="red"]::before { border-color: var(--lore-red); }
+.lore-bubble[data-accent="red"] cite { color: var(--lore-red); }
+.lore-bubble[data-accent="amber"] { border-color: var(--lore-warn); }
+.lore-bubble[data-accent="amber"]::before { border-color: var(--lore-warn); }
+.lore-bubble[data-accent="amber"] cite { color: var(--lore-warn); }
+.lore-bubble[data-accent="green"] { border-color: var(--lore-green); }
+.lore-bubble[data-accent="green"]::before { border-color: var(--lore-green); }
+.lore-bubble[data-accent="green"] cite { color: var(--lore-green); }
+.lore-bubble[data-accent="violet"] { border-color: var(--lore-violet); }
+.lore-bubble[data-accent="violet"]::before { border-color: var(--lore-violet); }
+.lore-bubble[data-accent="violet"] cite { color: var(--lore-violet); }
+
+/* Even bubbles on odd panels tilt slightly for comic-page rhythm */
+.lore-comic-stream > .lore-bubble:nth-of-type(even) {
+  margin-left: auto;
+  margin-right: 0;
+}
+.lore-comic-stream > .lore-bubble:nth-of-type(even)::before {
+  left: auto;
+  right: 48px;
+}
+
+/* Panel counter — little numbered badge on each comic panel */
+.lore-panel-num {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  padding: 2px 10px;
+  background: #020409;
+  border: 1px solid var(--lore-border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* Chapter hero art — full-bleed cinematic. sits behind title text. */
+.lore-chapter-hero {
+  position: relative;
+  min-height: 60vh;
+  overflow: hidden;
+  border-bottom: 1px solid var(--lore-border-strong);
+}
+.lore-chapter-hero-art {
+  position: absolute;
+  inset: 0;
+}
+.lore-chapter-hero-art > svg { width: 100%; height: 100%; display: block; }
+.lore-chapter-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2, 5, 12, 0.2) 0%, rgba(2, 5, 12, 0.55) 70%, rgba(2, 5, 12, 0.9) 100%);
+}
+.lore-chapter-hero-content {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 4rem;
+  text-align: center;
+  z-index: 1;
+}
+
 /* Tint variants for accented quote panels */
 .lore-panel-quote[data-accent="cyan"] { border-color: var(--lore-cyan); }
 .lore-panel-quote[data-accent="amber"] { border-color: var(--lore-warn); background: linear-gradient(90deg, rgba(245, 185, 71, 0.06), transparent); }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RACES, getRace } from "@/lib/lore-data";
+import { RacePortrait } from "@/components/LoreArt";
 
 export function generateStaticParams() {
   return RACES.map((r) => ({ slug: r.slug }));
@@ -22,13 +23,38 @@ export default async function RaceDetail({
         ← All species
       </Link>
 
-      <header className="lore-detail-header">
-        <div className="lore-detail-eyebrow">
-          {race.glyph} Sapient Species
+      {/* Dossier-style header: portrait left, metadata right */}
+      <header
+        className="lore-detail-header"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "280px 1fr",
+          gap: "2rem",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            border: "1px solid var(--card-accent, var(--lore-cyan))",
+            borderRadius: 4,
+            overflow: "hidden",
+            background: "#020409",
+          }}
+        >
+          <RacePortrait
+            race={race.slug as "human" | "xian" | "banu" | "vanduul" | "tevarin"}
+          />
         </div>
-        <h1 className="lore-detail-title">{race.name}</h1>
-        <p className="lore-detail-sub">{race.subtitle}</p>
+        <div>
+          <div className="lore-detail-eyebrow">
+            {race.glyph} Species Dossier
+          </div>
+          <h1 className="lore-detail-title">{race.name}</h1>
+          <p className="lore-detail-sub">{race.subtitle}</p>
+        </div>
       </header>
+
+      <style>{mobilePortraitFix}</style>
 
       <div className="lore-detail-stats">
         <Stat label="Relationship" value={race.relationship} />
@@ -61,6 +87,16 @@ export default async function RaceDetail({
     </div>
   );
 }
+
+// Single-column stack on mobile — the portrait is a square card that
+// eats the whole row instead of a tight left column.
+const mobilePortraitFix = `
+@media (max-width: 760px) {
+  .lore-detail-header {
+    grid-template-columns: 1fr !important;
+  }
+}
+`;
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (

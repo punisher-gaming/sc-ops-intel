@@ -19,6 +19,19 @@ export interface LoreEvent {
   tag?: "war" | "first-contact" | "politics" | "tech" | "discovery" | "disaster" | "culture";
 }
 
+export type LoreArtKey =
+  | "space"
+  | "earth"
+  | "jump-point"
+  | "city"
+  | "destruction"
+  | "battle"
+  | "planet-orbit"
+  | "uee-insignia"
+  | "ship-fighter"
+  | "ship-vanduul"
+  | "ship-trader";
+
 export interface LoreChapter {
   slug: string;
   num: string;           // "I" "II" "III" — roman numeral
@@ -28,6 +41,7 @@ export interface LoreChapter {
   yearsTo: number;
   blurb: string;        // 1–2 sentence description
   hero: string;         // theme key for hero tinting
+  heroArt: LoreArtKey;  // big hero illustration for chapter top
   glyph: string;        // single emoji/symbol for the chapter card
   events: LoreEvent[];
   // Narrative panels — mixed prose and panel blocks between events
@@ -35,13 +49,16 @@ export interface LoreChapter {
 }
 
 export interface LoreChapterPanel {
-  kind: "hero" | "text" | "quote" | "timeline-break" | "image" | "split";
-  // hero/text/quote use body. image uses caption.
+  kind: "hero" | "text" | "quote" | "splash";
   title?: string;
   body?: string;
   quote?: string;
   attribution?: string;
   caption?: string;
+  // Associated artwork for this panel. "splash" panels are full-bleed
+  // image spreads; "hero" and "text" get inline art on one side.
+  art?: LoreArtKey;
+  artSide?: "left" | "right" | "full";
   // theme tint for visual panels — maps to a CSS variable
   accent?: "cyan" | "amber" | "red" | "green" | "violet";
 }
@@ -57,6 +74,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "Humanity's first reach into the stars: fusion, colonies, and the discovery that jump points are real.",
     hero: "earth-blue",
+    heroArt: "earth",
     glyph: "🜨",
     events: [
       { year: 2075, title: "Solar Max project goes online", tag: "tech",
@@ -72,8 +90,19 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
-        kind: "hero", title: "Before the Verse",
+        kind: "splash", art: "earth", artSide: "full", accent: "cyan",
+        title: "Before the Verse",
+        caption: "Earth, 2075 — the Solar Max project comes online.",
+      },
+      {
+        kind: "hero", title: "The Distance Problem",
+        art: "space", artSide: "right", accent: "cyan",
         body: "In the late 21st century, humanity's greatest enemy was distance. The same distance that had always been there. Then a miner named Nick Croshaw found something the physicists said was impossible — a knotted throat of spacetime that ended somewhere else.",
+      },
+      {
+        kind: "splash", art: "jump-point", artSide: "full", accent: "cyan",
+        title: "The First Jump",
+        caption: "Croshaw System — 2157 UEE. One pilot, one anomaly, 68 light-years in a single breath.",
       },
       {
         kind: "quote", accent: "cyan",
@@ -82,6 +111,8 @@ export const CHAPTERS: LoreChapter[] = [
       },
       {
         kind: "text",
+        art: "city", artSide: "left", accent: "cyan",
+        title: "The Flood Begins",
         body: "Within a century of Croshaw's discovery, hundreds of jump points had been charted. Humanity was no longer a single-world species. The old political systems buckled under the weight of colonies that were months of communication away. The UNE formed from the ashes of the Coalition Wars.",
       },
     ],
@@ -96,6 +127,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "The UNE becomes the UPE, then begins making contact with civilizations humanity had always assumed weren't there.",
     hero: "violet-dawn",
+    heroArt: "space",
     glyph: "✺",
     events: [
       { year: 2380, title: "United Planets of Earth (UPE) replaces UNE", tag: "politics",
@@ -109,7 +141,14 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
+        kind: "splash", art: "uee-insignia", artSide: "full", accent: "violet",
+        title: "The United Planets of Earth",
+        caption: "2380 — the UNE restructures as the UPE, shifting power from Earth to Luna.",
+      },
+      {
         kind: "text",
+        art: "space", artSide: "left", accent: "violet",
+        title: "Alone in the Dark",
         body: "For two centuries after Croshaw's jump, humanity expanded alone. The universe stubbornly refused to produce neighbors. When it finally did — the Xi'An in 2438 — it was because a UPE scout strayed into space they had mapped long before our species evolved.",
       },
       {
@@ -118,7 +157,9 @@ export const CHAPTERS: LoreChapter[] = [
         attribution: "— First recorded Xi'An transmission, 2438",
       },
       {
-        kind: "hero", title: "The Banu Handshake",
+        kind: "hero",
+        art: "ship-trader", artSide: "right", accent: "amber",
+        title: "The Banu Handshake",
         body: "Where contact with the Xi'An was a chess game, contact with the Banu was a market day. The Banu Protectorate is a confederation of trade-guild homeworlds. Their first act upon meeting humanity was to offer a discount.",
       },
     ],
@@ -133,6 +174,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "Twenty-five generations of the Messer dynasty rule humanity. The Vanduul arrive. The Tevarin fall twice.",
     hero: "red-militant",
+    heroArt: "destruction",
     glyph: "⌖",
     events: [
       { year: 2530, title: "The Xi'An Cold War begins", tag: "war",
@@ -150,7 +192,14 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
+        kind: "splash", art: "uee-insignia", artSide: "full", accent: "red",
+        title: "The Dictatorship Rises",
+        caption: "2523 — Ivar Messer dissolves the Senate. The empire has a face, and it is his.",
+      },
+      {
         kind: "text",
+        art: "city", artSide: "right", accent: "red",
+        title: "Twenty-Five Generations",
         body: "Ivar Messer's coup was supposed to last a generation. It lasted twenty-five. Under the Messers the UEE became the most powerful military force in known space — and the most oppressive government humans had ever built. State-controlled news. Disappeared dissidents. Mandatory patriotic service for every citizen.",
       },
       {
@@ -159,11 +208,25 @@ export const CHAPTERS: LoreChapter[] = [
         attribution: "— Messer doctrine, widely quoted",
       },
       {
-        kind: "hero", title: "The Vanduul Appear",
+        kind: "splash", art: "destruction", artSide: "full", accent: "red",
+        title: "Garron II Burns",
+        caption: "2546 — first recorded Vanduul raid. Half a colony gone in ninety minutes.",
+      },
+      {
+        kind: "hero",
+        art: "ship-vanduul", artSide: "left", accent: "red",
+        title: "The Vanduul Appear",
         body: "The Vanduul don't have a homeworld — not one we've found. They raid in nomadic clan-fleets, strike without diplomacy, and vanish. The fall of Garron II in 2546 was the opening note of a war that has not stopped since.",
       },
       {
+        kind: "splash", art: "battle", artSide: "full", accent: "red",
+        title: "The Tevarin Wars",
+        caption: "2541–2610 — two wars end with the Tevarin losing their homeworld to UEE terraforming.",
+      },
+      {
         kind: "text",
+        art: "planet-orbit", artSide: "right", accent: "green",
+        title: "Elysium IV — formerly Kaleeth",
         body: "The Tevarin Wars left a permanent wound. The UEE won, yes; and then it took everything. The Tevarin are still among us — fully citizens now, serving in the Navy, sitting in the Senate — but their homeworld is a human paradise called Elysium IV. You can visit. It's beautiful. That's the problem.",
       },
     ],
@@ -178,6 +241,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "A century of reformist movements, culminating in the uprising of 2792 and the quiet execution of the last Messer.",
     hero: "green-dawn",
+    heroArt: "city",
     glyph: "☄",
     events: [
       { year: 2792, title: "The March on New Paris", tag: "politics",
@@ -191,7 +255,14 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
-        kind: "hero", title: "The March",
+        kind: "splash", art: "city", artSide: "full", accent: "green",
+        title: "The March on New Paris",
+        caption: "2792 — millions converge on the capital. The fleet refuses to escalate.",
+      },
+      {
+        kind: "hero",
+        art: "uee-insignia", artSide: "left", accent: "green",
+        title: "The March",
         body: "Nobody knows who started it. A civil servant refused an order. A fleet captain refused to fire. A tram operator refused to drive. Within three days the Messer regime had no infrastructure, no military, and nowhere to flee. It ended not in a battle but in paperwork.",
       },
       {
@@ -211,6 +282,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "The UEE rebuilds as a democracy. Trade flourishes. But the Vanduul are no longer raiders — they are a tide.",
     hero: "gold-prosper",
+    heroArt: "city",
     glyph: "⚜",
     events: [
       { year: 2931, title: "Imperator Toi establishes the modern UEE", tag: "politics",
@@ -222,12 +294,26 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
+        kind: "splash", art: "city", artSide: "full", accent: "amber",
+        title: "The Golden Age Begins",
+        caption: "2931 — Terra Prime. Largest city-skyline outside Earth.",
+      },
+      {
         kind: "text",
+        art: "ship-trader", artSide: "right", accent: "amber",
+        title: "The Fastest Century",
         body: "The first half of the UEE's democratic era is remembered as The Golden Age for a reason. Jump points were mapped faster than any time since Croshaw. Trade exploded. The corporations grew powerful enough to buy entire star systems — literally, in Stanton's case.",
       },
       {
-        kind: "hero", title: "Stanton — the Sold System",
+        kind: "hero",
+        art: "planet-orbit", artSide: "left", accent: "amber",
+        title: "Stanton — the Sold System",
         body: "Four worlds. Four corporations. Hurston Dynamics bought a planet to extract minerals. Crusader Industries to build starliners. ArcCorp to manufacture electronics. microTech to develop software. Each is a company town the size of a world. They answer to shareholders first, the UEE second.",
+      },
+      {
+        kind: "splash", art: "destruction", artSide: "full", accent: "red",
+        title: "Orion Falls",
+        caption: "2942 — Vanduul coordinated offensive erases a colonized system. Half a million dead.",
       },
       {
         kind: "quote", accent: "amber",
@@ -246,6 +332,7 @@ export const CHAPTERS: LoreChapter[] = [
     blurb:
       "The UEE you fly in. Stanton stabilized. Pyro opened. The Vanduul push deeper. The next jump point is always tomorrow.",
     hero: "cyan-live",
+    heroArt: "jump-point",
     glyph: "⟳",
     events: [
       { year: 2944, title: "Project Synthesis begins", tag: "tech",
@@ -259,11 +346,25 @@ export const CHAPTERS: LoreChapter[] = [
     ],
     panels: [
       {
-        kind: "hero", title: "The Verse Today",
+        kind: "splash", art: "jump-point", artSide: "full", accent: "cyan",
+        title: "The Pyro Gate Opens",
+        caption: "2947 — a jump point sealed for 484 years re-opens to civilians.",
+      },
+      {
+        kind: "hero",
+        art: "space", artSide: "right", accent: "cyan",
+        title: "The Verse Today",
         body: "You've arrived at a specific moment. The Banu still trade. The Xi'An still watch. The Vanduul are still out there, reshaping clan-fleets into something that terrifies the Navy. Pyro is full of people who don't want the UEE to find them. Stanton is the safe bet — but only because the corporations don't want trouble where they do business.",
       },
       {
+        kind: "splash", art: "battle", artSide: "full", accent: "red",
+        title: "Xenothreat",
+        caption: "2950 — a pirate coalition declares war on UEE traffic. The Navy answers.",
+      },
+      {
         kind: "text",
+        art: "ship-fighter", artSide: "left", accent: "cyan",
+        title: "The Next Chapter",
         body: "Every player enlisting in the UEE in 2952 is stepping into a Verse that still isn't finished being mapped. Jump points are being discovered monthly. New species have been hinted at in classified Navy signals-intelligence reports that journalists keep leaking. The next chapter of this history is one you write.",
       },
       {
