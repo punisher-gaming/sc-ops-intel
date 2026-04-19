@@ -257,7 +257,6 @@ function ItemDetail({
 }) {
   const [item, setItem] = useState<Item | null | undefined>(undefined);
   const [err, setErr] = useState<string | null>(null);
-  const [rawOpen, setRawOpen] = useState(false);
 
   useEffect(() => {
     fetchItem(table, id)
@@ -325,36 +324,7 @@ function ItemDetail({
 
       <WhereToBuy itemReference={item.id} />
 
-      {item.source_data && (
-        <div className="card" style={{ padding: "1.5rem" }}>
-          <button
-            onClick={() => setRawOpen((v) => !v)}
-            className="btn btn-ghost"
-            style={{ height: 32, padding: "0 10px", fontSize: "0.85rem" }}
-          >
-            {rawOpen ? "▼" : "▶"} Raw item data (scunpacked)
-          </button>
-          {rawOpen && (
-            <pre
-              style={{
-                marginTop: 14,
-                padding: "1rem",
-                background: "rgba(0,0,0,0.4)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 6,
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.75rem",
-                color: "var(--text-muted)",
-                overflowX: "auto",
-                maxHeight: 600,
-                lineHeight: 1.5,
-              }}
-            >
-              {JSON.stringify(item.source_data, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
+      {/* Raw item data block removed — jsonb dumps don't belong in the UI. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}

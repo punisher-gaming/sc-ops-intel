@@ -159,7 +159,6 @@ function TradeLocationList() {
 function TradeLocationDetail({ id }: { id: string }) {
   const [t, setT] = useState<TradeLocation | null | undefined>(undefined);
   const [err, setErr] = useState<string | null>(null);
-  const [raw, setRaw] = useState(false);
 
   useEffect(() => {
     fetchTradeLocation(id)
@@ -208,36 +207,7 @@ function TradeLocationDetail({ id }: { id: string }) {
 
       <TradeLocationPrices locationId={t.id} locationName={t.name} />
 
-      {t.source_data && (
-        <div className="card" style={{ padding: "1.5rem", marginTop: "1rem" }}>
-          <button
-            onClick={() => setRaw((v) => !v)}
-            className="btn btn-ghost"
-            style={{ height: 32, padding: "0 10px", fontSize: "0.85rem" }}
-          >
-            {raw ? "▼" : "▶"} Raw source data (tags, produces, consumes)
-          </button>
-          {raw && (
-            <pre
-              style={{
-                marginTop: 14,
-                padding: "1rem",
-                background: "rgba(0,0,0,0.4)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 6,
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.75rem",
-                color: "var(--text-muted)",
-                overflowX: "auto",
-                maxHeight: 500,
-                lineHeight: 1.5,
-              }}
-            >
-              {JSON.stringify(t.source_data, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
+      {/* Raw source data block removed — jsonb dumps don't belong in the UI. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}

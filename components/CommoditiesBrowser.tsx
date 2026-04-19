@@ -148,7 +148,6 @@ function CommodityList() {
 function CommodityDetail({ id }: { id: string }) {
   const [c, setC] = useState<Commodity | null | undefined>(undefined);
   const [err, setErr] = useState<string | null>(null);
-  const [raw, setRaw] = useState(false);
 
   useEffect(() => {
     fetchCommodity(id)
@@ -196,36 +195,8 @@ function CommodityDetail({ id }: { id: string }) {
 
       <PricePanel commodityId={c.id} commodityName={c.name} />
 
-      {c.source_data && (
-        <div className="card" style={{ padding: "1.5rem", marginTop: "1rem" }}>
-          <button
-            onClick={() => setRaw((v) => !v)}
-            className="btn btn-ghost"
-            style={{ height: 32, padding: "0 10px", fontSize: "0.85rem" }}
-          >
-            {raw ? "▼" : "▶"} Raw source data
-          </button>
-          {raw && (
-            <pre
-              style={{
-                marginTop: 14,
-                padding: "1rem",
-                background: "rgba(0,0,0,0.4)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 6,
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.75rem",
-                color: "var(--text-muted)",
-                overflowX: "auto",
-                maxHeight: 500,
-                lineHeight: 1.5,
-              }}
-            >
-              {JSON.stringify(c.source_data, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
+      {/* Raw source data block removed — leave the curated UI fields above
+          to speak for themselves; nobody outside the dev wants to see jsonb. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}

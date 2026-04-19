@@ -10,6 +10,7 @@ import {
   fetchResources,
   formatPct,
   prettyKind,
+  prettyLocationName,
   uniqueValues,
   type Resource,
   type ResourceLocation,
@@ -200,10 +201,13 @@ function ResourceDetail({ id }: { id: string }) {
     );
 
   // Group locations by system → location_name for a cleaner read.
+  // Location names are run through prettyLocationName so terse game codes
+  // like "PYR3 L1" render as "Pyro III · L1".
   const bySystem = new Map<string, Map<string, ResourceLocation[]>>();
   for (const l of locations) {
     const sys = l.system ?? "Unknown system";
-    const place = l.location_name ?? l.provider_name ?? "Unknown location";
+    const place =
+      prettyLocationName(l.location_name) || l.provider_name || "Unknown location";
     if (!bySystem.has(sys)) bySystem.set(sys, new Map());
     const placeMap = bySystem.get(sys)!;
     if (!placeMap.has(place)) placeMap.set(place, []);
