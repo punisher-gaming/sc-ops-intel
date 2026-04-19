@@ -102,7 +102,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              📖 Read the Chronicle · Lore of the Verse →
+              📖 Read the Lore →
             </Link>
           </div>
         </section>

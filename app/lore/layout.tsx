@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { LoreHeader } from "@/components/LoreHeader";
+import Link from "next/link";
+import { Nav } from "@/components/Nav";
 import "./lore.css";
 
-// Dedicated layout for the lore subsite. No MusicPlayer / GlobalSearch /
-// main Nav — this reads as a standalone "comic" experience tied loosely
-// to CitizenDex via the header exit link. When we eventually wire up
-// lore.citizendex.com (or verselore.com), this route becomes the site
-// root behind that hostname without any code changes.
+// Lore subsite layout. Uses the main CitizenDex Nav (same as the rest
+// of the site) for consistency, then a small lore-specific sub-bar
+// below it for jumping between Chronicle / Species / Systems without
+// going back to /lore.
 
 export const metadata: Metadata = {
   title: "Lore · CitizenDex",
@@ -18,7 +18,24 @@ export default function LoreLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <div className="lore-body-backdrop" aria-hidden />
-      <LoreHeader />
+      <Nav />
+      {/* Lore-specific sub-nav — three pills under the main Nav for easy
+          movement between the chronicle landing, species index, and
+          systems index from any lore page. */}
+      <div className="lore-subnav">
+        <div className="lore-subnav-inner">
+          <Link href="/lore" className="lore-subnav-brand">
+            <span className="lore-subnav-brand-mark">LORE</span>
+            <span className="lore-subnav-brand-sep">//</span>
+            <span className="lore-subnav-brand-name">THE VERSE</span>
+          </Link>
+          <nav className="lore-subnav-links" aria-label="Lore sections">
+            <Link href="/lore">Chronicle</Link>
+            <Link href="/lore/races">Species</Link>
+            <Link href="/lore/systems">Systems</Link>
+          </nav>
+        </div>
+      </div>
       <main className="lore-main">{children}</main>
       <footer className="lore-footer">
         <div>Verse Chronicle · CitizenDex</div>

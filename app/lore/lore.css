@@ -51,6 +51,64 @@
   -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, transparent 80%);
 }
 
+/* ────── Sub-nav (beneath the main CitizenDex Nav on /lore pages) ────── */
+
+.lore-subnav {
+  background: rgba(3, 7, 16, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--lore-border);
+}
+.lore-subnav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.lore-subnav-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--lore-text);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+.lore-subnav-brand-mark {
+  color: var(--lore-cyan);
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.6);
+}
+.lore-subnav-brand-sep { color: var(--lore-text-dim); }
+.lore-subnav-brand-name { color: var(--lore-text); opacity: 0.85; }
+.lore-subnav-links {
+  display: flex;
+  gap: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.lore-subnav-links a {
+  color: var(--lore-text-dim);
+  text-decoration: none;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+.lore-subnav-links a:hover {
+  color: var(--lore-cyan);
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.45);
+}
+@media (max-width: 600px) {
+  .lore-subnav-inner { padding: 0 1rem; gap: 1rem; }
+  .lore-subnav-brand-name { display: none; }
+  .lore-subnav-links { gap: 1rem; font-size: 0.7rem; letter-spacing: 0.12em; }
+}
+
 /* ────── Header ────── */
 
 .lore-header {
