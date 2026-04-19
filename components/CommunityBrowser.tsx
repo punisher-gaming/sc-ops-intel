@@ -7,18 +7,15 @@ import {
   castVote,
   createReply,
   createThread,
+  fetchAllThreads,
   fetchAuthors,
-  fetchCategories,
-  fetchCategory,
   fetchMyVotes,
   fetchReplies,
   fetchThread,
-  fetchThreads,
   formatRelative,
   setThreadFlags,
   softDeleteReply,
   type Author,
-  type Category,
   type Reply,
   type SortMode,
   type Thread,
@@ -26,73 +23,24 @@ import {
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
 
+// All threads (topics) in one feed. Sorted hot/new/top. Schema still has
+// chat_categories under the hood — we silently slot every new topic into
+// 'general' so users don't have to pick.
+const DEFAULT_CATEGORY = "general";
+
 export function CommunityBrowser() {
   const params = useSearchParams();
-  const cat = params.get("cat") ?? "";
   const thread = params.get("thread") ?? "";
-  if (thread) return <ThreadView threadId={thread} categoryId={cat} />;
-  if (cat) return <ThreadList categoryId={cat} />;
-  return <CategoryList />;
+  if (thread) return <ThreadView threadId={thread} />;
+  return <TopicFeed />;
 }
 
 // ============================================================================
-// Category list
+// Topic feed — all threads, bumped by activity
 // ============================================================================
 
-function CategoryList() {
-  const [cats, setCats] = useState<Category[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCategories()
-      .then(setCats)
-      .catch((e) => setErr(e.message ?? String(e)));
-  }, []);
-
-  return (
-    <div className="container" style={{ paddingTop: "2.5rem" }}>
-      <div className="page-header">
-        <div className="accent-label">Community</div>
-        <h1>Topics</h1>
-        <p>
-          Discuss everything Star Citizen with the org. Pick a topic to see
-          threads, then jump in.
-        </p>
-      </div>
-
-      {err && <ErrorBar text={err} />}
-      {!cats && !err && <div style={{ color: "var(--text-muted)" }}>Loading…</div>}
-
-      {cats && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {cats.map((c) => (
-            <Link
-              key={c.id}
-              href={`/community?cat=${encodeURIComponent(c.id)}`}
-              className="card card-hover"
-              style={{ padding: "1.25rem 1.5rem", textDecoration: "none", color: "var(--text)", display: "block" }}
-            >
-              <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{c.name}</div>
-              {c.description && (
-                <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: 4 }}>
-                  {c.description}
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// Thread list within a category
-// ============================================================================
-
-function ThreadList({ categoryId }: { categoryId: string }) {
+function TopicFeed() {
   const { user } = useUser();
-  const [category, setCategory] = useState<Category | null | undefined>(undefined);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [authors, setAuthors] = useState<Map<string, Author>>(new Map());
   const [myVotes, setMyVotes] = useState<Map<string, -1 | 1>>(new Map());
@@ -100,12 +48,13 @@ function ThreadList({ categoryId }: { categoryId: string }) {
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function reload() {
     try {
-      const [c, ts] = await Promise.all([fetchCategory(categoryId), fetchThreads(categoryId, sort)]);
-      setCategory(c);
+      const ts = await fetchAllThreads(sort);
       setThreads(ts);
+      setLoaded(true);
       const auths = await fetchAuthors(ts.map((t) => t.user_id));
       setAuthors(auths);
       if (user) {
@@ -116,36 +65,25 @@ function ThreadList({ categoryId }: { categoryId: string }) {
       }
     } catch (e) {
       setErr((e as Error).message ?? String(e));
+      setLoaded(true);
     }
   }
 
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, sort, user?.id]);
-
-  if (category === null) {
-    return (
-      <div className="container" style={{ paddingTop: "3rem" }}>
-        <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ color: "var(--alert)", marginBottom: 10 }}>Topic not found</div>
-          <Link href="/community" style={{ color: "var(--accent)" }}>← Back to topics</Link>
-        </div>
-      </div>
-    );
-  }
+  }, [sort, user?.id]);
 
   return (
-    <div className="container-wide" style={{ paddingTop: "1.5rem", maxWidth: 1000 }}>
-      <Link href="/community" className="label-mini" style={{ color: "var(--accent)" }}>
-        ← All topics
-      </Link>
-
+    <div className="container-wide" style={{ paddingTop: "2.5rem", maxWidth: 1000 }}>
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div className="accent-label">Community</div>
-          <h1>{category?.name ?? categoryId}</h1>
-          {category?.description && <p>{category.description}</p>}
+          <h1>Topics</h1>
+          <p>
+            Anyone can start a topic. Active topics rise to the top — every
+            new reply or vote bumps it.
+          </p>
         </div>
         <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
           {(["hot", "new", "top"] as SortMode[]).map((m) => (
@@ -162,16 +100,15 @@ function ThreadList({ categoryId }: { categoryId: string }) {
         </div>
       </div>
 
-      {/* New thread CTA */}
+      {/* New topic CTA */}
       {user ? (
         <div style={{ marginBottom: 16 }}>
           {!showForm ? (
             <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-              + New thread
+              + New topic
             </button>
           ) : (
-            <NewThreadForm
-              categoryId={categoryId}
+            <NewTopicForm
               userId={user.id}
               busy={busy}
               setBusy={setBusy}
@@ -185,7 +122,7 @@ function ThreadList({ categoryId }: { categoryId: string }) {
         </div>
       ) : (
         <div className="card" style={{ padding: "1rem 1.25rem", marginBottom: 16, color: "var(--text-muted)" }}>
-          <Link href="/login" style={{ color: "var(--accent)" }}>Sign in</Link> to start a thread or vote.
+          <Link href="/login" style={{ color: "var(--accent)" }}>Sign in</Link> to start a topic or vote.
         </div>
       )}
 
@@ -198,7 +135,6 @@ function ThreadList({ categoryId }: { categoryId: string }) {
             thread={t}
             author={authors.get(t.user_id)}
             myVote={myVotes.get(t.id)}
-            categoryId={categoryId}
             user={user}
             onVote={async (val) => {
               if (!user) return;
@@ -209,9 +145,9 @@ function ThreadList({ categoryId }: { categoryId: string }) {
             }}
           />
         ))}
-        {threads.length === 0 && (
+        {loaded && threads.length === 0 && !err && (
           <div className="card" style={{ padding: "2rem", textAlign: "center", color: "var(--text-dim)" }}>
-            No threads here yet — be the first.
+            No topics yet — be the first to start one.
           </div>
         )}
       </div>
@@ -223,14 +159,12 @@ function ThreadCard({
   thread,
   author,
   myVote,
-  categoryId,
   user,
   onVote,
 }: {
   thread: Thread;
   author?: Author;
   myVote: -1 | 1 | undefined;
-  categoryId: string;
   user: ReturnType<typeof useUser>["user"];
   onVote: (val: -1 | 1) => void;
 }) {
@@ -251,7 +185,7 @@ function ThreadCard({
           {thread.pinned && <span className="badge badge-warn" style={{ fontSize: "0.65rem" }}>📌 Pinned</span>}
           {thread.locked && <span className="badge badge-muted" style={{ fontSize: "0.65rem" }}>🔒 Locked</span>}
           <Link
-            href={`/community?cat=${encodeURIComponent(categoryId)}&thread=${encodeURIComponent(thread.id)}`}
+            href={`/community?thread=${encodeURIComponent(thread.id)}`}
             style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1rem" }}
           >
             {thread.title}
@@ -271,7 +205,7 @@ function ThreadCard({
 // Thread detail view
 // ============================================================================
 
-function ThreadView({ threadId, categoryId }: { threadId: string; categoryId: string }) {
+function ThreadView({ threadId }: { threadId: string }) {
   const { user } = useUser();
   const [thread, setThread] = useState<Thread | null | undefined>(undefined);
   const [replies, setReplies] = useState<Reply[]>([]);
@@ -329,8 +263,8 @@ function ThreadView({ threadId, categoryId }: { threadId: string; categoryId: st
     return (
       <div className="container" style={{ paddingTop: "3rem" }}>
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ color: "var(--alert)", marginBottom: 10 }}>Thread not found.</div>
-          <Link href={`/community?cat=${encodeURIComponent(categoryId)}`} style={{ color: "var(--accent)" }}>← Back</Link>
+          <div style={{ color: "var(--alert)", marginBottom: 10 }}>Topic not found.</div>
+          <Link href="/community" style={{ color: "var(--accent)" }}>← Back to topics</Link>
         </div>
       </div>
     );
@@ -369,8 +303,8 @@ function ThreadView({ threadId, categoryId }: { threadId: string; categoryId: st
 
   return (
     <div className="container-wide" style={{ paddingTop: "1.5rem", maxWidth: 900 }}>
-      <Link href={`/community?cat=${encodeURIComponent(categoryId)}`} className="label-mini" style={{ color: "var(--accent)" }}>
-        ← Back to {categoryId}
+      <Link href="/community" className="label-mini" style={{ color: "var(--accent)" }}>
+        ← All topics
       </Link>
 
       {/* Thread post */}
@@ -620,7 +554,7 @@ function ModBar({ thread, onAction }: { thread: Thread; onAction: () => void }) 
       <button
         type="button"
         onClick={async () => {
-          if (!confirm("Delete this thread?")) return;
+          if (!confirm("Delete this topic?")) return;
           await setThreadFlags(thread.id, { deleted: true });
           onAction();
         }}
@@ -633,15 +567,13 @@ function ModBar({ thread, onAction }: { thread: Thread; onAction: () => void }) 
   );
 }
 
-function NewThreadForm({
-  categoryId,
+function NewTopicForm({
   userId,
   busy,
   setBusy,
   onCancel,
   onCreated,
 }: {
-  categoryId: string;
   userId: string;
   busy: boolean;
   setBusy: (b: boolean) => void;
@@ -659,7 +591,7 @@ function NewThreadForm({
     setErr(null);
     try {
       await createThread({
-        category_id: categoryId,
+        category_id: DEFAULT_CATEGORY,
         user_id: userId,
         title: title.trim(),
         body: body.trim(),
@@ -679,7 +611,7 @@ function NewThreadForm({
         onChange={(e) => setTitle(e.target.value)}
         required
         maxLength={200}
-        placeholder="Title"
+        placeholder="Topic title"
         className="input"
       />
       <textarea
@@ -694,7 +626,7 @@ function NewThreadForm({
       {err && <div style={{ color: "var(--alert)", fontSize: "0.85rem" }}>{err}</div>}
       <div style={{ display: "flex", gap: 8 }}>
         <button type="submit" className="btn btn-primary" disabled={busy || !title.trim() || !body.trim()}>
-          {busy ? "Posting…" : "Post thread"}
+          {busy ? "Posting…" : "Post topic"}
         </button>
         <button type="button" onClick={onCancel} className="btn btn-secondary" disabled={busy}>
           Cancel

@@ -38,12 +38,12 @@ export default function SignupPage() {
     }
   }
 
-  async function handleOAuth(provider: "discord" | "google") {
+  async function handleDiscord() {
     setError(null);
     setBusy(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: "discord",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
@@ -135,24 +135,14 @@ export default function SignupPage() {
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button
-              onClick={() => handleOAuth("discord")}
-              disabled={busy}
-              className="btn btn-secondary"
-              style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
-            >
-              Continue with Discord
-            </button>
-            <button
-              onClick={() => handleOAuth("google")}
-              disabled={busy}
-              className="btn btn-secondary"
-              style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
-            >
-              Continue with Google
-            </button>
-          </div>
+          <button
+            onClick={handleDiscord}
+            disabled={busy}
+            className="btn btn-secondary"
+            style={{ width: "100%", opacity: busy ? 0.5 : 1 }}
+          >
+            Continue with Discord
+          </button>
 
           <div style={{ marginTop: 20, fontSize: "0.875rem", color: "var(--text-muted)" }}>
             Already have an account?{" "}

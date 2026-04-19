@@ -91,6 +91,24 @@ export async function fetchThreads(categoryId: string, sort: SortMode): Promise<
   return (data ?? []) as Thread[];
 }
 
+// All topics across categories — the main community feed. Sorted so the most
+// recently active (last reply or vote) bubbles to the top.
+export async function fetchAllThreads(sort: SortMode): Promise<Thread[]> {
+  const client = createClient();
+  let q = client.from("chat_threads").select(T_COLS).eq("deleted", false);
+  if (sort === "hot") {
+    q = q.order("pinned", { ascending: false }).order("last_activity_at", { ascending: false });
+  } else if (sort === "new") {
+    q = q.order("pinned", { ascending: false }).order("created_at", { ascending: false });
+  } else {
+    q = q.order("pinned", { ascending: false }).order("score", { ascending: false }).order("last_activity_at", { ascending: false });
+  }
+  q = q.limit(200);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as Thread[];
+}
+
 export async function fetchThread(id: string): Promise<Thread | null> {
   const client = createClient();
   const { data, error } = await client
