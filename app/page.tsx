@@ -33,7 +33,7 @@ export default function LandingPage() {
               <Hologram
                 stage
                 style={{
-                  fontSize: "clamp(1.6rem, 4.5vw, 2.6rem)",
+                  fontSize: "clamp(1.28rem, 3.6vw, 2.08rem)",
                   letterSpacing: "0.32em",
                   fontWeight: 700,
                   padding: "0.4em 0.6em",
