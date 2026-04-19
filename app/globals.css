@@ -530,6 +530,20 @@ select {
   width: clamp(40px, 8vw, 90px);
   background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), transparent);
 }
+
+/* Hero hologram subtitle — sized/spaced so "THE STAR CITIZEN // DATABASE"
+   stays on a single line across the full viewport range. The vw-scaled
+   font shrinks smoothly on narrow screens so 27 characters always fit
+   without wrapping (white-space: nowrap on the element forces it anyway). */
+.hero-hologram {
+  font-size: clamp(0.7rem, 2vw, 1.45rem);
+  letter-spacing: clamp(0.14em, 0.5vw, 0.28em);
+}
+/* Shrink flanking bars on small screens so the whole row fits */
+@media (max-width: 600px) {
+  .brand-bar { width: 20px; }
+  .brand-secondary { gap: 8px; }
+}
 .home-hero .tagline {
   color: var(--text-muted);
   max-width: 56ch;

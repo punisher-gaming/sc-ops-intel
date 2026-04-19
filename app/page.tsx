@@ -29,18 +29,16 @@ export default function LandingPage() {
                   cyan tint, scanlines, rolling interference band, flicker. */}
               <Hologram
                 stage
+                className="hero-hologram"
                 style={{
-                  fontSize: "clamp(1.28rem, 3.6vw, 2.08rem)",
-                  letterSpacing: "0.32em",
                   fontWeight: 700,
                   padding: "0.4em 0.6em",
                   textAlign: "center",
+                  whiteSpace: "nowrap",
                   // CSS letter-spacing adds trailing space after the LAST
-                  // character on each line too. Without compensation, the
-                  // text-align:center math sees a wider box than the visible
-                  // glyphs and the line appears shifted left. text-indent
-                  // matching the letter-spacing cancels that out.
-                  textIndent: "0.32em",
+                  // character; text-indent cancels that so the visible
+                  // text reads dead-center.
+                  textIndent: "0.28em",
                 }}
               >
                 THE STAR CITIZEN <span className="accent">//</span> DATABASE
