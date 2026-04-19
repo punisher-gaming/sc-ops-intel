@@ -74,22 +74,29 @@ export function OwnerNote() {
           </div>
         </div>
 
-        {/* Signoff — personal, mixed case for "o7 to all" so it reads like
-            hand-signed rather than a banner. */}
+        {/* Signoff — right-aligned block: "o7 to all, — KNERFD · Owner"
+            all flowing together so it reads as one hand-signed line. */}
         <div
           style={{
             borderTop: "1px solid rgba(255,255,255,0.06)",
             paddingTop: 12,
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "baseline",
             flexWrap: "wrap",
-            gap: 8,
+            gap: 10,
           }}
         >
-          <div style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+          <span
+            style={{
+              color: "var(--accent)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.95rem",
+              letterSpacing: "0.05em",
+            }}
+          >
             o7 to all,
-          </div>
+          </span>
           <Link
             href="/profile?id=11a713da-315d-40cb-8fa7-b092787eea01"
             style={{
