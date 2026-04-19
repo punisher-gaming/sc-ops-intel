@@ -41,7 +41,14 @@ const PUBLIC_LINKS: NavItem[] = [
   { href: "/weapons", label: "Weapons" },
   { href: "/components", label: "Components" },
   { href: "/lore", label: "Lore" },
-  { href: "/community", label: "Community" },
+  {
+    label: "Community",
+    href: "/community",
+    children: [
+      { href: "/community", label: "Topics & forum" },
+      { href: "/community/auction", label: "Auction House" },
+    ],
+  },
 ];
 
 const AUTHED_LINKS: LinkItem[] = [
