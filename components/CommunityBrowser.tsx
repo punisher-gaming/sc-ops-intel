@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   castVote,
@@ -22,6 +22,7 @@ import {
 } from "@/lib/chat";
 import { useUser } from "@/lib/supabase/hooks";
 import { createClient } from "@/lib/supabase/client";
+import { EmojiPicker } from "./EmojiPicker";
 
 // All threads (topics) in one feed. Sorted hot/new/top. Schema still has
 // chat_categories under the hood — we silently slot every new topic into
@@ -216,6 +217,7 @@ function ThreadView({ threadId }: { threadId: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isModerator, setIsModerator] = useState(false);
+  const replyTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   async function reload() {
     try {
@@ -303,8 +305,22 @@ function ThreadView({ threadId }: { threadId: string }) {
 
   return (
     <div className="container-wide" style={{ paddingTop: "1.5rem", maxWidth: 900 }}>
-      <Link href="/community" className="label-mini" style={{ color: "var(--accent)" }}>
-        ← All topics
+      {/* Prominent back button — replaces the small label-mini link that was
+          easy to miss. Same destination, much more obvious. */}
+      <Link
+        href="/community"
+        className="btn btn-secondary"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          height: 36,
+          padding: "0 14px",
+          textDecoration: "none",
+          fontSize: "0.9rem",
+        }}
+      >
+        ← Back to all topics
       </Link>
 
       {/* Thread post */}
@@ -338,6 +354,7 @@ function ThreadView({ threadId }: { threadId: string }) {
           <div className="card" style={{ padding: "1rem 1.25rem" }}>
             <div className="label-mini" style={{ marginBottom: 6 }}>Reply</div>
             <textarea
+              ref={replyTextareaRef}
               value={body}
               onChange={(e) => setBody(e.target.value)}
               required
@@ -347,7 +364,8 @@ function ThreadView({ threadId }: { threadId: string }) {
               className="textarea"
             />
             {err && <div style={{ marginTop: 8, color: "var(--alert)", fontSize: "0.85rem" }}>{err}</div>}
-            <div style={{ marginTop: 10 }}>
+            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+              <EmojiPicker textareaRef={replyTextareaRef} onInsert={setBody} />
               <button type="submit" className="btn btn-primary" disabled={busy || !body.trim()}>
                 {busy ? "Posting…" : "Post reply"}
               </button>
@@ -589,6 +607,7 @@ function NewTopicForm({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -621,6 +640,7 @@ function NewTopicForm({
         className="input"
       />
       <textarea
+        ref={bodyRef}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         required
@@ -630,7 +650,8 @@ function NewTopicForm({
         className="textarea"
       />
       {err && <div style={{ color: "var(--alert)", fontSize: "0.85rem" }}>{err}</div>}
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <EmojiPicker textareaRef={bodyRef} onInsert={setBody} />
         <button type="submit" className="btn btn-primary" disabled={busy || !title.trim() || !body.trim()}>
           {busy ? "Posting…" : "Post topic"}
         </button>
