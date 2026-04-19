@@ -17,7 +17,8 @@ export default function ComponentsPage() {
         <ItemBrowser
           table="components"
           title="Components"
-          blurb="Shields, power plants, coolers, quantum drives, scanners — ship-system modules with grades and sizes."
+          blurb="Shields, power plants, coolers, quantum drives, scanners — ship-system modules with grades (A–D) and sizes."
+          gradeStyle="letter"
         />
       </Suspense>
     </PageShell>

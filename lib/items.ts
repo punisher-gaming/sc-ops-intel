@@ -17,10 +17,20 @@ export interface Item {
   game_version: string | null;
   last_synced_at: string | null;
   source_data?: Record<string, unknown> | null;
+  // Projected from source_data.stdItem.DescriptionData.Class at list-fetch
+  // time. Detail fetch resolves via itemClass() instead.
+  item_class?: string | null;
 }
 
 const LIST_COLS =
   "id, class_name, name, manufacturer, type, subtype, classification, grade, size, tags, game_version, last_synced_at";
+
+// For list views we also want the in-game "Class" (Industrial / Military /
+// Civilian / Stealth / Competition). It lives inside source_data jsonb,
+// so we project just that path via PostgREST's jsonb arrow syntax.
+const LIST_COLS_WITH_CLASS =
+  LIST_COLS +
+  ", item_class:source_data->stdItem->DescriptionData->>Class";
 
 export async function fetchItems(table: "weapons" | "components"): Promise<Item[]> {
   const client = createClient();
@@ -29,11 +39,11 @@ export async function fetchItems(table: "weapons" | "components"): Promise<Item[
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await client
       .from(table)
-      .select(LIST_COLS)
+      .select(LIST_COLS_WITH_CLASS)
       .order("name", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw error;
-    const rows = (data ?? []) as Item[];
+    const rows = (data ?? []) as unknown as Item[];
     out.push(...rows);
     if (rows.length < PAGE) break;
   }
@@ -71,4 +81,38 @@ export function prettyType(t: string | null | undefined): string {
 
 export function isPlaceholderName(name: string | null | undefined): boolean {
   return !name || name.includes("PLACEHOLDER") || name.includes("<=");
+}
+
+// In-game, ship components use letter grades (A/B/C/D/…) while scunpacked
+// stores them as 1/2/3/4. Mapper is 1=A, 2=B, 3=C, 4=D, 5=E, 6=F.
+// Applied at render time so we don't lose the original number in the DB.
+export type GradeStyle = "number" | "letter";
+
+export function formatGrade(
+  grade: number | null | undefined,
+  style: GradeStyle = "number",
+): string {
+  if (grade == null) return "—";
+  if (style === "letter") {
+    // 1 → A, 2 → B, etc. Falls back to the number for anything out of A–F.
+    const letters = ["A", "B", "C", "D", "E", "F"];
+    return letters[grade - 1] ?? String(grade);
+  }
+  return String(grade);
+}
+
+// Component class — Industrial / Military / Civilian / Stealth / Competition
+// — lives in source_data.stdItem.DescriptionData.Class. Not all items have
+// one (weapons usually don't; ship components usually do).
+export function itemClass(item: Item): string | null {
+  // List fetches project this as item_class; detail fetches include the
+  // full source_data. Use whichever we have.
+  if (typeof item.item_class === "string" && item.item_class.trim()) {
+    return item.item_class.trim();
+  }
+  const sd = (item.source_data ?? {}) as {
+    stdItem?: { DescriptionData?: { Class?: string } };
+  };
+  const c = sd.stdItem?.DescriptionData?.Class;
+  return typeof c === "string" && c.trim() ? c.trim() : null;
 }

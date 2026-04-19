@@ -6,9 +6,12 @@ import { useSearchParams } from "next/navigation";
 import {
   fetchItem,
   fetchItems,
+  formatGrade,
   isPlaceholderName,
+  itemClass,
   prettyType,
   uniqueItemValues,
+  type GradeStyle,
   type Item,
 } from "@/lib/items";
 import { CURRENT_PATCH } from "./PatchPill";
@@ -23,25 +26,29 @@ export function ItemBrowser({
   table,
   title,
   blurb,
+  gradeStyle = "number",
 }: {
   table: "weapons" | "components";
   title: string;
   blurb: string;
+  gradeStyle?: GradeStyle;
 }) {
   const params = useSearchParams();
   const id = params.get("id");
-  if (id) return <ItemDetail table={table} title={title} id={id} />;
-  return <ItemList table={table} title={title} blurb={blurb} />;
+  if (id) return <ItemDetail table={table} title={title} id={id} gradeStyle={gradeStyle} />;
+  return <ItemList table={table} title={title} blurb={blurb} gradeStyle={gradeStyle} />;
 }
 
 function ItemList({
   table,
   title,
   blurb,
+  gradeStyle,
 }: {
   table: "weapons" | "components";
   title: string;
   blurb: string;
+  gradeStyle: GradeStyle;
 }) {
   const [rows, setRows] = useState<Item[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -50,6 +57,7 @@ function ItemList({
   const [type, setType] = useState("");
   const [mfr, setMfr] = useState("");
   const [grade, setGrade] = useState("");
+  const [cls, setCls] = useState("");
   const [page, setPage] = useState(0);
 
   useEffect(() => {
@@ -66,6 +74,15 @@ function ItemList({
     for (const r of rows) if (typeof r.grade === "number") set.add(r.grade);
     return Array.from(set).sort((a, b) => a - b);
   }, [rows]);
+  const classes = useMemo(() => {
+    if (!rows) return [];
+    const set = new Set<string>();
+    for (const r of rows) {
+      const c = itemClass(r);
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort();
+  }, [rows]);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
@@ -74,15 +91,16 @@ function ItemList({
       if (type && r.type !== type) return false;
       if (mfr && r.manufacturer !== mfr) return false;
       if (grade && String(r.grade) !== grade) return false;
+      if (cls && itemClass(r) !== cls) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.class_name} ${r.manufacturer ?? ""} ${r.subtype ?? ""}`.toLowerCase();
+        const hay = `${r.name} ${r.class_name} ${r.manufacturer ?? ""} ${r.subtype ?? ""} ${itemClass(r) ?? ""}`.toLowerCase();
         if (!hay.includes(qLower)) return false;
       }
       return true;
     });
-  }, [rows, q, type, mfr, grade]);
+  }, [rows, q, type, mfr, grade, cls]);
 
-  useEffect(() => setPage(0), [q, type, mfr, grade]);
+  useEffect(() => setPage(0), [q, type, mfr, grade, cls]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -121,10 +139,18 @@ function ItemList({
           <option value="">All grades</option>
           {grades.map((g) => (
             <option key={g} value={String(g)}>
-              Grade {g}
+              Grade {formatGrade(g, gradeStyle)}
             </option>
           ))}
         </select>
+        {classes.length > 0 && (
+          <select value={cls} onChange={(e) => setCls(e.target.value)} className="select" style={{ width: 160 }}>
+            <option value="">All classes</option>
+            {classes.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div
@@ -172,6 +198,7 @@ function ItemList({
                 <th style={thStyle("left")}>Name</th>
                 <th style={thStyle("left", 130)}>Manufacturer</th>
                 <th style={thStyle("left", 170)}>Type</th>
+                {classes.length > 0 && <th style={thStyle("left", 110)}>Class</th>}
                 <th style={thStyle("left", 70)}>Grade</th>
                 <th style={thStyle("left", 70)}>Size</th>
               </tr>
@@ -194,13 +221,16 @@ function ItemList({
                   </td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.manufacturer ?? "—"}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyType(r.type)}</td>
-                  <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{r.grade ?? "—"}</td>
+                  {classes.length > 0 && (
+                    <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{itemClass(r) ?? "—"}</td>
+                  )}
+                  <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{formatGrade(r.grade, gradeStyle)}</td>
                   <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{r.size ?? "—"}</td>
                 </tr>
               ))}
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
+                  <td colSpan={classes.length > 0 ? 6 : 5} style={{ padding: "3rem 0", textAlign: "center", color: "var(--text-dim)" }}>
                     No matches.
                   </td>
                 </tr>
@@ -217,10 +247,12 @@ function ItemDetail({
   table,
   title,
   id,
+  gradeStyle,
 }: {
   table: "weapons" | "components";
   title: string;
   id: string;
+  gradeStyle: GradeStyle;
 }) {
   const [item, setItem] = useState<Item | null | undefined>(undefined);
   const [err, setErr] = useState<string | null>(null);
@@ -272,7 +304,7 @@ function ItemDetail({
           <div className="accent-label">
             {prettyType(item.type)}
             {item.subtype && ` · ${item.subtype}`}
-            {item.grade != null && ` · Grade ${item.grade}`}
+            {item.grade != null && ` · Grade ${formatGrade(item.grade, gradeStyle)}`}
           </div>
           <h1>{displayName}</h1>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-dim)" }}>
@@ -285,8 +317,23 @@ function ItemDetail({
         <Stat label="Manufacturer" value={item.manufacturer ?? "—"} />
         <Stat label="Type" value={prettyType(item.type)} />
         <Stat label="Subtype" value={item.subtype ?? "—"} />
-        <Stat label="Grade" value={item.grade != null ? String(item.grade) : "—"} />
+        <Stat label="Grade" value={formatGrade(item.grade, gradeStyle)} />
         <Stat label="Size" value={item.size != null ? String(item.size) : "—"} />
+        {itemClass(item) && <Stat label="Class" value={itemClass(item)!} />}
+      </div>
+
+      {/* Where to buy — no canonical mapping in scunpacked for ship items.
+          Community submissions will populate this (next feature). */}
+      <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+        <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 8 }}>
+          Where to buy
+        </div>
+        <p style={{ color: "var(--text-muted)", lineHeight: 1.6, fontSize: "0.9rem" }}>
+          Scunpacked doesn&apos;t map items to specific shops for ship
+          components. Until a community submission flow is built, check{" "}
+          <Link href="/trade-locations" style={{ color: "var(--accent)" }}>trade locations</Link>
+          {" "}for nearby terminals that match this item&apos;s role.
+        </p>
       </div>
 
       {item.source_data && (
