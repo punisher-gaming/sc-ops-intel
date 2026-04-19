@@ -98,23 +98,23 @@ export function MusicPlayer() {
         aria-label="Open music player"
         style={{
           position: "fixed",
-          right: 16,
-          bottom: 16,
+          left: 16,
+          top: 80,
           zIndex: 30,
           display: "inline-flex",
           alignItems: "center",
-          gap: 6,
-          padding: "6px 12px",
-          borderRadius: 20,
+          gap: 8,
+          padding: "9px 16px",
+          borderRadius: 22,
           background: "rgba(10,14,22,0.85)",
           border: "1px solid rgba(255,255,255,0.12)",
           color: "var(--text-muted)",
-          fontSize: "0.8rem",
+          fontSize: "0.9rem",
           cursor: "pointer",
           backdropFilter: "blur(8px)",
         }}
       >
-        <span style={{ color: "var(--accent)" }}>♪</span> Music
+        <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>♪</span> Music
       </button>
     );
   }
@@ -123,10 +123,10 @@ export function MusicPlayer() {
     <div
       style={{
         position: "fixed",
-        right: 16,
-        bottom: 16,
+        left: 16,
+        top: 80,
         zIndex: 30,
-        width: 320,
+        width: 360,
         padding: "12px 14px",
         borderRadius: 10,
         background: "rgba(10,14,22,0.92)",
