@@ -12,6 +12,10 @@ import { fetchPublishedTracks, type MusicTrack } from "@/lib/music";
 const LS_OPEN = "sc-ops-intel:music-open";
 const LS_VOL = "sc-ops-intel:music-volume";
 const LS_IDX = "sc-ops-intel:music-index";
+const LS_SHUFFLE = "sc-ops-intel:music-shuffle";
+const LS_LOOP = "sc-ops-intel:music-loop";
+
+type LoopMode = "off" | "all" | "one";
 
 export function MusicPlayer() {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
@@ -19,6 +23,10 @@ export function MusicPlayer() {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.4);
+  const [shuffle, setShuffle] = useState(false);
+  // off → stop at end of playlist; all → wrap around (default);
+  // one → repeat current track
+  const [loop, setLoop] = useState<LoopMode>("all");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initial load of tracks + persisted prefs
@@ -36,6 +44,11 @@ export function MusicPlayer() {
             setVolume(savedVol);
           }
           setOpen(localStorage.getItem(LS_OPEN) === "1");
+          setShuffle(localStorage.getItem(LS_SHUFFLE) === "1");
+          const savedLoop = localStorage.getItem(LS_LOOP);
+          if (savedLoop === "off" || savedLoop === "all" || savedLoop === "one") {
+            setLoop(savedLoop);
+          }
         }
       })
       .catch(() => {
@@ -56,8 +69,24 @@ export function MusicPlayer() {
       localStorage.setItem(LS_VOL, String(volume));
       localStorage.setItem(LS_IDX, String(idx));
       localStorage.setItem(LS_OPEN, open ? "1" : "0");
+      localStorage.setItem(LS_SHUFFLE, shuffle ? "1" : "0");
+      localStorage.setItem(LS_LOOP, loop);
     }
-  }, [volume, idx, open]);
+  }, [volume, idx, open, shuffle, loop]);
+
+  // Pick the next index given the current state (shuffle / loop / playlist length)
+  function pickNext(current: number, len: number): number | null {
+    if (len <= 1) return loop === "off" ? null : current;
+    if (shuffle) {
+      // Random other index — never repeat current immediately
+      let r = Math.floor(Math.random() * (len - 1));
+      if (r >= current) r += 1;
+      return r;
+    }
+    const next = current + 1;
+    if (next < len) return next;
+    return loop === "off" ? null : 0;
+  }
 
   // Don't render anything until we know there are tracks
   if (tracks.length === 0) return null;
@@ -77,14 +106,24 @@ export function MusicPlayer() {
   }
 
   function next() {
-    setIdx((i) => (i + 1) % tracks.length);
-    // Restart playback automatically if we were playing
+    const n = pickNext(idx, tracks.length);
+    if (n == null) {
+      // Loop=off, hit end of playlist — stop playback
+      audioRef.current?.pause();
+      return;
+    }
+    setIdx(n);
     setTimeout(() => {
       if (playing) audioRef.current?.play().catch(() => {});
     }, 50);
   }
   function prev() {
-    setIdx((i) => (i - 1 + tracks.length) % tracks.length);
+    // Prev always steps backward through the linear order, regardless of
+    // shuffle. Wraps if loop != "off".
+    setIdx((i) => {
+      if (i > 0) return i - 1;
+      return loop === "off" ? 0 : tracks.length - 1;
+    });
     setTimeout(() => {
       if (playing) audioRef.current?.play().catch(() => {});
     }, 50);
@@ -142,8 +181,17 @@ export function MusicPlayer() {
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => {
-          // Auto-advance
-          const n = (idx + 1) % tracks.length;
+          // Loop=one → replay current track
+          if (loop === "one") {
+            const el = audioRef.current;
+            if (el) {
+              el.currentTime = 0;
+              el.play().catch(() => {});
+            }
+            return;
+          }
+          const n = pickNext(idx, tracks.length);
+          if (n == null) return; // loop=off, end of playlist
           setIdx(n);
           setTimeout(() => audioRef.current?.play().catch(() => {}), 50);
         }}
@@ -186,6 +234,57 @@ export function MusicPlayer() {
         </button>
         <button type="button" onClick={next} className="btn btn-secondary" style={{ height: 32, padding: "0 10px" }} aria-label="Next">
           ▷▷
+        </button>
+      </div>
+
+      {/* Shuffle + Loop row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+        <button
+          type="button"
+          onClick={() => setShuffle((v) => !v)}
+          aria-pressed={shuffle}
+          aria-label={`Shuffle ${shuffle ? "on" : "off"}`}
+          title={`Shuffle ${shuffle ? "on" : "off"}`}
+          style={{
+            flex: 1,
+            height: 28,
+            padding: "0 10px",
+            borderRadius: 6,
+            background: shuffle ? "rgba(77,217,255,0.15)" : "rgba(255,255,255,0.04)",
+            color: shuffle ? "var(--accent)" : "var(--text-muted)",
+            border: `1px solid ${shuffle ? "rgba(77,217,255,0.45)" : "rgba(255,255,255,0.1)"}`,
+            cursor: "pointer",
+            fontSize: "0.78rem",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
+        >
+          ⇄ Shuffle
+        </button>
+        <button
+          type="button"
+          onClick={() => setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off"))}
+          aria-label={`Loop ${loop}`}
+          title={loop === "off" ? "Loop off — stop at end" : loop === "all" ? "Loop playlist" : "Loop one — repeat track"}
+          style={{
+            flex: 1,
+            height: 28,
+            padding: "0 10px",
+            borderRadius: 6,
+            background: loop !== "off" ? "rgba(77,217,255,0.15)" : "rgba(255,255,255,0.04)",
+            color: loop !== "off" ? "var(--accent)" : "var(--text-muted)",
+            border: `1px solid ${loop !== "off" ? "rgba(77,217,255,0.45)" : "rgba(255,255,255,0.1)"}`,
+            cursor: "pointer",
+            fontSize: "0.78rem",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
+        >
+          {loop === "one" ? "↻¹ Loop one" : loop === "all" ? "↻ Loop all" : "↻ Loop off"}
         </button>
       </div>
 
