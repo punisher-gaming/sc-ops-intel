@@ -22,16 +22,35 @@ function isDropdown(n: NavItem): n is DropdownItem {
   return "children" in n;
 }
 
-// Trade dropdown groups Commodities, Trade locations, Refineries to keep
-// the nav from sprawling.
+// Nav grouping notes:
+// - "Routes" replaces "Trade" so it's not confused with the Auction
+//   House (which is a different kind of trade — user-to-user listings).
+// - Crafting + Resources collapse into a Crafting dropdown since they
+//   feed each other (recipes need materials).
+// - Ships + Components collapse into a Ships dropdown since components
+//   are ship parts.
+// - "AH" is the shortened banner-style top-level link.
 const PUBLIC_LINKS: NavItem[] = [
   { href: "/ai", label: "AI" },
   { href: "/blueprints", label: "Blueprints" },
-  { href: "/crafting", label: "Crafting" },
-  { href: "/resources", label: "Resources" },
-  { href: "/ships", label: "Ships" },
   {
-    label: "Trade",
+    label: "Crafting",
+    href: "/crafting",
+    children: [
+      { href: "/crafting", label: "Crafting search" },
+      { href: "/resources", label: "Resources" },
+    ],
+  },
+  {
+    label: "Ships",
+    href: "/ships",
+    children: [
+      { href: "/ships", label: "Ships" },
+      { href: "/components", label: "Components" },
+    ],
+  },
+  {
+    label: "Routes",
     href: "/commodities",
     children: [
       { href: "/commodities", label: "Commodities" },
@@ -40,13 +59,12 @@ const PUBLIC_LINKS: NavItem[] = [
     ],
   },
   { href: "/weapons", label: "Weapons" },
-  { href: "/components", label: "Components" },
   { href: "/planets", label: "Planets" },
   { href: "/lore", label: "Lore" },
   { href: "/community", label: "Community" },
-  // Auction House is its own top-level link with the .nav-holo class for
-  // a holographic shimmer — most-promoted destination in the nav.
-  { href: "/community/auction", label: "Auction House" },
+  // AH gets the .nav-holo shimmer — most-promoted destination. Short
+  // label to keep the nav row breathing.
+  { href: "/community/auction", label: "AH" },
 ];
 
 // Notes used to be a top-level nav link. It's been moved into the user
