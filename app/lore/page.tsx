@@ -8,6 +8,7 @@ import {
   SpaceScene,
 } from "@/components/LoreArt";
 import type { Accent } from "@/components/LoreArt";
+import { ComicCover } from "@/components/ComicCover";
 
 // Lore landing — cinematic cover, then scroll into the chapter grid,
 // species roster, and systems list. Every card is visual.
@@ -15,23 +16,24 @@ import type { Accent } from "@/components/LoreArt";
 export default function LoreHome() {
   return (
     <>
-      {/* ── Cover ── */}
-      <section className="lore-chapter-hero" style={{ minHeight: "80vh" }}>
-        <div className="lore-chapter-hero-art">
-          <EarthScene />
-        </div>
-        <div className="lore-chapter-hero-overlay" />
-        <div className="lore-chapter-hero-content">
-          <div className="lore-hero-eyebrow">◢ The Chronicle · Volume I</div>
-          <h1 className="lore-hero-title">The Verse</h1>
-          <div className="lore-hero-sub">2075 — 2952 · UEE Calendar</div>
-          <p className="lore-hero-body">
-            A thousand years of human history in the stars. The first fusion
-            reactor, the first jump point, the empires that rose, the
-            civilizations we found already waiting for us — and the enemies
-            who found us first. Read every era, every species, every system.
-          </p>
-        </div>
+      {/* ── Comic-book cover with auto-flipping corner ── */}
+      <ComicCover />
+
+      {/* Intro blurb below the cover to bridge to the table of contents */}
+      <section
+        style={{
+          maxWidth: 760,
+          margin: "0 auto",
+          padding: "3rem 1.5rem 1rem",
+          textAlign: "center",
+        }}
+      >
+        <p className="lore-hero-body">
+          A thousand years of human history in the stars. The first fusion
+          reactor, the first jump point, the empires that rose, the
+          civilizations we found already waiting for us — and the enemies
+          who found us first. Every era, every species, every system.
+        </p>
       </section>
 
       {/* ── Chapter index — each card with splash art ── */}

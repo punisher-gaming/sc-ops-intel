@@ -408,6 +408,302 @@
 }
 .lore-panel p:last-child { margin-bottom: 0; }
 
+/* ═══════════ Comic cover (opening sequence) ═══════════ */
+
+.comic-cover-scene {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  perspective: 2400px;              /* 3D space for the flip */
+  overflow: hidden;
+}
+
+/* Art revealed behind the cover when the corner flips */
+.comic-cover-behind {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  animation: behind-reveal 5.8s ease-in-out;
+}
+@keyframes behind-reveal {
+  0%   { opacity: 0; }
+  20%  { opacity: 0.9; }
+  75%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+.comic-cover-behind > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.comic-cover-behind-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2, 5, 12, 0.45), rgba(2, 5, 12, 0.8));
+}
+.comic-cover-behind-label {
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  transform: translateY(-50%);
+  text-align: right;
+}
+.comic-cover-behind-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  color: var(--lore-cyan);
+  text-shadow: 0 0 16px rgba(77, 217, 255, 0.7);
+  margin-bottom: 6px;
+}
+.comic-cover-behind-title {
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.85;
+}
+
+/* The book — positioned center-stage with drop shadow + spine */
+.comic-cover-book {
+  position: relative;
+  width: min(640px, 92vw);
+  aspect-ratio: 2 / 3;
+  max-height: 82vh;
+  z-index: 2;
+  filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.6))
+          drop-shadow(0 0 40px rgba(77, 217, 255, 0.15));
+}
+.comic-cover-spine {
+  position: absolute;
+  left: -6px; top: 2%; bottom: 2%;
+  width: 12px;
+  background: linear-gradient(90deg, #000 0%, #0a0e16 60%, #020409 100%);
+  border-radius: 2px 0 0 2px;
+  z-index: -1;
+}
+
+/* The "page" — actual cover art + typography */
+.comic-cover-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--lore-border-strong);
+  background: #020409;
+  overflow: hidden;
+  transform-origin: left center;
+}
+.comic-cover-page-art {
+  position: absolute;
+  inset: 0;
+}
+.comic-cover-page-art > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.comic-cover-page-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center top, transparent 30%, rgba(2, 5, 12, 0.55) 75%),
+    linear-gradient(180deg, rgba(2, 5, 12, 0.15) 0%, rgba(2, 5, 12, 0.7) 100%);
+}
+
+/* Masthead — top strip */
+.comic-cover-masthead {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, rgba(77, 217, 255, 0.1), transparent);
+  border-bottom: 1px solid var(--lore-border);
+}
+.comic-cover-issue {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.5);
+}
+
+/* Big title block */
+.comic-cover-title {
+  position: absolute;
+  left: 0; right: 0;
+  top: 28%;
+  padding: 0 2rem;
+  text-align: center;
+}
+.comic-cover-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
+}
+.comic-cover-title h1 {
+  font-family: var(--font-mono);
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+  color: #fff;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.95), 0 0 40px rgba(77, 217, 255, 0.4);
+}
+.comic-cover-title h1 .accent {
+  color: var(--lore-cyan);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.95), 0 0 34px rgba(77, 217, 255, 0.85);
+}
+.comic-cover-sub {
+  font-family: var(--font-mono);
+  font-size: clamp(0.75rem, 1.4vw, 0.95rem);
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* Footer band */
+.comic-cover-footer {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background: linear-gradient(0deg, rgba(2, 5, 12, 0.95), transparent);
+  gap: 1rem;
+}
+.comic-cover-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  color: var(--lore-cyan);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.comic-cover-stars {
+  color: var(--lore-cyan);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+.comic-cover-barcode {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 24px;
+  opacity: 0.8;
+}
+.comic-cover-barcode > span {
+  display: inline-block;
+  height: 100%;
+  background: var(--lore-cyan);
+}
+
+/* The flipping corner — a triangular pseudo-page clipped from the
+   top-right, backed with cyan paper, that rotates on flip. */
+.comic-cover-flip {
+  position: absolute;
+  top: 0; right: 0;
+  width: 42%;
+  height: 55%;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: top left;
+  transform: rotateX(0) rotateY(0) translateZ(0);
+  transition: transform 0s;
+}
+.comic-cover-flip::before {
+  /* The paper itself — back of page (shows when flipped) */
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  background:
+    linear-gradient(225deg, #020409 0%, #051322 55%, #0a2238 100%);
+  border-top: 1px solid var(--lore-border-strong);
+  border-right: 1px solid var(--lore-border-strong);
+  box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.5) inset;
+}
+.comic-cover-flip::after {
+  /* Shadow cast by the flipped corner on the page below */
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 100%; height: 100%;
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  background: linear-gradient(225deg, rgba(0, 0, 0, 0.45) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+
+/* Page-flip animation — corner curls forward */
+.comic-cover-book.is-flipping .comic-cover-flip {
+  animation: page-curl 2.6s ease-in-out;
+}
+.comic-cover-book.is-flipping .comic-cover-flip::after {
+  animation: page-shadow 2.6s ease-in-out;
+}
+@keyframes page-curl {
+  0%   { transform: rotate(0deg) skew(0deg); }
+  45%  { transform: rotate(-22deg) skew(-6deg) translate(-4%, 3%); }
+  55%  { transform: rotate(-22deg) skew(-6deg) translate(-4%, 3%); }
+  100% { transform: rotate(0deg) skew(0deg); }
+}
+@keyframes page-shadow {
+  0%, 100% { opacity: 0; }
+  45%, 55% { opacity: 1; }
+}
+
+/* Scroll hint */
+.comic-cover-scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  color: var(--lore-text-dim);
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.comic-cover-arrow {
+  animation: scroll-bob 1.8s ease-in-out infinite;
+  font-size: 1.2rem;
+  color: var(--lore-cyan);
+}
+@keyframes scroll-bob {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50%      { transform: translateY(6px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comic-cover-book.is-flipping .comic-cover-flip,
+  .comic-cover-book.is-flipping .comic-cover-flip::after,
+  .comic-cover-behind,
+  .comic-cover-arrow { animation: none !important; }
+  .comic-cover-behind { display: none; }
+}
+
 /* ═══════════ Comic-book layouts ═══════════ */
 
 /* Full-bleed splash — cover-worthy single-art panel. Image fills the card

@@ -22,9 +22,13 @@ export default function LoreLayout({ children }: { children: React.ReactNode }) 
       <main className="lore-main">{children}</main>
       <footer className="lore-footer">
         <div>Verse Chronicle · CitizenDex</div>
+        <div style={{ marginTop: 4, opacity: 0.7, fontSize: "0.72rem", lineHeight: 1.7 }}>
+          All lore is original prose drawn from public sources. All artwork
+          is original SVG — no CIG-owned assets are reproduced on this site.
+        </div>
         <div style={{ marginTop: 4, opacity: 0.6, fontSize: "0.7rem" }}>
-          All lore is original prose drawn from public sources · Hosted by
-          Punisher Gaming · Unofficial, no affiliation with CIG
+          Hosted by Punisher Gaming · Unofficial fan site · No affiliation
+          with Cloud Imperium Games
         </div>
       </footer>
     </>

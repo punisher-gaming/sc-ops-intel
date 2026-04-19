@@ -48,6 +48,17 @@ export interface LoreChapter {
   panels: LoreChapterPanel[];
 }
 
+// Future-proofing hook: if/when we license specific artwork (e.g. via
+// CIG's Fan Site program with written permission), a panel can declare
+// an `image` to use instead of the SVG `art` key. Components prefer
+// image when present. Until then, every panel uses original SVG art.
+export interface LoreImage {
+  src: string;         // absolute URL or /path to a file we host
+  alt: string;
+  credit: string;      // e.g. "© Cloud Imperium Games — used with permission"
+  creditUrl?: string;  // optional link to source
+}
+
 export interface LoreChapterPanel {
   kind: "hero" | "text" | "quote" | "splash";
   title?: string;
@@ -59,6 +70,7 @@ export interface LoreChapterPanel {
   // image spreads; "hero" and "text" get inline art on one side.
   art?: LoreArtKey;
   artSide?: "left" | "right" | "full";
+  image?: LoreImage;   // wins over `art` when present (licensed swap-in)
   // theme tint for visual panels — maps to a CSS variable
   accent?: "cyan" | "amber" | "red" | "green" | "violet";
 }
