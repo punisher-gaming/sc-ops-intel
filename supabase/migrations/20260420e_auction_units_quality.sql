@@ -7,6 +7,12 @@
 -- Idempotent: safe to re-run. If a previous attempt added
 -- quality_range, it gets dropped here.
 
+-- Drop the view BEFORE touching columns it might reference. Earlier
+-- drafts of this migration added quality_range and folded it into the
+-- view; with the view still in place, dropping the column would fail
+-- with a dependency error.
+drop view if exists public.auction_listings_with_seller;
+
 alter table public.auction_listings
     add column if not exists unit text not null default 'each'
     check (unit in ('each','scu','cscu'));
@@ -16,8 +22,6 @@ alter table public.auction_listings drop column if exists quality_range;
 alter table public.auction_listings
     add column if not exists quality_min integer
     check (quality_min is null or (quality_min between 1 and 1000));
-
-drop view if exists public.auction_listings_with_seller;
 
 create view public.auction_listings_with_seller as
     select
