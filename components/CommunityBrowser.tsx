@@ -86,6 +86,16 @@ function TopicFeed() {
 
   return (
     <div className="container-wide" style={{ paddingTop: "2.5rem", maxWidth: 1000 }}>
+      {/* Community sub-nav — Topics + Auction House (more sections later) */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+        <Link href="/community" className="btn btn-primary" style={{ height: 34, padding: "0 14px", fontSize: "0.85rem" }}>
+          💬 Topics
+        </Link>
+        <Link href="/community/auction" className="btn btn-secondary" style={{ height: 34, padding: "0 14px", fontSize: "0.85rem" }}>
+          ⚖ Auction House
+        </Link>
+      </div>
+
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div className="accent-label">Community</div>
