@@ -16,6 +16,7 @@ const PUBLIC_LINKS = [
   { href: "/commodities", label: "Commodities" },
   { href: "/trade-locations", label: "Trade" },
   { href: "/ships", label: "Ships" },
+  { href: "/community", label: "Community" },
 ];
 
 const AUTHED_LINKS = [
