@@ -34,6 +34,7 @@ export default function LandingPage() {
                   letterSpacing: "0.32em",
                   fontWeight: 700,
                   padding: "0.4em 0.6em",
+                  textAlign: "center",  // center both lines when it wraps
                 }}
               >
                 THE STAR CITIZEN <span className="accent">//</span> DATABASE
