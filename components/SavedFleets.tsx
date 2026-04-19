@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { deleteFleet, fetchMyFleets, renameFleet, type Fleet } from "@/lib/fleets";
+import {
+  deleteFleet,
+  fetchMyFleets,
+  renameFleet,
+  setFleetPublic,
+  type Fleet,
+} from "@/lib/fleets";
 
 export function SavedFleets({ userId }: { userId: string }) {
   const [fleets, setFleets] = useState<Fleet[] | null>(null);
@@ -36,6 +42,24 @@ export function SavedFleets({ userId }: { userId: string }) {
     setEditingId(null);
     setEditName("");
     reload();
+  }
+
+  // Optimistic flip — update local state immediately so the toggle feels
+  // snappy, then persist. Revert on failure.
+  async function handleTogglePublic(f: Fleet) {
+    const next = !f.is_public;
+    setFleets((curr) =>
+      curr ? curr.map((x) => (x.id === f.id ? { ...x, is_public: next } : x)) : curr,
+    );
+    try {
+      await setFleetPublic(f.id, next);
+    } catch (e) {
+      // Rollback
+      setFleets((curr) =>
+        curr ? curr.map((x) => (x.id === f.id ? { ...x, is_public: !next } : x)) : curr,
+      );
+      setErr((e as Error).message ?? String(e));
+    }
   }
 
   return (
@@ -114,6 +138,15 @@ export function SavedFleets({ userId }: { userId: string }) {
                     </Link>
                     <div className="label-mini" style={{ marginTop: 4 }}>
                       {f.ship_ids.length} ship{f.ship_ids.length === 1 ? "" : "s"} · saved {new Date(f.created_at).toLocaleDateString()}
+                      {" · "}
+                      <span
+                        style={{
+                          color: f.is_public ? "var(--success)" : "var(--text-dim)",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {f.is_public ? "🌐 Public" : "🔒 Private"}
+                      </span>
                     </div>
                   </>
                 )}
@@ -127,6 +160,20 @@ export function SavedFleets({ userId }: { userId: string }) {
                   >
                     Open
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublic(f)}
+                    className="btn btn-ghost"
+                    title={f.is_public ? "Hide from your public profile" : "Show on your public profile"}
+                    style={{
+                      height: 28,
+                      padding: "0 10px",
+                      fontSize: "0.75rem",
+                      color: f.is_public ? "var(--success)" : "var(--text-muted)",
+                    }}
+                  >
+                    {f.is_public ? "Make private" : "Make public"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => { setEditingId(f.id); setEditName(f.name); }}

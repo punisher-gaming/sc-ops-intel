@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -108,7 +109,8 @@ function StaffPill({ member }: { member: StaffMember }) {
   const roleColor = member.is_admin ? "var(--accent)" : "var(--warn)";
 
   return (
-    <div
+    <Link
+      href={`/profile?id=${encodeURIComponent(member.id)}`}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -117,8 +119,10 @@ function StaffPill({ member }: { member: StaffMember }) {
         borderRadius: 999,
         background: "rgba(255,255,255,0.04)",
         border: "1px solid rgba(255,255,255,0.1)",
+        textDecoration: "none",
+        color: "inherit",
       }}
-      title={member.discord_username ? `@${member.discord_username} on Discord` : name}
+      title={`View ${name}'s profile`}
     >
       {member.avatar_url ? (
         // Discord avatars come from cdn.discordapp.com or similar — bypass
@@ -165,7 +169,7 @@ function StaffPill({ member }: { member: StaffMember }) {
         </span>
       </div>
       <DiscordIcon />
-    </div>
+    </Link>
   );
 }
 

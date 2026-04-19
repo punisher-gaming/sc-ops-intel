@@ -486,8 +486,14 @@ function AuthorPill({ author }: { author?: Author }) {
     return <span className="label-mini">unknown</span>;
   }
   const name = author.display_name ?? "user";
+  // Wraps the whole pill in a Link to the public profile page so any
+  // community comment is one click away from the user's fleets/intel.
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.8rem" }}>
+    <Link
+      href={`/profile?id=${encodeURIComponent(author.id)}`}
+      style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.8rem", textDecoration: "none", color: "inherit" }}
+      title={`View ${name}'s profile`}
+    >
       {author.avatar_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -522,7 +528,7 @@ function AuthorPill({ author }: { author?: Author }) {
       {author.is_moderator && !author.is_admin && (
         <span className="badge badge-success" style={{ fontSize: "0.6rem" }}>mod</span>
       )}
-    </span>
+    </Link>
   );
 }
 
