@@ -7,15 +7,20 @@ import { PageShell } from "@/components/PageShell";
 import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
+  LISTING_TYPE_LABELS,
   createListing,
   fetchCurrencyOptions,
   type AuctionCategory,
   type CurrencyOption,
+  type ListingType,
 } from "@/lib/auction";
 
 export default function NewListingPage() {
   const router = useRouter();
   const { user, loading } = useUser();
+  // Default to WTS since most listings are sales. Toggle at the top
+  // of the form lets the user post a buy request instead.
+  const [listingType, setListingType] = useState<ListingType>("wts");
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState<AuctionCategory>("ship");
   const [quantity, setQuantity] = useState(1);
@@ -58,6 +63,7 @@ export default function NewListingPage() {
     try {
       const listing = await createListing({
         user_id: user.id,
+        listing_type: listingType,
         item_name: itemName.trim(),
         item_category: category,
         quantity,
@@ -96,22 +102,71 @@ export default function NewListingPage() {
         </Link>
         <div className="page-header" style={{ marginTop: 8 }}>
           <div className="accent-label">New Listing</div>
-          <h1>Sell an item</h1>
+          <h1>{LISTING_TYPE_LABELS[listingType].cta}</h1>
           <p>
-            Accept payment in <strong>aUEC</strong> or any in-game{" "}
-            <strong>commodity</strong> (Gold, Quantanium, Tungsten, etc.).{" "}
+            {listingType === "wts" ? (
+              <>Accept payment in <strong>aUEC</strong> or any in-game{" "}
+              <strong>commodity</strong> (Gold, Quantanium, Tungsten, etc.).</>
+            ) : (
+              <>Tell other citizens what you&apos;re looking to buy and what
+              you&apos;ll pay for it. Sellers will contact you in Discord
+              to coordinate the trade.</>
+            )}{" "}
             <strong style={{ color: "var(--alert)" }}>No real money.</strong>{" "}
-            The actual trade happens in-game between you and the buyer.
+            The actual trade happens in-game.
           </p>
         </div>
 
         <form onSubmit={submit} className="card" style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* WTS / WTB toggle — drives all the dynamic labels below */}
+          <Field label="Listing type *">
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["wts", "wtb"] as const).map((t) => {
+                const meta = LISTING_TYPE_LABELS[t];
+                const active = listingType === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setListingType(t)}
+                    style={{
+                      flex: 1,
+                      padding: "12px 14px",
+                      borderRadius: 6,
+                      border: `1px solid ${active ? meta.badgeColor : "rgba(255,255,255,0.12)"}`,
+                      background: active
+                        ? (t === "wts" ? "rgba(74,222,128,0.1)" : "rgba(245,185,71,0.1)")
+                        : "rgba(255,255,255,0.03)",
+                      color: active ? meta.badgeColor : "var(--text-muted)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.18em" }}>
+                      {meta.badge}
+                    </div>
+                    <div style={{ marginTop: 3, fontSize: "0.92rem", fontWeight: 600 }}>
+                      {meta.full}
+                    </div>
+                    <div style={{ marginTop: 2, fontSize: "0.72rem", color: "var(--text-dim)" }}>
+                      {t === "wts" ? "I have it, looking to sell" : "I want it, looking to buy"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
           <Field label="Item name *">
             <input
               required
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              placeholder="e.g. Drake Cutlass Black, FS-9 LMG, microTech Frostbite paint"
+              placeholder={
+                listingType === "wts"
+                  ? "e.g. Drake Cutlass Black, FS-9 LMG, microTech Frostbite paint"
+                  : "e.g. Aegis Idris-M, 100x SCU Quantanium, Polaris BUK kit"
+              }
               maxLength={120}
               className="input"
             />
@@ -140,7 +195,7 @@ export default function NewListingPage() {
                 className="input"
               />
             </Field>
-            <Field label="Asking price *">
+            <Field label={`${LISTING_TYPE_LABELS[listingType].priceLabel} *`}>
               <input
                 type="number"
                 min={0}
@@ -226,7 +281,7 @@ export default function NewListingPage() {
 
           <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
             <button type="submit" className="btn btn-primary" disabled={busy}>
-              {busy ? "Listing…" : "Post listing"}
+              {busy ? "Posting…" : (listingType === "wts" ? "Post for sale" : "Post buy request")}
             </button>
             <Link href="/community/auction" className="btn btn-ghost">
               Cancel

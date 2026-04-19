@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import {
   CATEGORY_LABELS,
+  LISTING_TYPE_LABELS,
   fetchActiveListings,
   fetchCurrencyOptions,
   formatPrice,
   type AuctionCategory,
   type AuctionListing,
   type CurrencyOption,
+  type ListingType,
 } from "@/lib/auction";
 import { useUser } from "@/lib/supabase/hooks";
 
@@ -20,6 +22,7 @@ export default function AuctionHomePage() {
   const [err, setErr] = useState<string | null>(null);
   const [category, setCategory] = useState<AuctionCategory | "">("");
   const [currency, setCurrency] = useState<string>("");
+  const [listingType, setListingType] = useState<ListingType | "all">("all");
   const [currencyOpts, setCurrencyOpts] = useState<CurrencyOption[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -39,11 +42,12 @@ export default function AuctionHomePage() {
     fetchActiveListings({
       category: category || undefined,
       currency: currency || undefined,
+      listingType: listingType === "all" ? undefined : listingType,
       search: debouncedSearch || undefined,
     })
       .then(setListings)
       .catch((e) => setErr((e as Error).message ?? String(e)));
-  }, [category, currency, debouncedSearch]);
+  }, [category, currency, listingType, debouncedSearch]);
 
   return (
     <PageShell>
@@ -56,9 +60,12 @@ export default function AuctionHomePage() {
             <div className="accent-label" style={{ marginTop: 8 }}>Auction House</div>
             <h1>User-to-User Trading</h1>
             <p style={{ maxWidth: "62ch" }}>
-              Sell ships, gear, paints, and cargo to other citizens for{" "}
-              <strong>aUEC only</strong>. Trades happen in-game between you and
-              the buyer — this is a listing board, not a payment system.
+              Two-sided marketplace.{" "}
+              <strong style={{ color: "var(--success)" }}>WTS</strong> = want to sell,{" "}
+              <strong style={{ color: "var(--warn)" }}>WTB</strong> = want to buy.
+              Pay in <strong>aUEC</strong> or any in-game{" "}
+              <strong>commodity</strong> (Gold, Quantanium, etc.). Trades happen
+              in-game — this is a listing board, not a payment system.
               Real-money transactions are{" "}
               <strong style={{ color: "var(--alert)" }}>strictly prohibited</strong>.
             </p>
@@ -72,6 +79,28 @@ export default function AuctionHomePage() {
               Sign in to list
             </Link>
           )}
+        </div>
+
+        {/* WTS / WTB tabs — pinned at top so the two sides are obvious */}
+        <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", marginBottom: 16 }}>
+          {(["all", "wts", "wtb"] as const).map((m) => {
+            const labels: Record<typeof m, string> = {
+              all: "All listings",
+              wts: "🟢 WTS · Selling",
+              wtb: "🟡 WTB · Buying",
+            };
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setListingType(m)}
+                className={listingType === m ? "btn btn-primary" : "btn btn-ghost"}
+                style={{ height: 32, padding: "0 14px", fontSize: "0.82rem" }}
+              >
+                {labels[m]}
+              </button>
+            );
+          })}
         </div>
 
         {/* Filters */}
@@ -154,14 +183,35 @@ export default function AuctionHomePage() {
 
 function ListingCard({ listing }: { listing: AuctionListing }) {
   const sellerName = listing.seller_display_name ?? "Citizen";
+  const t = LISTING_TYPE_LABELS[listing.listing_type];
+  const isWtb = listing.listing_type === "wtb";
   return (
     <Link
       href={`/community/auction/listing?id=${encodeURIComponent(listing.id)}`}
       className="card card-hover"
-      style={{ padding: "1.25rem", display: "block", textDecoration: "none", color: "var(--text)" }}
+      style={{
+        padding: "1.25rem", display: "block", textDecoration: "none", color: "var(--text)",
+        // Subtle left-border in the listing-type colour so WTB and WTS
+        // are scannable at a glance from the grid.
+        borderLeft: `3px solid ${t.badgeColor}`,
+      }}
     >
-      <div className="label-mini" style={{ marginBottom: 6 }}>
-        {CATEGORY_LABELS[listing.item_category]}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.65rem",
+            letterSpacing: "0.18em",
+            padding: "2px 8px",
+            borderRadius: 3,
+            background: isWtb ? "rgba(245,185,71,0.12)" : "rgba(74,222,128,0.12)",
+            color: t.badgeColor,
+            border: `1px solid ${t.badgeColor}40`,
+          }}
+        >
+          {t.badge}
+        </span>
+        <span className="label-mini">{CATEGORY_LABELS[listing.item_category]}</span>
       </div>
       <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--accent)", marginBottom: 4 }}>
         {listing.item_name}
@@ -172,15 +222,15 @@ function ListingCard({ listing }: { listing: AuctionListing }) {
             {formatPrice(listing.price_amount, listing.price_currency)}
           </div>
           <div className="label-mini" style={{ marginTop: 2 }}>
-            {listing.price_per_unit ? "per unit" : "total"}
+            {isWtb ? "buying budget" : listing.price_per_unit ? "per unit" : "total"}
             {listing.quantity > 1 && ` · qty ${listing.quantity}`}
             {listing.price_currency !== "aUEC" && (
-              <span style={{ marginLeft: 6, color: "var(--accent)" }}>· commodity trade</span>
+              <span style={{ marginLeft: 6, color: "var(--accent)" }}>· {listing.price_currency}</span>
             )}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="label-mini">Seller</div>
+          <div className="label-mini">{isWtb ? "Buyer" : "Seller"}</div>
           <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{sellerName}</div>
         </div>
       </div>

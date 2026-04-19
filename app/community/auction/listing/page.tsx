@@ -7,6 +7,7 @@ import { PageShell } from "@/components/PageShell";
 import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
+  LISTING_TYPE_LABELS,
   deleteListing,
   fetchListing,
   formatPrice,
@@ -60,11 +61,14 @@ function ListingDetail() {
       // Best-effort Discord notification — fires to seller's webhook
       // if they configured one. Non-fatal.
       const priceStr = formatPrice(listing.price_amount, listing.price_currency);
+      const wtb = listing.listing_type === "wtb";
       const lines = [
-        `🤝 **Listing marked SOLD** — meet your buyer in-game!`,
+        wtb
+          ? `🤝 **Buy request FILLED** — meet your seller in-game!`
+          : `🤝 **Listing SOLD** — meet your buyer in-game!`,
         `**Item:** ${listing.item_name}`,
-        `**Price:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
-        ...(buyer ? [`**Buyer:** @${buyer}`] : []),
+        `**${wtb ? "Budget" : "Price"}:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
+        ...(buyer ? [`**${wtb ? "Seller" : "Buyer"}:** @${buyer}`] : []),
         `**Listing:** https://citizendex.com/community/auction/listing?id=${listing.id}`,
       ];
       notifyUser(listing.user_id, lines.join("\n")).catch(() => {});
@@ -91,11 +95,14 @@ function ListingDetail() {
           (user.email as string | undefined) ||
           "a citizen") ?? "a citizen";
       const priceStr = formatPrice(listing.price_amount, listing.price_currency);
+      const wtb = listing.listing_type === "wtb";
       const lines = [
-        `🛒 **New buyer interested in your auction listing**`,
+        wtb
+          ? `📦 **New seller interested in your buy request**`
+          : `🛒 **New buyer interested in your auction listing**`,
         `**Item:** ${listing.item_name}`,
-        `**Price:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
-        `**Buyer:** @${buyerHandle}`,
+        `**${wtb ? "Budget" : "Price"}:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
+        `**${wtb ? "Seller" : "Buyer"}:** @${buyerHandle}`,
         `**Listing:** https://citizendex.com/community/auction/listing?id=${listing.id}`,
         ``,
         `Reply on Discord to coordinate the in-game meet-up.`,
@@ -154,6 +161,9 @@ function ListingDetail() {
 
   const isOwner = user?.id === listing.user_id;
   const sellerName = listing.seller_display_name ?? "Citizen";
+  const t = LISTING_TYPE_LABELS[listing.listing_type];
+  const isWtb = listing.listing_type === "wtb";
+  const personLabel = isWtb ? "Buyer" : "Seller";
 
   return (
     <div className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem", maxWidth: 760 }}>
@@ -162,14 +172,30 @@ function ListingDetail() {
         </Link>
 
         <div className="page-header" style={{ marginTop: 8 }}>
-          <div className="accent-label">{CATEGORY_LABELS[listing.item_category]}</div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 4 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.7rem",
+                letterSpacing: "0.18em",
+                padding: "3px 10px",
+                borderRadius: 3,
+                background: isWtb ? "rgba(245,185,71,0.12)" : "rgba(74,222,128,0.12)",
+                color: t.badgeColor,
+                border: `1px solid ${t.badgeColor}40`,
+              }}
+            >
+              {t.badge} · {t.full.toUpperCase()}
+            </span>
+            <div className="accent-label">{CATEGORY_LABELS[listing.item_category]}</div>
+          </div>
           <h1>{listing.item_name}</h1>
           {listing.status !== "active" && (
             <span
               className={`badge ${listing.status === "sold" ? "badge-success" : "badge-muted"}`}
               style={{ marginTop: 8, display: "inline-block" }}
             >
-              {listing.status.toUpperCase()}
+              {listing.status === "sold" ? t.finishedLabel : listing.status.toUpperCase()}
             </span>
           )}
         </div>
@@ -178,7 +204,7 @@ function ListingDetail() {
         <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <div className="label-mini">Asking price</div>
+              <div className="label-mini">{t.priceLabel}</div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "2rem", color: "var(--accent)", lineHeight: 1.1 }}>
                 {formatPrice(listing.price_amount, listing.price_currency)}
               </div>
@@ -226,9 +252,9 @@ function ListingDetail() {
           )}
         </div>
 
-        {/* Seller card */}
+        {/* Seller / buyer card */}
         <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
-          <div className="accent-label" style={{ marginBottom: 8 }}>Seller</div>
+          <div className="accent-label" style={{ marginBottom: 8 }}>{personLabel}</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div>
               <Link
@@ -264,9 +290,10 @@ function ListingDetail() {
                   lineHeight: 1.55,
                 }}
               >
-                💬 To buy: message the seller on Discord (handle above) or via
-                their CitizenDex profile. Agree on a meet-up location in-game,
-                then trade. <strong>{listing.price_currency === "aUEC"
+                💬 {isWtb
+                  ? <>To sell: message the buyer on Discord (handle above) or via their CitizenDex profile. Agree on a meet-up in-game, then deliver the item.</>
+                  : <>To buy: message the seller on Discord (handle above) or via their CitizenDex profile. Agree on a meet-up location in-game, then trade.</>}{" "}
+                <strong>{listing.price_currency === "aUEC"
                   ? "aUEC only — never send real money."
                   : `Trade pays in ${listing.price_currency} in-game — never real money.`}</strong>
               </div>
@@ -280,14 +307,14 @@ function ListingDetail() {
                     style={{ width: "100%" }}
                   >
                     {pingSent
-                      ? "✓ Seller notified"
+                      ? `✓ ${personLabel} notified`
                       : pingBusy
                         ? "Pinging…"
-                        : "🔔 Ping seller on Discord"}
+                        : `🔔 ${t.contactCta}`}
                   </button>
                   <div className="label-mini" style={{ marginTop: 4 }}>
-                    Sends a Discord ping to the seller&apos;s configured channel —
-                    only works if they&apos;ve set up a webhook on their account.
+                    Sends a Discord ping to the {personLabel.toLowerCase()}&apos;s configured
+                    channel — only works if they&apos;ve set up a webhook on their account.
                   </div>
                 </div>
               )}
@@ -305,7 +332,7 @@ function ListingDetail() {
                 type="text"
                 value={soldHandle}
                 onChange={(e) => setSoldHandle(e.target.value)}
-                placeholder="Buyer's Discord handle (optional)"
+                placeholder={isWtb ? "Seller's Discord handle (optional)" : "Buyer's Discord handle (optional)"}
                 className="input"
                 style={{ flex: 1, minWidth: 220 }}
               />
@@ -315,7 +342,7 @@ function ListingDetail() {
                 disabled={busy}
                 className="btn btn-primary"
               >
-                Mark SOLD
+                Mark {t.finishedLabel}
               </button>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

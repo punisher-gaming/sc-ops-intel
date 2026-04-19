@@ -7,6 +7,7 @@ import { PageShell } from "@/components/PageShell";
 import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
+  LISTING_TYPE_LABELS,
   fetchMyListings,
   formatPrice,
   type AuctionListing,
@@ -70,8 +71,24 @@ export default function MyListingsPage() {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12 }}>
                   <div>
-                    <div className="label-mini">{CATEGORY_LABELS[l.item_category]}</div>
-                    <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)" }}>{l.item_name}</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.62rem",
+                          letterSpacing: "0.18em",
+                          padding: "1px 8px",
+                          borderRadius: 3,
+                          color: LISTING_TYPE_LABELS[l.listing_type].badgeColor,
+                          background: l.listing_type === "wts" ? "rgba(74,222,128,0.12)" : "rgba(245,185,71,0.12)",
+                          border: `1px solid ${LISTING_TYPE_LABELS[l.listing_type].badgeColor}40`,
+                        }}
+                      >
+                        {LISTING_TYPE_LABELS[l.listing_type].badge}
+                      </span>
+                      <span className="label-mini">{CATEGORY_LABELS[l.item_category]}</span>
+                    </div>
+                    <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--accent)", marginTop: 4 }}>{l.item_name}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.05rem" }}>{formatPrice(l.price_amount, l.price_currency)}</div>

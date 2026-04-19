@@ -14,9 +14,15 @@ export type AuctionCategory =
 
 export type AuctionStatus = "active" | "sold" | "cancelled" | "expired";
 
+/** wts = Want To Sell (offering an item). wtb = Want To Buy (looking
+ *  for an item). Default in the schema is 'wts' so legacy rows behave
+ *  the same as before. */
+export type ListingType = "wts" | "wtb";
+
 export interface AuctionListing {
   id: string;
   user_id: string;
+  listing_type: ListingType;
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
@@ -40,7 +46,7 @@ export interface AuctionListing {
   seller_is_moderator?: boolean | null;
 }
 
-const COLS = `id, user_id, item_name, item_category, quantity,
+const COLS = `id, user_id, listing_type, item_name, item_category, quantity,
   price_amount, price_currency, price_per_unit,
   condition, description, status, sold_to_handle,
   created_at, updated_at, expires_at,
@@ -50,6 +56,7 @@ const COLS = `id, user_id, item_name, item_category, quantity,
 export async function fetchActiveListings(opts?: {
   category?: AuctionCategory;
   currency?: string;
+  listingType?: ListingType;
   search?: string;
   limit?: number;
 }): Promise<AuctionListing[]> {
@@ -62,6 +69,7 @@ export async function fetchActiveListings(opts?: {
     .limit(opts?.limit ?? 200);
   if (opts?.category) q = q.eq("item_category", opts.category);
   if (opts?.currency) q = q.eq("price_currency", opts.currency);
+  if (opts?.listingType) q = q.eq("listing_type", opts.listingType);
   if (opts?.search && opts.search.trim()) {
     q = q.ilike("item_name", `%${opts.search.trim()}%`);
   }
@@ -106,6 +114,7 @@ export async function fetchListingsBySeller(userId: string): Promise<AuctionList
 
 export async function createListing(input: {
   user_id: string;
+  listing_type: ListingType;
   item_name: string;
   item_category: AuctionCategory;
   quantity: number;
@@ -120,6 +129,7 @@ export async function createListing(input: {
     .from("auction_listings")
     .insert({
       user_id: input.user_id,
+      listing_type: input.listing_type,
       item_name: input.item_name,
       item_category: input.item_category,
       quantity: input.quantity,
@@ -224,3 +234,37 @@ export function formatPrice(amount: number, currency: string): string {
 export function formatAuec(n: number): string {
   return formatPrice(n, "aUEC");
 }
+
+// ── Listing-type display helpers ──
+// Centralised labels so WTS / WTB language is consistent everywhere.
+export const LISTING_TYPE_LABELS: Record<ListingType, {
+  badge: string;          // short tag for cards (WTS / WTB)
+  full: string;           // long form for headers
+  verb: string;           // "Selling" / "Buying"
+  cta: string;            // call-to-action button text
+  priceLabel: string;     // "Asking price" / "Buying budget"
+  contactCta: string;     // "Ping seller" / "Ping buyer"
+  finishedLabel: string;  // "SOLD" / "FILLED"
+  badgeColor: string;     // CSS color hint
+}> = {
+  wts: {
+    badge: "WTS",
+    full: "Want to sell",
+    verb: "Selling",
+    cta: "Sell an item",
+    priceLabel: "Asking price",
+    contactCta: "Ping seller on Discord",
+    finishedLabel: "SOLD",
+    badgeColor: "var(--success)",
+  },
+  wtb: {
+    badge: "WTB",
+    full: "Want to buy",
+    verb: "Buying",
+    cta: "Post a buy request",
+    priceLabel: "Buying budget",
+    contactCta: "Ping buyer on Discord",
+    finishedLabel: "FILLED",
+    badgeColor: "var(--warn)",
+  },
+};
