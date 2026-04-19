@@ -8,6 +8,7 @@ import {
   fetchShips,
   formatCrew,
   formatNum,
+  shipSize,
   uniqueValues,
   type Ship,
 } from "@/lib/ships";
@@ -91,7 +92,17 @@ function ShipList() {
 
   const manufacturers = useMemo(() => (rows ? uniqueValues(rows, "manufacturer") : []), [rows]);
   const roles = useMemo(() => (rows ? uniqueValues(rows, "role") : []), [rows]);
-  const sizes = useMemo(() => (rows ? uniqueValues(rows, "size_class") : []), [rows]);
+  // Sizes: dedupe by parsed shipSize() since the raw value may be a JSON
+  // localization object for some rows
+  const sizes = useMemo(() => {
+    if (!rows) return [];
+    const set = new Set<string>();
+    for (const r of rows) {
+      const s = shipSize(r);
+      if (s && s !== "—") set.add(s);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
@@ -99,9 +110,9 @@ function ShipList() {
     const out = rows.filter((r) => {
       if (mfr && r.manufacturer !== mfr) return false;
       if (role && r.role !== role) return false;
-      if (size && r.size_class !== size) return false;
+      if (size && shipSize(r) !== size) return false;
       if (qLower) {
-        const hay = `${r.name} ${r.manufacturer ?? ""} ${r.role ?? ""} ${r.size_class ?? ""}`.toLowerCase();
+        const hay = `${r.name} ${r.manufacturer ?? ""} ${r.role ?? ""} ${shipSize(r)}`.toLowerCase();
         if (!hay.includes(qLower)) return false;
       }
       return true;
@@ -319,7 +330,7 @@ function ShipList() {
                   </td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? "—"}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? "—"}</td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.size_class ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{shipSize(s)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.hull_hp)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.shields_hp)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.cargo_scu)}</td>
@@ -378,7 +389,7 @@ function ShipDetail({ id }: { id: string }) {
         <div className="accent-label">
           {ship.manufacturer ?? "Manufacturer unknown"}
           {ship.role && ` · ${ship.role}`}
-          {ship.size_class && ` · Size ${ship.size_class}`}
+          {ship.size_class != null && ` · Size ${shipSize(ship)}`}
         </div>
         <h1>{ship.name}</h1>
       </div>

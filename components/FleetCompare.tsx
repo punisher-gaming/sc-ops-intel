@@ -8,6 +8,7 @@ import {
   formatCrew,
   formatNum,
   shipDimensions,
+  shipSize,
   type Ship,
 } from "@/lib/ships";
 import { ItemImage } from "./ItemImage";

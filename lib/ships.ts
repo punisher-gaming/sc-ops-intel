@@ -64,6 +64,32 @@ export function formatNum(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
+// Defensive parse for ship.size_class — the SC Wiki ingest stored the raw
+// localization object ({"en_EN":"small","de_DE":"Klein",...}) as the
+// column value for some ships. Try to recover a readable English label
+// from any of: a normal string, a JSON-string-of-object, or an object.
+export function shipSize(ship: Ship): string {
+  const raw = ship.size_class;
+  if (raw == null) return "—";
+  if (typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    return (o.en_EN ?? o.en ?? Object.values(o)[0] ?? "—") as string;
+  }
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed) as Record<string, string>;
+        return parsed.en_EN ?? parsed.en ?? Object.values(parsed)[0] ?? trimmed;
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  return "—";
+}
+
 export function formatCrew(ship: Ship): string {
   const { crew_min, crew_max } = ship;
   if (crew_min == null && crew_max == null) return "—";

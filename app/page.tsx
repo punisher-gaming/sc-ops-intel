@@ -90,8 +90,10 @@ export default function LandingPage() {
               <StatusLine state="done" label="Crafting search" detail="Fast recipe lookup across all blueprints" />
               <StatusLine state="done" label="Global search (⌘K)" detail="Searches ships + blueprints + resources from any page" />
               <StatusLine state="done" label="Community intel" detail="Logged-in users can submit field reports, moderator approval" />
-              <StatusLine state="active" label="Commodities & trade routes" detail="194 commodities + 961 shops ingested; UI next" />
-              <StatusLine state="planned" label="Weapons / Components" detail="Blocked on 107 MB Git LFS items dataset; separate ingest strategy" />
+              <StatusLine state="done" label="Commodities & trade locations" detail="194 commodities + 961 shops; community price submissions live" />
+              <StatusLine state="done" label="Weapons & components" detail="Pulled from scunpacked items.json via local Node script; filterable catalogs" />
+              <StatusLine state="done" label="Community forum" detail="User-created topics bumped by activity, voting, Discord identities" />
+              <StatusLine state="done" label="Site music" detail="Moderator-uploaded tracks, floating player on every page" />
               <StatusLine state="planned" label="Import Hangar" detail="Paste-based RSI fleet import, local parse" />
             </ul>
           </div>
