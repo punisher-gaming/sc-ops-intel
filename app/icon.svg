@@ -1,0 +1,30 @@
+<!--
+  CITIZENDEX favicon — "CD" lettermark.
+  White "C" (matches the CITIZEN half of the wordmark) + cyan "D" (DEX half).
+  Rendered at 32×32 canvas; scales crisp down to 16×16 tabs and up to
+  home-screen icon sizes because it's pure vector text.
+  Next.js App Router picks this up as /icon.svg automatically — no
+  manifest entry needed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Dark rounded background keeps the letters legible over any browser
+       tab color (white, dark, grey). Matches site's near-black bg. -->
+  <rect width="64" height="64" rx="12" fill="#0a0e16" />
+
+  <!-- Soft cyan glow behind the D so it pops on small renders -->
+  <circle cx="40" cy="32" r="18" fill="#4dd9ff" opacity="0.15" />
+
+  <!-- Lettermark: bold sans-serif C + D. We use Helvetica/Arial fallback
+       so no web-font dependency — favicons must render before JS/CSS
+       fetches anything else. -->
+  <text
+    x="32" y="47"
+    text-anchor="middle"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    font-size="40"
+    font-weight="800"
+    letter-spacing="-1"
+  >
+    <tspan fill="#ffffff">C</tspan><tspan fill="#4dd9ff">D</tspan>
+  </text>
+</svg>

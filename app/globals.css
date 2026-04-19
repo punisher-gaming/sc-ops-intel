@@ -294,16 +294,23 @@ select {
   margin: 0;
 }
 
-/* Clean white+cyan wordmark (CITIZENDEX) — overrides the red+cyan ghost
-   so the hero matches the nav-corner mark: white CITIZEN + cyan DEX. */
+/* Clean white+cyan wordmark (CITIZENDEX) — matches the nav corner mark
+   exactly: one word, white "CITIZEN", cyan "DEX", no gap, no dot, no
+   chromatic-aberration ghost, no middle slash. */
 .brand-wordmark {
+  display: inline-block !important;       /* kill the flex gap from brand-primary */
+  letter-spacing: 0;                      /* natural font metrics — N→D kiss */
   text-shadow: 0 0 50px rgba(77, 217, 255, 0.25);
-  letter-spacing: 0.04em;
 }
 .brand-wordmark .accent {
   color: var(--accent);
   text-shadow: 0 0 24px rgba(77, 217, 255, 0.55);
+  margin-left: -0.02em;                   /* pull D in slightly tighter */
 }
+/* Suppress the decorative horizontal slash the brand-frame draws behind
+   the wordmark (brand-frame::after) when we're rendering the clean
+   version. Parent gets .brand-frame-clean — see app/page.tsx. */
+.brand-frame-clean::after { display: none !important; }
 
 .brand-primary .brand-dot {
   display: inline-block;

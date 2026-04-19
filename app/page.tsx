@@ -10,7 +10,7 @@ export default function LandingPage() {
       <main className="relative min-h-screen">
         <section className="home-hero">
           <div className="brand-mark">
-            <div className="brand-frame">
+            <div className="brand-frame brand-frame-clean">
               <span className="brand-corner tl" aria-hidden />
               <span className="brand-corner tr" aria-hidden />
               <span className="brand-corner bl" aria-hidden />
