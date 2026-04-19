@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { ItemNameTypeahead } from "@/components/ItemNameTypeahead";
 import { useUser } from "@/lib/supabase/hooks";
+import { fetchUserWebhook } from "@/lib/notify";
 import {
   CATEGORY_LABELS,
   LISTING_TYPE_LABELS,
@@ -61,6 +62,15 @@ export default function NewListingPage() {
       router.replace("/login?next=/community/auction/new");
     }
   }, [loading, user, router]);
+
+  // Has this user wired up Discord notifications? If not, we surface a
+  // banner above the form so they know the in-site inbox + Discord
+  // bridge story before they post.
+  const [hasWebhook, setHasWebhook] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    fetchUserWebhook(user.id).then((url) => setHasWebhook(!!url));
+  }, [user]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -150,6 +160,38 @@ export default function NewListingPage() {
             The actual trade happens in-game.
           </p>
         </div>
+
+        {/* How will buyers reach you? Banner explains the in-site inbox
+            (always works) + the optional Discord webhook upgrade. Hides
+            once the user has wired up notifications. */}
+        {hasWebhook === false && (
+          <div
+            className="card"
+            style={{
+              padding: "1rem 1.25rem",
+              marginBottom: 16,
+              borderLeft: "3px solid var(--warn)",
+              background: "rgba(245,185,71,0.06)",
+            }}
+          >
+            <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--warn)", marginBottom: 6 }}>
+              ⚠ How will buyers reach you?
+            </div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+              Buyers can <strong>always</strong> hit a &quot;💬 Message on CitizenDex&quot;
+              button on your listing — it lands in your{" "}
+              <Link href="/inbox" style={{ color: "var(--accent)" }}>inbox</Link>{" "}
+              (bell at top-right) within seconds.{" "}
+              <strong>For instant Discord pings,</strong> set up a one-time
+              webhook on your{" "}
+              <Link href="/account" style={{ color: "var(--accent)" }}>
+                account page
+              </Link>{" "}
+              — every in-site DM and listing-interest ping then auto-forwards
+              to your Discord channel.
+            </div>
+          </div>
+        )}
 
         <form onSubmit={submit} className="card" style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: 14 }}>
           {/* WTS / WTB toggle — drives all the dynamic labels below */}

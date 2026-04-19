@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "./AuthButton";
 import { CURRENT_PATCH } from "./PatchPill";
+import { NotificationBell } from "./NotificationBell";
 import { useUser } from "@/lib/supabase/hooks";
 
 type LinkItem = { href: string; label: string };
@@ -42,18 +43,16 @@ const PUBLIC_LINKS: NavItem[] = [
   { href: "/components", label: "Components" },
   { href: "/planets", label: "Planets" },
   { href: "/lore", label: "Lore" },
-  {
-    label: "Community",
-    href: "/community",
-    children: [
-      { href: "/community", label: "Topics & forum" },
-      { href: "/community/auction", label: "Auction House" },
-    ],
-  },
+  { href: "/community", label: "Community" },
+  // Auction House is its own top-level link with the .nav-holo class for
+  // a holographic shimmer — most-promoted destination in the nav.
+  { href: "/community/auction", label: "Auction House" },
 ];
 
+// Notes used to be a top-level nav link. It's been moved into the user
+// profile/account area since it's a personal-only page (your own notes,
+// not public). Keep Admin at the top for moderators since it gates work.
 const AUTHED_LINKS: LinkItem[] = [
-  { href: "/notes", label: "Notes" },
   { href: "/admin", label: "Admin" },
 ];
 
@@ -103,6 +102,7 @@ export function Nav() {
 
         <div className="site-nav-right">
           <span className="site-patch-pill">Patch {CURRENT_PATCH}</span>
+          <NotificationBell />
           <AuthButton />
           {/* Hamburger — shown ≤900px only */}
           <button
@@ -135,8 +135,11 @@ export function Nav() {
 
 function NavLink({ item, pathname }: { item: LinkItem; pathname: string | null }) {
   const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+  // Auction House gets the holographic treatment so it stands out.
+  const holo = item.href === "/community/auction";
+  const cls = [active ? "active" : "", holo ? "nav-holo" : ""].filter(Boolean).join(" ");
   return (
-    <Link href={item.href} className={active ? "active" : ""}>
+    <Link href={item.href} className={cls} data-text={holo ? item.label : undefined}>
       {item.label}
     </Link>
   );

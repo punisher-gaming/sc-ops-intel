@@ -16,6 +16,7 @@ import {
   type AuctionListing,
 } from "@/lib/auction";
 import { notifyUser } from "@/lib/notify";
+import { MessageButton } from "@/components/MessageButton";
 
 // Listing detail. Anyone can view (RLS lets anon SELECT active rows;
 // the owner can also see their non-active ones). Owner sees Edit-style
@@ -304,8 +305,22 @@ function ListingDetail() {
                   ? "aUEC only — never send real money."
                   : `Trade pays in ${listing.price_currency} in-game — never real money.`}</strong>
               </div>
-              {user && (
-                <div style={{ marginTop: 10 }}>
+              {user && !isOwner && (
+                <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {/* Primary contact path — always works, lands in their
+                      CitizenDex inbox AND auto-pushes to their Discord
+                      if they have a webhook set up. */}
+                  <MessageButton
+                    recipientId={listing.user_id}
+                    recipientName={sellerName}
+                    contextListingId={listing.id}
+                    contextLabel={listing.item_name}
+                    label={`💬 Message ${personLabel.toLowerCase()} on CitizenDex`}
+                    className="btn btn-primary"
+                    style={{ width: "100%" }}
+                  />
+                  {/* Secondary: direct Discord ping (no inbox). Only
+                      makes sense if they've configured notifications. */}
                   <button
                     type="button"
                     onClick={pingSeller}
@@ -314,14 +329,18 @@ function ListingDetail() {
                     style={{ width: "100%" }}
                   >
                     {pingSent
-                      ? `✓ ${personLabel} notified`
+                      ? `✓ ${personLabel} pinged on Discord`
                       : pingBusy
                         ? "Pinging…"
-                        : `🔔 ${t.contactCta}`}
+                        : `🔔 Quick Discord ping (no message)`}
                   </button>
-                  <div className="label-mini" style={{ marginTop: 4 }}>
-                    Sends a Discord ping to the {personLabel.toLowerCase()}&apos;s configured
-                    channel — only works if they&apos;ve set up a webhook on their account.
+                  <div className="label-mini" style={{ lineHeight: 1.5 }}>
+                    The <strong>blue button</strong> always works — it lands in
+                    their CitizenDex inbox and pushes to their Discord too if
+                    they&apos;ve set up notifications.{" "}
+                    The <strong>quick ping</strong> only works if the{" "}
+                    {personLabel.toLowerCase()} has wired up a webhook on
+                    their <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>.
                   </div>
                 </div>
               )}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
@@ -155,6 +156,39 @@ export default function AccountPage() {
           <div className="accent-label">Account</div>
           <h1>Your profile</h1>
         </div>
+
+        {/* Quick links to personal-only pages. Notes lives here now
+            (used to be top-level nav) since it's private to you. */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: "1rem",
+          }}
+        >
+          <Link href="/notes" className="btn btn-secondary">
+            📝 Your private notes
+          </Link>
+          <Link href="/inbox" className="btn btn-secondary">
+            💬 Inbox
+          </Link>
+          <Link href="/community/auction/mine" className="btn btn-secondary">
+            ⚖ Your AH listings
+          </Link>
+        </div>
+        <p
+          style={{
+            fontSize: "0.78rem",
+            color: "var(--text-dim)",
+            marginBottom: "1.5rem",
+            lineHeight: 1.55,
+          }}
+        >
+          📝 <strong>Notes</strong> are visible only to you — they don&apos;t
+          show up to other citizens or moderators. Pin reminders to ships,
+          blueprints, resources, anything.
+        </p>
 
         {/* Identity card — avatar + provider info, pulled from OAuth metadata */}
         <div

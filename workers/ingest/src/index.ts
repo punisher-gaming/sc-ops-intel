@@ -12,6 +12,7 @@ import { ingestItems } from "./ingest/items";
 import { fetchRsiProfile } from "./rsi";
 import { handleAiChat } from "./ai";
 import { handleNotifyDiscord } from "./notify";
+import { handleNotifyUser } from "./notify-user";
 
 const ROUTES = `
 SC OPS INTEL ingest worker
@@ -50,6 +51,12 @@ export default {
     // directly because of CORS, so this route validates + relays.
     if (url.pathname === "/notify/discord") {
       return handleNotifyDiscord(req);
+    }
+
+    // In-site DM → recipient's Discord webhook (service-role lookup so
+    // we never expose the URL to the sender).
+    if (url.pathname === "/notify/user") {
+      return handleNotifyUser(req, env);
     }
 
     // RSI profile passthrough — /rsi/<handle>. Public read-only, served
