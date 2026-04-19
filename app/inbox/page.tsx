@@ -39,6 +39,12 @@ function Inbox() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [lastPushNote, setLastPushNote] = useState<string | null>(null);
+  // Quiet send — when checked, the message lands in their inbox only
+  // with no email/Discord push. Defaults ON in an active thread (last
+  // exchange under 10 min ago) since they're already chatting; defaults
+  // OFF if it's a fresh thread or stale, where the recipient needs the
+  // outside ping to know there's something new.
+  const [quiet, setQuiet] = useState(false);
   // Does the current user have Discord notifications wired up? If not,
   // we surface a one-line nag so they know to enable it for live pushes.
   const [hasWebhook, setHasWebhook] = useState<boolean | null>(null);
@@ -69,6 +75,14 @@ function Inbox() {
     }
     fetchThread(otherId, user.id).then((rows) => {
       setThread(rows);
+      // Default the quiet toggle based on thread freshness: if the most
+      // recent message in the thread is under 10 minutes old, both
+      // parties are presumably actively chatting and the outside ping
+      // would be noise. Otherwise default to loud (recipient needs to
+      // know something arrived).
+      const last = rows[rows.length - 1];
+      const recent = last && Date.now() - new Date(last.created_at).getTime() < 10 * 60 * 1000;
+      setQuiet(!!recent);
       // Mark unread incoming messages as read, then refresh inbox to
       // clear the unread badge.
       markThreadRead(otherId, user.id)
@@ -102,18 +116,23 @@ function Inbox() {
         sender_name: senderName,
         context_label: otherThread ? `chat with ${otherThread.other_name}` : undefined,
         link,
+        notifyExternal: !quiet,
       });
       setThread((prev) => (prev ? [...prev, res.message] : [res.message]));
       setBody("");
-      const channels = [
-        res.pushedToDiscord && "Discord",
-        res.pushedToEmail && "email",
-      ].filter(Boolean);
-      setLastPushNote(
-        channels.length > 0
-          ? `📡 Also notified via ${channels.join(" + ")}`
-          : "💤 No outside notifications configured — they'll see this on next visit",
-      );
+      if (quiet) {
+        setLastPushNote("🔕 Quiet send — landed in their inbox only");
+      } else {
+        const channels = [
+          res.pushedToDiscord && "Discord",
+          res.pushedToEmail && "email",
+        ].filter(Boolean);
+        setLastPushNote(
+          channels.length > 0
+            ? `📡 Also notified via ${channels.join(" + ")}`
+            : "💤 No outside notifications configured — they'll see this on next visit",
+        );
+      }
       // Clear the push hint after a moment so it doesn't pile up.
       setTimeout(() => setLastPushNote(null), 6000);
       // Refresh inbox so the latest-message preview updates
@@ -319,27 +338,55 @@ function Inbox() {
                   borderTop: "1px solid rgba(255,255,255,0.06)",
                   padding: 12,
                   display: "flex",
+                  flexDirection: "column",
                   gap: 8,
-                  alignItems: "flex-end",
                 }}
               >
-                <textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  placeholder="Type your message…"
-                  rows={2}
-                  maxLength={4000}
-                  className="textarea"
-                  style={{ flex: 1, resize: "vertical", minHeight: 56 }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      send(e as unknown as React.FormEvent);
-                    }
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                  <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder="Type your message…"
+                    rows={2}
+                    maxLength={4000}
+                    className="textarea"
+                    style={{ flex: 1, resize: "vertical", minHeight: 56 }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        send(e as unknown as React.FormEvent);
+                      }
+                    }}
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={busy || !body.trim()}>
+                    {busy ? "Sending…" : quiet ? "Send (quiet)" : "Send"}
+                  </button>
+                </div>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: "0.78rem",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
                   }}
-                />
-                <button type="submit" className="btn btn-primary" disabled={busy || !body.trim()}>
-                  {busy ? "Sending…" : "Send"}
-                </button>
+                  title={
+                    quiet
+                      ? "Message lands in their inbox only — no email or Discord ping"
+                      : "Message also pushes to their email + Discord (if configured)"
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={quiet}
+                    onChange={(e) => setQuiet(e.target.checked)}
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                  🔕 <strong>Quiet send</strong> — inbox only, skip email &amp; Discord
+                  <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: "var(--text-dim)" }}>
+                    auto-on for active threads
+                  </span>
+                </label>
               </form>
               <div
                 style={{

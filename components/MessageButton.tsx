@@ -46,6 +46,10 @@ export function MessageButton({
   const [sent, setSent] = useState(false);
   const [pushedDiscord, setPushedDiscord] = useState(false);
   const [pushedEmail, setPushedEmail] = useState(false);
+  // Quiet mode — when checked, message lands in their inbox only with
+  // no email/Discord push. Default OFF (loud) for first-contact since
+  // we want them to actually see it. They can flip it for casual chat.
+  const [quiet, setQuiet] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,6 +64,7 @@ export function MessageButton({
         sender_name: user.user_metadata?.user_name ?? user.user_metadata?.preferred_username ?? user.email?.split("@")[0],
         context_label: contextLabel,
         link: link ?? (typeof window !== "undefined" ? window.location.href : undefined),
+        notifyExternal: !quiet,
       });
       setSent(true);
       setPushedDiscord(res.pushedToDiscord);
@@ -188,6 +193,27 @@ export function MessageButton({
                   autoFocus
                   className="textarea"
                 />
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: "0.82rem",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={quiet}
+                    onChange={(e) => setQuiet(e.target.checked)}
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                  🔕 <strong>Quiet send</strong> — inbox only, no email or
+                  Discord ping
+                </label>
+
                 <div
                   style={{
                     padding: "8px 10px",

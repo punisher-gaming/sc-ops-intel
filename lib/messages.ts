@@ -39,7 +39,9 @@ export interface SendResult {
 }
 
 /** Insert a new DM, then best-effort push to the recipient's Discord
- *  webhook (if they've configured one). */
+ *  webhook (if they've configured one) AND to email (if enabled). Set
+ *  `notifyExternal: false` for quiet in-site-only messages — back-and-
+ *  forth chat that shouldn't blast their phone. */
 export async function sendMessage(opts: {
   recipient_id: string;
   body: string;
@@ -50,6 +52,9 @@ export async function sendMessage(opts: {
   context_label?: string;
   /** Page URL to deep-link back to from Discord. */
   link?: string;
+  /** Push to recipient's Discord + email too? Defaults true. Set false
+   *  for quick replies that shouldn't trigger outside notifications. */
+  notifyExternal?: boolean;
 }): Promise<SendResult> {
   const client = createClient();
   const { data, error } = await client
@@ -68,8 +73,12 @@ export async function sendMessage(opts: {
   // Best-effort fan-out to side channels (Discord + email). Failures
   // don't break the message send — it's already in the inbox. The
   // returned flags let the UI confirm or nudge the right channel.
+  // If the sender opted for "quiet" mode, skip the worker call entirely.
   let pushedToDiscord = false;
   let pushedToEmail = false;
+  if (opts.notifyExternal === false) {
+    return { message: data as DirectMessage, pushedToDiscord, pushedToEmail };
+  }
   try {
     const res = await fetch(NOTIFY_USER_URL, {
       method: "POST",
