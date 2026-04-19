@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
+import { ItemNameTypeahead } from "@/components/ItemNameTypeahead";
 import { useUser } from "@/lib/supabase/hooks";
 import {
   CATEGORY_LABELS,
@@ -158,17 +159,17 @@ export default function NewListingPage() {
           </Field>
 
           <Field label="Item name *">
-            <input
-              required
+            <ItemNameTypeahead
+              category={category}
               value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
+              onChange={setItemName}
+              required
+              maxLength={120}
               placeholder={
                 listingType === "wts"
-                  ? "e.g. Drake Cutlass Black, FS-9 LMG, microTech Frostbite paint"
-                  : "e.g. Aegis Idris-M, 100x SCU Quantanium, Polaris BUK kit"
+                  ? "Start typing — e.g. Cutlass, FS-9, Frostbite paint"
+                  : "Start typing — e.g. Idris, Quantanium, Polaris BUK"
               }
-              maxLength={120}
-              className="input"
             />
           </Field>
 

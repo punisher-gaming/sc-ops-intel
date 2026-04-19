@@ -802,7 +802,7 @@ select {
   display: inline-flex;
   gap: 14px;
   white-space: nowrap;
-  animation: weather-scroll 90s linear infinite;
+  animation: weather-scroll 180s linear infinite;
 }
 .weather-ticker:hover .weather-ticker-track {
   animation-play-state: paused;

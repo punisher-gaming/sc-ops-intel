@@ -204,6 +204,49 @@ export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
   return opts;
 }
 
+// ── Item-name suggestions (typeahead) ──
+//
+// Maps an auction category to the catalog table that contains its items
+// and runs an ilike search. Returns at most `limit` names. Categories
+// without a backing catalog (paint, armor, consumable, other) return an
+// empty list — the form falls back to free text.
+
+const CATEGORY_TO_TABLE: Partial<Record<AuctionCategory, string>> = {
+  ship: "ships",
+  vehicle: "ships",       // ground vehicles share the ships table
+  weapon: "weapons",
+  component: "components",
+  blueprint: "blueprints",
+  cargo: "commodities",
+};
+
+export async function fetchItemSuggestions(
+  category: AuctionCategory,
+  query: string,
+  limit = 8,
+): Promise<string[]> {
+  const table = CATEGORY_TO_TABLE[category];
+  const trimmed = query.trim();
+  if (!table || trimmed.length < 2) return [];
+  const client = createClient();
+  const { data, error } = await client
+    .from(table)
+    .select("name")
+    .ilike("name", `%${trimmed}%`)
+    .order("name", { ascending: true })
+    .limit(limit);
+  if (error) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const row of (data ?? []) as Array<{ name: string | null }>) {
+    const n = row.name?.trim();
+    if (!n || seen.has(n.toLowerCase())) continue;
+    seen.add(n.toLowerCase());
+    out.push(n);
+  }
+  return out;
+}
+
 // ── Helpers ──
 
 export const CATEGORY_LABELS: Record<AuctionCategory, string> = {
