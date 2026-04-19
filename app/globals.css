@@ -531,6 +531,17 @@ select {
   background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), transparent);
 }
 
+/* Keybinding grid used on /new-players — two-column rows of keys + desc. */
+.kb-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+  margin: 14px 0;
+}
+@media (min-width: 720px) {
+  .kb-grid { grid-template-columns: 1fr 1fr; }
+}
+
 /* Hero hologram subtitle — sized/spaced so "THE STAR CITIZEN // DATABASE"
    stays on a single line across the full viewport range. The vw-scaled
    font shrinks smoothly on narrow screens so 27 characters always fit
