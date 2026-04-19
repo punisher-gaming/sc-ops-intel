@@ -64,6 +64,13 @@ a { color: inherit; text-decoration: none; }
 .container-wide { max-width: 1400px; margin: 0 auto; padding-left: 2rem; padding-right: 2rem; }
 .container      { max-width: 1200px; margin: 0 auto; padding-left: 2rem; padding-right: 2rem; }
 
+/* Tighter gutters on mobile — 2rem eats too much horizontal real estate
+   on a 390px phone. 1rem keeps the content breathable without cramping. */
+@media (max-width: 600px) {
+  .container-wide,
+  .container { padding-left: 1rem; padding-right: 1rem; }
+}
+
 .card {
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.08);
@@ -179,6 +186,159 @@ select {
 .site-nav-links a:hover { color: var(--text); }
 .site-nav-links a.active { color: var(--text); }
 .site-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+/* Hamburger button — hidden on desktop, shown on mobile */
+.site-nav-hamburger {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+}
+.site-nav-hamburger:hover { background: rgba(255, 255, 255, 0.04); }
+
+/* Mobile drawer — slides down below the nav. Full-width, touch-friendly. */
+.site-nav-drawer {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: #0a0e16;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6);
+}
+.site-nav-drawer-link {
+  display: block;
+  padding: 14px 1.5rem;
+  font-size: 1rem;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.site-nav-drawer-link:active,
+.site-nav-drawer-link:hover { background: rgba(255, 255, 255, 0.03); }
+.site-nav-drawer-group { border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+.site-nav-drawer-group > .site-nav-drawer-link { border-bottom: none; }
+.site-nav-drawer-grouplabel {
+  padding: 10px 1.5rem 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+/* ================================================================
+   Floating FABs (music player + global search)
+   ================================================================ */
+
+/* Music collapsed pill — ♪ Music */
+.music-fab {
+  position: fixed;
+  left: 16px; top: 80px;
+  z-index: 30;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  border-radius: 22px;
+  background: rgba(10, 14, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.music-fab-label { display: inline; }
+
+/* Music open panel */
+.music-panel {
+  position: fixed;
+  left: 16px; top: 80px;
+  z-index: 30;
+  width: 360px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(10, 14, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Global search pill — ⌘K trigger */
+.search-fab {
+  position: fixed;
+  top: 80px; right: 16px;
+  z-index: 30;
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 14px;
+  border-radius: 22px;
+  background: rgba(10, 14, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.search-fab-label { display: inline; }
+.search-fab-kbd {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  color: var(--text-dim);
+}
+
+/* ≤900px — mobile layout:
+   - Music panel stretches full-width (minus gutters) when open so its
+     close button isn't hidden under the search icon.
+   - Music collapsed pill shrinks to a round icon-only button so it
+     doesn't compete with the hamburger.
+   - Search pill collapses to an icon-only round button: hide the
+     "Search" word + the ⌘K kbd hint (no keyboard on mobile anyway).
+   - Both pills move to top: 72px so they sit just below the 64-tall
+     nav without colliding with scrolled content. */
+@media (max-width: 900px) {
+  .music-fab {
+    left: 12px; top: 72px;
+    width: 40px; height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .music-fab-label { display: none; }
+  .music-panel {
+    left: 12px; right: 12px; top: 72px;
+    width: auto;
+  }
+  .search-fab {
+    right: 12px; top: 72px;
+    width: 40px; height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .search-fab-label,
+  .search-fab-kbd { display: none; }
+}
+
+/* ≤900px: swap desktop links for the hamburger + drawer. Also trim the
+   patch pill since it's visual noise on a narrow screen. The drawer is
+   position:absolute below the nav — .site-nav is already position:sticky
+   which provides the containing block it anchors to. */
+@media (max-width: 900px) {
+  .site-nav-inner { padding: 0 1rem; gap: 0.75rem; }
+  .site-nav-links { display: none; }
+  .site-nav-hamburger { display: inline-flex; }
+  .site-nav-drawer { display: block; }
+  .site-patch-pill { display: none; }
+}
 .site-patch-pill {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -229,6 +389,9 @@ select {
   text-align: center;
   max-width: 1200px;
   margin: 0 auto;
+}
+@media (max-width: 600px) {
+  .home-hero { padding: 3rem 1rem 2rem; }
 }
 .home-hero h1 {
   font-size: clamp(2rem, 5vw, 3.5rem);

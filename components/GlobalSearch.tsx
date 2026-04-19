@@ -197,44 +197,15 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        style={{
-          position: "fixed",
-          top: 80,
-          right: 16,
-          zIndex: 30,
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          height: 38,
-          padding: "0 14px",
-          borderRadius: 22,
-          background: "rgba(10,14,22,0.85)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "var(--text-muted)",
-          fontSize: "0.9rem",
-          cursor: "pointer",
-          backdropFilter: "blur(8px)",
-        }}
+        className="search-fab"
         aria-label="Search"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="7" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        <span>Search</span>
-        <span
-          style={{
-            marginLeft: 6,
-            padding: "1px 6px",
-            fontSize: "0.7rem",
-            fontFamily: "var(--font-mono)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: 3,
-            color: "var(--text-dim)",
-          }}
-        >
-          ⌘K
-        </span>
+        <span className="search-fab-label">Search</span>
+        <span className="search-fab-kbd">⌘K</span>
       </button>
 
       {open && (

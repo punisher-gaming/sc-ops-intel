@@ -53,6 +53,25 @@ export function Nav() {
   const { user } = useUser();
   const links: NavItem[] = [...PUBLIC_LINKS, ...(user ? AUTHED_LINKS : [])];
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close the mobile menu whenever the route changes
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll while the mobile drawer is open so the page behind
+  // doesn't scroll underneath it.
+  useEffect(() => {
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileOpen]);
+
   return (
     <nav className="site-nav">
       <div className="site-nav-inner">
@@ -61,6 +80,8 @@ export function Nav() {
             CITIZEN<span className="accent">DEX</span>
           </span>
         </Link>
+
+        {/* Desktop links — hidden on ≤900px via .site-nav-links CSS below */}
         <div className="site-nav-links">
           {links.map((l) =>
             isDropdown(l) ? (
@@ -70,11 +91,35 @@ export function Nav() {
             ),
           )}
         </div>
+
         <div className="site-nav-right">
           <span className="site-patch-pill">Patch {CURRENT_PATCH}</span>
           <AuthButton />
+          {/* Hamburger — shown ≤900px only */}
+          <button
+            type="button"
+            className="site-nav-hamburger"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <CloseIcon /> : <HamburgerIcon />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile drawer — full-width slide-down, touch-friendly targets */}
+      {mobileOpen && (
+        <div className="site-nav-drawer" role="menu">
+          {links.map((l) =>
+            isDropdown(l) ? (
+              <MobileDropdown key={l.label} item={l} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+            ) : (
+              <MobileLink key={l.href} item={l} pathname={pathname} />
+            ),
+          )}
+        </div>
+      )}
     </nav>
   );
 }
@@ -85,6 +130,55 @@ function NavLink({ item, pathname }: { item: LinkItem; pathname: string | null }
     <Link href={item.href} className={active ? "active" : ""}>
       {item.label}
     </Link>
+  );
+}
+
+// Mobile-drawer version of NavLink — bigger padding, full-width, no hover
+// tricks (touch devices don't hover).
+function MobileLink({ item, pathname }: { item: LinkItem; pathname: string | null }) {
+  const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+  return (
+    <Link
+      href={item.href}
+      className="site-nav-drawer-link"
+      style={{ color: active ? "var(--accent)" : "var(--text)" }}
+    >
+      {item.label}
+    </Link>
+  );
+}
+
+function MobileDropdown({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: DropdownItem;
+  pathname: string | null;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="site-nav-drawer-group">
+      <div className="site-nav-drawer-grouplabel">{item.label}</div>
+      {item.children.map((c) => {
+        const active = pathname === c.href || pathname?.startsWith(c.href + "/");
+        return (
+          <Link
+            key={c.href}
+            href={c.href}
+            onClick={onNavigate}
+            className="site-nav-drawer-link"
+            style={{
+              color: active ? "var(--accent)" : "var(--text)",
+              paddingLeft: "1.75rem",
+              fontSize: "0.95rem",
+            }}
+          >
+            {c.label}
+          </Link>
+        );
+      })}
+    </div>
   );
 }
 
@@ -198,5 +292,21 @@ function NavDropdown({
         </div>
       )}
     </div>
+  );
+}
+
+function HamburgerIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
   );
 }
