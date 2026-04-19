@@ -12,6 +12,7 @@ import {
   fetchListing,
   formatPrice,
   formatQuantity,
+  sellerInGameName,
   updateListingStatus,
   type AuctionListing,
 } from "@/lib/auction";
@@ -162,7 +163,7 @@ function ListingDetail() {
   }
 
   const isOwner = user?.id === listing.user_id;
-  const sellerName = listing.seller_display_name ?? "Citizen";
+  const sellerName = sellerInGameName(listing);
   const t = LISTING_TYPE_LABELS[listing.listing_type];
   const isWtb = listing.listing_type === "wtb";
   const personLabel = isWtb ? "Buyer" : "Seller";
@@ -271,9 +272,19 @@ function ListingDetail() {
               >
                 {sellerName}
               </Link>
-              {listing.seller_discord && (
+              {listing.seller_rsi_handle && (
                 <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 4 }}>
-                  Discord: <strong>@{listing.seller_discord}</strong>
+                  🎮 In-game: <strong style={{ color: "var(--text)" }}>{listing.seller_rsi_handle}</strong>
+                </div>
+              )}
+              {listing.seller_discord && (
+                <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 2 }}>
+                  💬 Discord: <strong>@{listing.seller_discord}</strong>
+                </div>
+              )}
+              {!listing.seller_rsi_handle && (
+                <div style={{ color: "var(--warn)", fontSize: "0.78rem", marginTop: 4, fontStyle: "italic" }}>
+                  ⚠ {personLabel} hasn&apos;t added their in-game name yet
                 </div>
               )}
             </div>

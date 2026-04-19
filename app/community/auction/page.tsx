@@ -10,6 +10,7 @@ import {
   fetchCurrencyOptions,
   formatPrice,
   formatQuantity,
+  sellerInGameName,
   type AuctionCategory,
   type AuctionListing,
   type CurrencyOption,
@@ -183,7 +184,7 @@ export default function AuctionHomePage() {
 }
 
 function ListingCard({ listing }: { listing: AuctionListing }) {
-  const sellerName = listing.seller_display_name ?? "Citizen";
+  const sellerName = sellerInGameName(listing);
   const t = LISTING_TYPE_LABELS[listing.listing_type];
   const isWtb = listing.listing_type === "wtb";
   return (

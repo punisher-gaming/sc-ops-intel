@@ -67,14 +67,34 @@ export default function NewListingPage() {
   // banner above the form so they know the in-site inbox + Discord
   // bridge story before they post.
   const [hasWebhook, setHasWebhook] = useState<boolean | null>(null);
+  // RSI in-game handle is THE most important profile field for an
+  // in-game marketplace — buyers and sellers need it to find each
+  // other in the verse. We block listing creation if it's missing.
+  const [hasRsiHandle, setHasRsiHandle] = useState<boolean | null>(null);
   useEffect(() => {
     if (!user) return;
     fetchUserWebhook(user.id).then((url) => setHasWebhook(!!url));
+    // Pull the user's RSI handle straight from their profile row.
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const c = createClient();
+      c.from("profiles")
+        .select("rsi_handle")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          const h = (data as { rsi_handle?: string | null } | null)?.rsi_handle;
+          setHasRsiHandle(!!h?.trim());
+        });
+    });
   }, [user]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (hasRsiHandle === false) {
+      setErr("Add your RSI in-game handle on your account page before posting.");
+      return;
+    }
     if (!itemName.trim()) {
       setErr("Item name is required.");
       return;
@@ -160,6 +180,32 @@ export default function NewListingPage() {
             The actual trade happens in-game.
           </p>
         </div>
+
+        {/* RSI in-game handle is REQUIRED for a marketplace listing —
+            without it, buyers can't find the seller in-game to do the
+            actual trade. Hard-block the form until it's set. */}
+        {hasRsiHandle === false && (
+          <div
+            className="card"
+            style={{
+              padding: "1rem 1.25rem",
+              marginBottom: 16,
+              borderLeft: "3px solid var(--alert)",
+              background: "rgba(255,107,107,0.06)",
+            }}
+          >
+            <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--alert)", marginBottom: 6 }}>
+              ⚠ Add your RSI in-game handle first
+            </div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+              Other citizens need to know your in-game name to find you in
+              the verse and complete the trade. The form below is locked
+              until you add it on your{" "}
+              <Link href="/account" style={{ color: "var(--accent)", fontWeight: 600 }}>account page</Link>{" "}
+              (takes 10 seconds — it&apos;s the &quot;RSI handle&quot; field).
+            </div>
+          </div>
+        )}
 
         {/* How will buyers reach you? Banner explains the in-site inbox
             (always works) + the optional Discord webhook upgrade. Hides
@@ -404,8 +450,17 @@ export default function NewListingPage() {
           )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-            <button type="submit" className="btn btn-primary" disabled={busy}>
-              {busy ? "Posting…" : (listingType === "wts" ? "Post for sale" : "Post buy request")}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={busy || hasRsiHandle === false}
+              title={hasRsiHandle === false ? "Add your RSI in-game handle on /account first" : undefined}
+            >
+              {busy
+                ? "Posting…"
+                : hasRsiHandle === false
+                ? "Add RSI handle to post"
+                : (listingType === "wts" ? "Post for sale" : "Post buy request")}
             </button>
             <Link href="/community/auction" className="btn btn-ghost">
               Cancel

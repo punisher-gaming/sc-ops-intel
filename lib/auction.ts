@@ -55,9 +55,22 @@ export interface AuctionListing {
   // From the joined view — seller display info
   seller_display_name?: string | null;
   seller_discord?: string | null;
+  seller_rsi_handle?: string | null;
   seller_avatar?: string | null;
   seller_is_admin?: boolean | null;
   seller_is_moderator?: boolean | null;
+}
+
+/** The seller's preferred in-game identifier — RSI handle first since
+ *  that's what other players use to find them in-game, then any
+ *  display_name they set, then Discord, with "Citizen" as last resort. */
+export function sellerInGameName(l: AuctionListing): string {
+  return (
+    l.seller_rsi_handle?.trim() ||
+    l.seller_display_name?.trim() ||
+    l.seller_discord?.trim() ||
+    "Citizen"
+  );
 }
 
 const COLS = `id, user_id, listing_type, item_name, item_category, quantity,
@@ -65,7 +78,7 @@ const COLS = `id, user_id, listing_type, item_name, item_category, quantity,
   price_amount, price_currency, price_per_unit,
   condition, description, status, sold_to_handle,
   created_at, updated_at, expires_at,
-  seller_display_name, seller_discord, seller_avatar,
+  seller_display_name, seller_discord, seller_rsi_handle, seller_avatar,
   seller_is_admin, seller_is_moderator`;
 
 export async function fetchActiveListings(opts?: {
