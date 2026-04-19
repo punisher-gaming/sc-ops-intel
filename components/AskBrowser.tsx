@@ -37,6 +37,7 @@ interface ChatTurn {
   aiText?: string;            // synthesized answer from CF Workers AI
   aiState: "idle" | "thinking" | "ok" | "error";
   aiError?: string;
+  sourcedFromWiki?: boolean;  // true when AI grounded answer in SC Wiki
   ts: number;
 }
 
@@ -124,11 +125,13 @@ export function AskBrowser() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question: q, context, history }),
       });
-      const body = (await res.json()) as { ok: boolean; answer?: string; error?: string };
+      const body = (await res.json()) as { ok: boolean; answer?: string; error?: string; sourcedFromWiki?: boolean };
       if (!body.ok || !body.answer) throw new Error(body.error ?? "AI returned no answer");
       setTurns((prev) =>
         prev.map((t) =>
-          t.id === id ? { ...t, aiText: body.answer, aiState: "ok" } : t,
+          t.id === id
+            ? { ...t, aiText: body.answer, aiState: "ok", sourcedFromWiki: !!body.sourcedFromWiki }
+            : t,
         ),
       );
     } catch (e) {
@@ -298,8 +301,24 @@ function Turn({ turn }: { turn: ChatTurn }) {
             color: "var(--text)",
           }}
         >
-          <div className="label-mini" style={{ marginBottom: 6 }}>
-            🤖 CitizenDex AI
+          <div className="label-mini" style={{ marginBottom: 6, display: "flex", gap: 8, alignItems: "center" }}>
+            <span>🤖 CitizenDex AI</span>
+            {turn.sourcedFromWiki && (
+              <span
+                style={{
+                  padding: "1px 6px",
+                  borderRadius: 3,
+                  background: "rgba(77,217,255,0.12)",
+                  border: "1px solid rgba(77,217,255,0.3)",
+                  color: "var(--accent)",
+                  fontSize: "0.62rem",
+                  letterSpacing: "0.08em",
+                }}
+                title="Answer drew from Star Citizen Wiki"
+              >
+                📚 wiki
+              </span>
+            )}
           </div>
           {turn.aiState === "thinking" && (
             <div style={{ color: "var(--text-muted)", fontStyle: "italic" }}>

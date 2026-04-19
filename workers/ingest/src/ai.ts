@@ -19,11 +19,12 @@ const MODEL = "@cf/meta/llama-3.1-8b-instruct";
 const SYSTEM_PROMPT = `You are CitizenDex's in-universe advisor — a calm, knowledgeable UEE Navy briefing officer helping new citizens in Star Citizen.
 
 Rules:
-- Answer ONLY using the catalog entries provided to you under "Catalog context". If the context is empty, say you don't have that specific data yet but suggest where the user could look on the site.
+- Prefer the "Catalog context" (from our live-synced database) when present. If it's not there, use "Wiki context" (from Star Citizen Wiki) as a secondary source. If neither, say you don't have that data but point the user to /ships, /blueprints, /lore, /community, etc.
 - Keep answers short — 2–4 sentences max unless the question explicitly asks for detail.
 - Be practical: if the user asks "how do I make money", give a concrete actionable answer.
 - Use in-game units (aUEC, SCU, UEE year) not real-world equivalents.
 - Never make up ship names, blueprint names, commodity prices, or spawn locations. If you need a number and don't have one, say so.
+- When you draw from Wiki context, end your answer with a note like "(Sourced from Star Citizen Wiki)".
 - End answers with a relevant "→ See: /blueprints" style pointer to a section of the site when helpful.
 - Lowercase "aUEC". Uppercase "UEE" and "SCU".`;
 
@@ -72,13 +73,28 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
   // History: last 4 turns max so we stay under 8k token budget
   const history = (body.history ?? []).slice(-4);
 
+  // When our local catalog has nothing for the question, reach out to
+  // Star Citizen Wiki's opensearch API and pull the top article intros
+  // as supplementary context. Keeps the AI grounded in real sources
+  // rather than hallucinating.
+  let wikiContext = "";
+  if (!context || context.trim().length < 60) {
+    wikiContext = await fetchWikiContext(question);
+  }
+
   const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
     { role: "system", content: SYSTEM_PROMPT },
   ];
   if (context) {
     messages.push({
       role: "system",
-      content: `Catalog context (top matches from our database):\n${context}`,
+      content: `Catalog context (top matches from our live database):\n${context}`,
+    });
+  }
+  if (wikiContext) {
+    messages.push({
+      role: "system",
+      content: `Wiki context (excerpts from Star Citizen Wiki — use only if catalog context is empty):\n${wikiContext}`,
     });
   }
   for (const h of history) {
@@ -89,7 +105,12 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
   try {
     const result = await env.AI.run(MODEL, { messages, max_tokens: 512 });
     return Response.json(
-      { ok: true, answer: result.response, model: MODEL },
+      {
+        ok: true,
+        answer: result.response,
+        model: MODEL,
+        sourcedFromWiki: Boolean(wikiContext),
+      },
       { headers: CORS },
     );
   } catch (e) {
@@ -98,5 +119,67 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
       { ok: false, error: `AI call failed: ${msg}` },
       { status: 502, headers: CORS },
     );
+  }
+}
+
+// Query SC Wiki for the user's question and return up to 3 article
+// intros as a single context string. Uses MediaWiki's opensearch to
+// find titles, then query+extracts to pull plain-text intros.
+//
+// Edge-cached 1 hour — popular questions ("cutlass black") will hit
+// cache rather than bouncing through the wiki every time.
+async function fetchWikiContext(question: string): Promise<string> {
+  try {
+    // Strip obvious noise words so the search targets nouns
+    const cleaned = question
+      .replace(/[?.!,;:]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 1)
+      .slice(0, 8)
+      .join(" ");
+    if (!cleaned) return "";
+
+    // 1. Full-text search for candidate titles. opensearch (title-prefix
+    //    only) misses "Who was Nick Croshaw" because no title starts with
+    //    "Who". list=search does proper full-text relevance ranking.
+    const searchUrl =
+      `https://starcitizen.tools/api.php?action=query&format=json&list=search&srlimit=3&srprop=&srsearch=` +
+      encodeURIComponent(cleaned);
+    const searchRes = await fetch(searchUrl, {
+      headers: { "user-agent": "sc-ops-intel-ai-assistant" },
+    });
+    if (!searchRes.ok) return "";
+    const searchBody = (await searchRes.json()) as {
+      query?: { search?: Array<{ title: string }> };
+    };
+    const titles = (searchBody.query?.search ?? [])
+      .map((s) => s.title)
+      .filter(Boolean);
+    if (titles.length === 0) return "";
+
+    // 2. extracts for those titles — intro plain-text
+    const extractsUrl =
+      `https://starcitizen.tools/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=` +
+      encodeURIComponent(titles.slice(0, 3).join("|"));
+    const extractsRes = await fetch(extractsUrl, {
+      headers: { "user-agent": "sc-ops-intel-ai-assistant" },
+    });
+    if (!extractsRes.ok) return "";
+    const extractsBody = (await extractsRes.json()) as {
+      query?: { pages?: Record<string, { title?: string; extract?: string }> };
+    };
+    const pages = extractsBody.query?.pages ?? {};
+    const parts: string[] = [];
+    for (const page of Object.values(pages)) {
+      const text = (page.extract ?? "").trim();
+      if (text.length === 0) continue;
+      // Cap each extract so the prompt stays reasonable
+      parts.push(
+        `## ${page.title ?? "Wiki article"}\n${text.slice(0, 800)}`,
+      );
+    }
+    return parts.join("\n\n").slice(0, 3500);
+  } catch {
+    return "";
   }
 }
