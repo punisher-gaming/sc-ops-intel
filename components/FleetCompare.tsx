@@ -11,7 +11,20 @@ import {
   shipSize,
   type Ship,
 } from "@/lib/ships";
+import { saveFleet } from "@/lib/fleets";
+import { useUser } from "@/lib/supabase/hooks";
 import { ItemImage } from "./ItemImage";
+
+type SortKey =
+  | "name"
+  | "manufacturer"
+  | "role"
+  | "size"
+  | "length"
+  | "hull_hp"
+  | "shields_hp"
+  | "cargo_scu"
+  | "scm_speed";
 
 // Two view modes:
 //   chart - visual to-scale: dark space bg, ships arranged in ascending
@@ -29,9 +42,14 @@ export function FleetCompare() {
     [idsParam],
   );
 
+  const { user } = useUser();
   const [ships, setShips] = useState<Ship[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [mode, setMode] = useState<"chart" | "list">("chart");
+  const [savePrompt, setSavePrompt] = useState(false);
+  const [fleetName, setFleetName] = useState("");
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (ids.length === 0) {
@@ -103,10 +121,21 @@ export function FleetCompare() {
           <p style={{ maxWidth: "56ch" }}>
             {mode === "chart"
               ? `Ships sorted by length, smallest first. Widest ship is ${maxLength.toLocaleString()}m long — everything scales to that.`
-              : "Side-by-side stats for your selected ships."}
+              : "Side-by-side stats for your selected ships. Click any column header to sort."}
           </p>
         </div>
 
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        {user && (
+          <button
+            type="button"
+            onClick={() => setSavePrompt(true)}
+            className="btn btn-secondary"
+            style={{ height: 32, padding: "0 14px", fontSize: "0.85rem" }}
+          >
+            Save fleet
+          </button>
+        )}
         <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
           <button
             type="button"
@@ -125,7 +154,81 @@ export function FleetCompare() {
             List
           </button>
         </div>
+        </div>
       </div>
+
+      {savePrompt && user && (
+        <div className="card" style={{ padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+          <div className="label-mini" style={{ marginBottom: 6 }}>Name this fleet</div>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!fleetName.trim()) return;
+              setSaving(true);
+              setSaveMsg(null);
+              try {
+                await saveFleet({
+                  user_id: user.id,
+                  name: fleetName.trim(),
+                  ship_ids: ships.map((s) => s.id),
+                });
+                setSaveMsg(`Saved as "${fleetName.trim()}"`);
+                setFleetName("");
+                setSavePrompt(false);
+                setTimeout(() => setSaveMsg(null), 4000);
+              } catch (err) {
+                setSaveMsg(`Error: ${(err as Error).message ?? String(err)}`);
+              } finally {
+                setSaving(false);
+              }
+            }}
+            style={{ display: "flex", gap: 8 }}
+          >
+            <input
+              autoFocus
+              value={fleetName}
+              onChange={(e) => setFleetName(e.target.value)}
+              placeholder="e.g. Mining Squadron Alpha"
+              maxLength={100}
+              required
+              className="input"
+              style={{ flex: 1 }}
+            />
+            <button type="submit" className="btn btn-primary" disabled={saving || !fleetName.trim()}>
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSavePrompt(false);
+                setFleetName("");
+              }}
+              className="btn btn-secondary"
+              disabled={saving}
+            >
+              Cancel
+            </button>
+          </form>
+          <div className="label-mini" style={{ marginTop: 6 }}>
+            Saved fleets show up on your Account page for one-click reload.
+          </div>
+        </div>
+      )}
+      {saveMsg && (
+        <div
+          style={{
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: saveMsg.startsWith("Error") ? "rgba(255,107,107,0.08)" : "rgba(74,222,128,0.08)",
+            border: `1px solid ${saveMsg.startsWith("Error") ? "rgba(255,107,107,0.3)" : "rgba(74,222,128,0.3)"}`,
+            color: saveMsg.startsWith("Error") ? "var(--alert)" : "var(--success)",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+          }}
+        >
+          {saveMsg}
+        </div>
+      )}
 
       {mode === "chart" ? (
         <ChartView withDims={withDims} maxLength={maxLength} />
@@ -250,52 +353,127 @@ function FreeAspectImage({ name, alt }: { name: string; alt: string }) {
 }
 
 function ListView({ ships }: { ships: Ship[] }) {
+  const [sortKey, setSortKey] = useState<SortKey>("length");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  function getSortValue(s: Ship, key: SortKey): string | number | null {
+    const d = shipDimensions(s);
+    switch (key) {
+      case "name": return s.name?.toLowerCase() ?? "";
+      case "manufacturer": return (s.manufacturer ?? "").toLowerCase();
+      case "role": return (s.role ?? "").toLowerCase();
+      case "size": return shipSize(s).toLowerCase();
+      case "length": return d.length;
+      case "hull_hp": return s.hull_hp;
+      case "shields_hp": return s.shields_hp;
+      case "cargo_scu": return s.cargo_scu;
+      case "scm_speed": return s.scm_speed;
+    }
+  }
+
+  function toggleSort(k: SortKey) {
+    if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
+      setSortKey(k);
+      // Numeric columns default desc (biggest first); text default asc
+      setSortDir(["length", "hull_hp", "shields_hp", "cargo_scu", "scm_speed"].includes(k) ? "desc" : "asc");
+    }
+  }
+
+  const sorted = [...ships].sort((a, b) => {
+    const av = getSortValue(a, sortKey);
+    const bv = getSortValue(b, sortKey);
+    const mul = sortDir === "asc" ? 1 : -1;
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === "number" && typeof bv === "number") return (av - bv) * mul;
+    return String(av).localeCompare(String(bv)) * mul;
+  });
+
   return (
     <div className="table-shell" style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 820 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
         <thead>
           <tr>
-            <th style={thStyle("left")}>Name</th>
-            <th style={thStyle("left", 150)}>Manufacturer</th>
-            <th style={thStyle("left", 130)}>Role</th>
-            <th style={thStyle("right", 90)}>Length</th>
-            <th style={thStyle("right", 80)}>Beam</th>
-            <th style={thStyle("right", 80)}>Height</th>
-            <th style={thStyle("right", 90)}>Hull HP</th>
-            <th style={thStyle("right", 90)}>Shields</th>
-            <th style={thStyle("right", 80)}>Cargo</th>
-            <th style={thStyle("right", 80)}>SCM</th>
+            <SortTh k="name" label="Name" sortKey={sortKey} dir={sortDir} onClick={toggleSort} />
+            <SortTh k="manufacturer" label="Manufacturer" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={150} />
+            <SortTh k="role" label="Role" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={130} />
+            <SortTh k="size" label="Size" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={90} />
+            <SortTh k="length" label="Length" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={90} align="right" />
+            <SortTh k="hull_hp" label="Hull" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={90} align="right" />
+            <SortTh k="shields_hp" label="Shields" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={90} align="right" />
+            <SortTh k="cargo_scu" label="Cargo" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={80} align="right" />
+            <SortTh k="scm_speed" label="SCM" sortKey={sortKey} dir={sortDir} onClick={toggleSort} width={80} align="right" />
             <th style={thStyle("left", 80)}>Crew</th>
           </tr>
         </thead>
         <tbody>
-          {[...ships]
-            .sort((a, b) => (shipDimensions(a).length ?? 0) - (shipDimensions(b).length ?? 0))
-            .map((s) => {
-              const d = shipDimensions(s);
-              return (
-                <tr key={s.id}>
-                  <td style={tdStyle}>
-                    <Link href={`/ships?id=${encodeURIComponent(s.id)}`} style={{ color: "var(--accent)", fontWeight: 500 }}>
-                      {s.name}
-                    </Link>
-                  </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? "—"}</td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? "—"}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.length != null ? `${d.length}m` : "—"}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.beam != null ? `${d.beam}m` : "—"}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.height != null ? `${d.height}m` : "—"}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.hull_hp)}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.shields_hp)}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.cargo_scu)}</td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.scm_speed)}</td>
-                  <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{formatCrew(s)}</td>
-                </tr>
-              );
-            })}
+          {sorted.map((s) => {
+            const d = shipDimensions(s);
+            return (
+              <tr key={s.id}>
+                <td style={tdStyle}>
+                  <Link href={`/ships?id=${encodeURIComponent(s.id)}`} style={{ color: "var(--accent)", fontWeight: 500 }}>
+                    {s.name}
+                  </Link>
+                </td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? "—"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? "—"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{shipSize(s)}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.length != null ? `${d.length}m` : "—"}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.hull_hp)}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.shields_hp)}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.cargo_scu)}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.scm_speed)}</td>
+                <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{formatCrew(s)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SortTh({
+  k,
+  label,
+  sortKey,
+  dir,
+  onClick,
+  width,
+  align = "left",
+}: {
+  k: SortKey;
+  label: string;
+  sortKey: SortKey;
+  dir: "asc" | "desc";
+  onClick: (k: SortKey) => void;
+  width?: number;
+  align?: "left" | "right";
+}) {
+  const active = sortKey === k;
+  return (
+    <th
+      onClick={() => onClick(k)}
+      style={{
+        padding: "12px 16px",
+        textAlign: align,
+        color: active ? "var(--accent)" : "var(--text-dim)",
+        fontSize: "0.7rem",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        userSelect: "none",
+        width,
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+      {active && <span style={{ marginLeft: 6 }}>{dir === "asc" ? "▲" : "▼"}</span>}
+    </th>
   );
 }
 
