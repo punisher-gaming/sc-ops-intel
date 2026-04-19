@@ -16,6 +16,8 @@ const PUBLIC_LINKS = [
   { href: "/commodities", label: "Commodities" },
   { href: "/trade-locations", label: "Trade" },
   { href: "/ships", label: "Ships" },
+  { href: "/weapons", label: "Weapons" },
+  { href: "/components", label: "Components" },
   { href: "/community", label: "Community" },
 ];
 

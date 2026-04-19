@@ -1,13 +1,25 @@
+"use client";
+
+import { Suspense } from "react";
 import { PageShell } from "@/components/PageShell";
-import { CatalogStub } from "@/components/CatalogStub";
+import { ItemBrowser } from "@/components/ItemBrowser";
 
 export default function WeaponsPage() {
   return (
     <PageShell>
-      <CatalogStub
-        title="WEAPONS"
-        blurb="Ship-mounted and personal weapons — damage, range, fire rate, ammo, heat, distortion, and the ship hardpoints / FPS slots they fit."
-      />
+      <Suspense
+        fallback={
+          <div className="container-wide" style={{ paddingTop: "3rem", color: "var(--text-muted)" }}>
+            Loading weapons…
+          </div>
+        }
+      >
+        <ItemBrowser
+          table="weapons"
+          title="Weapons"
+          blurb="Ship-mounted and personal weapons. Filter by type, manufacturer, or grade."
+        />
+      </Suspense>
     </PageShell>
   );
 }
