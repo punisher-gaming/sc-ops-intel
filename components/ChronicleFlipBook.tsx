@@ -6,6 +6,7 @@ import { CHAPTERS } from "@/lib/lore-data";
 import { STORY_PAGES, type StoryPage } from "@/lib/lore-story";
 import { LoreImageEl } from "./LoreImage";
 import { EarthScene } from "./LoreArt";
+import { IMG_COVER } from "@/lib/lore-images";
 
 // Auto-flipping comic book on /lore landing — 14 pages reading
 // chronologically as a single narrative comic, not a table of contents.
@@ -199,29 +200,51 @@ function Page({
   );
 }
 
-// ── Front cover ───────────────────────────────────────────────────────
+// ── Front cover — the spectacular opening shot ────────────────────────
 function FrontCoverFace() {
   return (
     <>
       <div className="flipbook-cover-art">
-        <EarthScene />
+        <LoreImageEl image={IMG_COVER} credit="corner" />
       </div>
+      {/* Cinematic gradient + radial vignette + corner fades */}
       <div className="flipbook-cover-overlay" />
+      <div className="flipbook-cover-vignette" aria-hidden />
+
+      {/* Corner brackets — military / sci-fi book frame */}
+      <span className="flipbook-cover-corner tl" aria-hidden />
+      <span className="flipbook-cover-corner tr" aria-hidden />
+      <span className="flipbook-cover-corner bl" aria-hidden />
+      <span className="flipbook-cover-corner br" aria-hidden />
+
       <div className="flipbook-cover-masthead">
         <div>ISSUE 01</div>
         <div>THE CHRONICLE</div>
       </div>
+
+      {/* Centered title block — bigger, more glow, with decorative bars */}
       <div className="flipbook-cover-title">
-        <div className="flipbook-cover-eyebrow">CITIZENDEX PRESENTS</div>
+        <div className="flipbook-cover-bar-row">
+          <span className="flipbook-cover-bar" />
+          <div className="flipbook-cover-eyebrow">CITIZENDEX PRESENTS</div>
+          <span className="flipbook-cover-bar" />
+        </div>
         <h1>
           THE <span>VERSE</span>
         </h1>
+        <div className="flipbook-cover-tagline">
+          A Chronicle of Empire, Discovery &amp; War
+        </div>
         <div className="flipbook-cover-sub">2075 — 2952 · UEE CALENDAR</div>
       </div>
+
       <div className="flipbook-cover-footer">
         <div>
           <div className="flipbook-cover-tag">Volume I</div>
           <div className="flipbook-cover-stars">★ ★ ★ ★ ★</div>
+        </div>
+        <div className="flipbook-cover-imprint" aria-hidden>
+          SAISEI · CROSHAW
         </div>
         <div className="flipbook-cover-barcode" aria-hidden>
           {Array.from({ length: 22 }).map((_, i) => (

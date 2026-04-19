@@ -561,9 +561,35 @@
 .flipbook-cover-overlay {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse at center top, transparent 25%, rgba(2, 5, 12, 0.6) 78%),
-    linear-gradient(180deg, rgba(2, 5, 12, 0.12) 0%, rgba(2, 5, 12, 0.72) 100%);
+    /* Subtle cyan film tint for the cyber-noir mood */
+    linear-gradient(180deg, rgba(77, 217, 255, 0.04) 0%, transparent 30%),
+    /* Top + bottom darkening so title + footer read crisply */
+    linear-gradient(180deg, rgba(2, 5, 12, 0.55) 0%, rgba(2, 5, 12, 0.18) 35%, rgba(2, 5, 12, 0.18) 60%, rgba(2, 5, 12, 0.85) 100%);
 }
+/* Heavy radial vignette that pulls the eye to the title */
+.flipbook-cover-vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 48%, transparent 0%, rgba(2, 5, 12, 0.55) 90%);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Glowing corner brackets — military-stencil frame */
+.flipbook-cover-corner {
+  position: absolute;
+  width: 38px; height: 38px;
+  border-color: var(--lore-cyan);
+  border-style: solid;
+  border-width: 0;
+  filter: drop-shadow(0 0 12px rgba(77, 217, 255, 0.7));
+  pointer-events: none;
+  z-index: 3;
+}
+.flipbook-cover-corner.tl { top: 14px; left: 14px;  border-top-width: 3px;  border-left-width: 3px; }
+.flipbook-cover-corner.tr { top: 14px; right: 14px; border-top-width: 3px;  border-right-width: 3px; }
+.flipbook-cover-corner.bl { bottom: 14px; left: 14px;  border-bottom-width: 3px; border-left-width: 3px; }
+.flipbook-cover-corner.br { bottom: 14px; right: 14px; border-bottom-width: 3px; border-right-width: 3px; }
 .flipbook-cover-masthead {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -581,41 +607,88 @@
 }
 .flipbook-cover-title {
   position: absolute;
-  left: 0; right: 0; top: 26%;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
   padding: 0 2rem;
   text-align: center;
+  z-index: 3;
+}
+.flipbook-cover-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.flipbook-cover-bar {
+  display: inline-block;
+  height: 1px;
+  width: clamp(24px, 6vw, 60px);
+  background: linear-gradient(90deg, transparent, var(--lore-cyan), transparent);
 }
 .flipbook-cover-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
   color: var(--lore-cyan);
   text-transform: uppercase;
-  margin-bottom: 12px;
-  text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
+  text-shadow: 0 0 12px rgba(77, 217, 255, 0.7);
+  white-space: nowrap;
 }
 .flipbook-cover-title h1 {
   font-family: var(--font-mono);
-  font-size: clamp(2.8rem, 8.5vw, 5rem);
+  font-size: clamp(3.4rem, 11vw, 6rem);
   font-weight: 900;
   letter-spacing: 0.04em;
-  line-height: 0.95;
+  line-height: 0.92;
   text-transform: uppercase;
-  margin: 0 0 0.5rem;
+  margin: 0;
   color: #fff;
-  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.95), 0 0 42px rgba(77, 217, 255, 0.4);
+  text-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.98),
+    0 0 60px rgba(77, 217, 255, 0.45),
+    0 0 120px rgba(77, 217, 255, 0.25);
+  animation: cover-title-flicker 5s ease-in-out infinite;
+}
+@keyframes cover-title-flicker {
+  0%, 92%, 100% { filter: brightness(1); }
+  93%, 95%      { filter: brightness(1.18) drop-shadow(0 0 24px rgba(77, 217, 255, 0.4)); }
+  94%           { filter: brightness(0.92); }
 }
 .flipbook-cover-title h1 span {
   color: var(--lore-cyan);
-  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.95), 0 0 34px rgba(77, 217, 255, 0.9);
+  text-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.98),
+    0 0 50px rgba(77, 217, 255, 1),
+    0 0 100px rgba(77, 217, 255, 0.6);
+}
+.flipbook-cover-tagline {
+  margin-top: 18px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(0.85rem, 1.6vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
 }
 .flipbook-cover-sub {
   font-family: var(--font-mono);
   font-size: clamp(0.72rem, 1.3vw, 0.9rem);
-  letter-spacing: 0.22em;
-  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.28em;
+  color: var(--lore-cyan);
   text-transform: uppercase;
-  margin-top: 10px;
+  margin-top: 18px;
+  text-shadow: 0 0 14px rgba(77, 217, 255, 0.55);
+}
+
+.flipbook-cover-imprint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  align-self: center;
+  text-align: center;
+  flex: 1;
 }
 .flipbook-cover-footer {
   position: absolute;

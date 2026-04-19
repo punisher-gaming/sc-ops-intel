@@ -27,6 +27,16 @@ function wiki(
   };
 }
 
+// ── Cover ── one big spectacular image for the flip-book front cover.
+// Saisei is the ecumenopolis (city-planet) of Croshaw — the FIRST
+// extrasolar system humans reached. Thematically perfect: the moment
+// humanity stopped being a single-world species made flesh.
+export const IMG_COVER = wiki(
+  "7/7d/Saisei.jpg",
+  "Saisei.jpg",
+  "Saisei — the ecumenopolis of Croshaw, first extrasolar colony",
+);
+
 // ── Chapter hero images ──
 export const IMG_CHAPTER = {
   origins:      wiki("3/33/Sol-III%28Earth%29-Cologne.jpg",
