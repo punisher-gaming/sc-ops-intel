@@ -33,6 +33,38 @@ export interface RsiProfile {
   fetched_at: string;
 }
 
+// RSI's site occasionally returns 502/503/504 from their CDN/origin —
+// it's almost always transient. One quick retry after a short backoff
+// clears nearly all of these without surfacing an error to the user.
+async function fetchWithRetry(url: string): Promise<Response> {
+  const TRANSIENT = new Set([502, 503, 504, 522, 524]);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { "user-agent": UA, accept: "text/html" },
+        cf: { cacheTtl: 3600, cacheEverything: true },
+      });
+      // Succeeded or got a deterministic answer (404, 200, etc) — return.
+      if (!TRANSIENT.has(res.status)) return res;
+      // Transient — drain the body and try once more.
+      try { await res.body?.cancel(); } catch { /* ignore */ }
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 600));
+      } else {
+        return res;
+      }
+    } catch (e) {
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 600));
+        continue;
+      }
+      throw e;
+    }
+  }
+  // Unreachable but TypeScript wants it.
+  return fetch(url);
+}
+
 // Strip HTML tags and decode the handful of entities RSI emits, then collapse
 // whitespace. Used on every extracted field.
 function clean(s: string | null | undefined): string | null {
@@ -144,14 +176,8 @@ export async function fetchRsiProfile(handle: string): Promise<RsiProfile | null
   if (!safe) return null;
 
   const [citizenRes, orgsRes] = await Promise.all([
-    fetch(`${CITIZEN_BASE}/${encodeURIComponent(safe)}`, {
-      headers: { "user-agent": UA, accept: "text/html" },
-      cf: { cacheTtl: 3600, cacheEverything: true },
-    }),
-    fetch(`${CITIZEN_BASE}/${encodeURIComponent(safe)}/organizations`, {
-      headers: { "user-agent": UA, accept: "text/html" },
-      cf: { cacheTtl: 3600, cacheEverything: true },
-    }),
+    fetchWithRetry(`${CITIZEN_BASE}/${encodeURIComponent(safe)}`),
+    fetchWithRetry(`${CITIZEN_BASE}/${encodeURIComponent(safe)}/organizations`),
   ]);
 
   if (citizenRes.status === 404) return null;

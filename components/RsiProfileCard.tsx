@@ -39,19 +39,43 @@ export function RsiProfileCard({ handle }: { handle: string }) {
     }
     setData(undefined);
     setErr(null);
-    fetch(`${WORKER_BASE}/rsi/${encodeURIComponent(handle)}`)
-      .then(async (res) => {
-        if (res.status === 404) {
-          setData(null);
-          return;
+
+    // RSI's public site has flaky moments (502/504 a few times a day).
+    // Auto-retry once after 2s before showing a hard error.
+    let cancelled = false;
+    async function loadWithRetry() {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await fetch(`${WORKER_BASE}/rsi/${encodeURIComponent(handle)}`);
+          if (cancelled) return;
+          if (res.status === 404) {
+            setData(null);
+            return;
+          }
+          if (res.ok) {
+            const body = (await res.json()) as RsiProfile;
+            if (!cancelled) setData(body);
+            return;
+          }
+          // Transient gateway errors → wait + retry. Other 4xx/5xx fall through.
+          if ([502, 503, 504].includes(res.status) && attempt === 0) {
+            await new Promise((r) => setTimeout(r, 2000));
+            continue;
+          }
+          throw new Error(`RSI is having a hiccup (HTTP ${res.status}). Try refreshing in a moment.`);
+        } catch (e) {
+          if (attempt === 0) {
+            await new Promise((r) => setTimeout(r, 2000));
+            continue;
+          }
+          if (!cancelled) setErr((e as Error).message ?? String(e));
         }
-        if (!res.ok) {
-          throw new Error(`RSI lookup failed: HTTP ${res.status}`);
-        }
-        const body = (await res.json()) as RsiProfile;
-        setData(body);
-      })
-      .catch((e) => setErr((e as Error).message ?? String(e)));
+      }
+    }
+    loadWithRetry();
+    return () => {
+      cancelled = true;
+    };
   }, [handle]);
 
   if (data === undefined && !err) {
@@ -64,8 +88,20 @@ export function RsiProfileCard({ handle }: { handle: string }) {
 
   if (err) {
     return (
-      <div className="card" style={{ padding: "1.25rem", color: "var(--alert)", fontSize: "0.85rem" }}>
-        Couldn&apos;t reach RSI: {err}
+      <div
+        className="card"
+        style={{
+          padding: "1.25rem",
+          color: "var(--text-muted)",
+          fontSize: "0.85rem",
+          borderLeft: "3px solid var(--warn)",
+          background: "rgba(245,185,71,0.04)",
+        }}
+      >
+        ⚠ <strong>RSI&apos;s site is having a moment</strong> — couldn&apos;t pull
+        the citizen profile for <strong>{handle}</strong> right now. This
+        almost always clears within a minute. Refresh the page or come back
+        in a bit.
       </div>
     );
   }
