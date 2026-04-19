@@ -24,7 +24,7 @@ function isDropdown(n: NavItem): n is DropdownItem {
 // Trade dropdown groups Commodities, Trade locations, Refineries to keep
 // the nav from sprawling.
 const PUBLIC_LINKS: NavItem[] = [
-  { href: "/ask", label: "Ask" },
+  { href: "/ai", label: "AI" },
   { href: "/blueprints", label: "Blueprints" },
   { href: "/crafting", label: "Crafting" },
   { href: "/resources", label: "Resources" },
@@ -40,6 +40,7 @@ const PUBLIC_LINKS: NavItem[] = [
   },
   { href: "/weapons", label: "Weapons" },
   { href: "/components", label: "Components" },
+  { href: "/lore", label: "Lore" },
   { href: "/community", label: "Community" },
 ];
 

@@ -16,6 +16,11 @@ SC_WIKI_BASE = "https://api.star-citizen.wiki/api/v3"
 # only if GitHub is unreachable.
 CURRENT_GAME_VERSION = "4.7.1-LIVE"
 
+# Cloudflare Workers AI binding — powers /ai/chat endpoint with llama-3.
+# Free tier: ~10k neurons/day. Queries average ~30-50 neurons each.
+[ai]
+binding = "AI"
+
 # Secrets set via: npx wrangler secret put SUPABASE_SECRET_KEY
 # Required secrets:
 #   SUPABASE_SECRET_KEY — sb_secret_... from Supabase Project Settings → API

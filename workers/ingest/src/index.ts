@@ -10,6 +10,7 @@ import { ingestShops } from "./ingest/shops";
 import { ingestCommodityAvailability } from "./ingest/availability";
 import { ingestItems } from "./ingest/items";
 import { fetchRsiProfile } from "./rsi";
+import { handleAiChat } from "./ai";
 
 const ROUTES = `
 SC OPS INTEL ingest worker
@@ -35,6 +36,13 @@ export default {
 
     if (url.pathname === "/health") {
       return Response.json({ ok: true, version: env.CURRENT_GAME_VERSION });
+    }
+
+    // AI chat — called by the /ai page on the frontend. POST-only,
+    // JSON body { question, context, history }. Uses Cloudflare
+    // Workers AI (llama-3.1 8B instruct).
+    if (url.pathname === "/ai/chat") {
+      return handleAiChat(req, env);
     }
 
     // RSI profile passthrough — /rsi/<handle>. Public read-only, served
