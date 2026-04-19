@@ -16,6 +16,7 @@ type Profile = {
   rsi_handle: string | null;
   bio: string | null;
   discord_webhook_url: string | null;
+  email_notifications_enabled: boolean | null;
 };
 
 function oauthProvider(user: { app_metadata?: Record<string, unknown> } | null): string | null {
@@ -40,6 +41,7 @@ export default function AccountPage() {
   const [displayName, setDisplayName] = useState("");
   const [rsiHandle, setRsiHandle] = useState("");
   const [discordWebhook, setDiscordWebhook] = useState("");
+  const [emailNotifs, setEmailNotifs] = useState(true);
   const [webhookTesting, setWebhookTesting] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -80,6 +82,9 @@ export default function AccountPage() {
         setDisplayName(p?.display_name ?? metaName ?? "");
         setRsiHandle(p?.rsi_handle ?? "");
         setDiscordWebhook(p?.discord_webhook_url ?? "");
+        // Defaults to true if the column hasn't been backfilled — matches
+        // the DB default and keeps coverage on by default.
+        setEmailNotifs(p?.email_notifications_enabled ?? true);
         setLoadingProfile(false);
       });
   }, [user, userLoading, router]);
@@ -96,6 +101,7 @@ export default function AccountPage() {
         display_name: displayName || null,
         rsi_handle: rsiHandle.trim() || null,
         discord_webhook_url: discordWebhook.trim() || null,
+        email_notifications_enabled: emailNotifs,
       })
       .eq("id", user.id);
     setBusy(false);
@@ -309,6 +315,40 @@ export default function AccountPage() {
                 date. We never request your RSI password.
               </div>
             </label>
+
+            {/* Email notifications — universal default, ON until the
+                user opts out. We use the email tied to your auth account
+                and never expose it to anyone you message with. */}
+            <div
+              style={{
+                padding: "12px 14px",
+                borderRadius: 6,
+                background: "rgba(77,217,255,0.04)",
+                border: "1px solid rgba(77,217,255,0.18)",
+              }}
+            >
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={emailNotifs}
+                  onChange={(e) => setEmailNotifs(e.target.checked)}
+                  style={{ accentColor: "var(--accent)", marginTop: 3 }}
+                />
+                <div>
+                  <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                    📧 Email me when someone messages me
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
+                    Sends a notification to{" "}
+                    <strong style={{ color: "var(--text)" }}>{user.email ?? "your account email"}</strong>{" "}
+                    whenever a buyer pings one of your listings or a citizen
+                    DMs you. <strong>Your email is never shared</strong> with
+                    the other party — they only see your CitizenDex display
+                    name.
+                  </div>
+                </div>
+              </label>
+            </div>
 
             <label>
               <div className="label-mini" style={{ marginBottom: 6 }}>

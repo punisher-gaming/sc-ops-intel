@@ -24,12 +24,14 @@ const COLS = `id, sender_id, recipient_id, body, context_listing_id, read_at, cr
   sender_name, sender_discord, sender_avatar,
   recipient_name, recipient_discord, recipient_avatar`;
 
-/** Result of sending a message — includes whether the Discord push
- *  actually landed so callers can show feedback. */
+/** Result of sending a message — includes whether each side-channel
+ *  actually landed so callers can show honest feedback. */
 export interface SendResult {
   message: DirectMessage;
-  /** true if the recipient had a webhook AND Discord accepted it. */
+  /** true if the recipient had a Discord webhook AND it accepted. */
   pushedToDiscord: boolean;
+  /** true if the recipient has email notifications on AND Resend accepted. */
+  pushedToEmail: boolean;
 }
 
 /** Insert a new DM, then best-effort push to the recipient's Discord
@@ -57,10 +59,11 @@ export async function sendMessage(opts: {
     .single();
   if (error) throw error;
 
-  // Best-effort Discord push — failures don't break the message send.
-  // We DO surface whether it landed via the returned `pushedToDiscord`
-  // flag so the UI can confirm or nudge.
+  // Best-effort fan-out to side channels (Discord + email). Failures
+  // don't break the message send — it's already in the inbox. The
+  // returned flags let the UI confirm or nudge the right channel.
   let pushedToDiscord = false;
+  let pushedToEmail = false;
   try {
     const res = await fetch(NOTIFY_USER_URL, {
       method: "POST",
@@ -73,13 +76,17 @@ export async function sendMessage(opts: {
         link: opts.link ?? null,
       }),
     });
-    const body = (await res.json().catch(() => ({}))) as { pushed?: boolean };
-    pushedToDiscord = Boolean(body.pushed);
+    const body = (await res.json().catch(() => ({}))) as {
+      pushedToDiscord?: boolean;
+      pushedToEmail?: boolean;
+    };
+    pushedToDiscord = Boolean(body.pushedToDiscord);
+    pushedToEmail = Boolean(body.pushedToEmail);
   } catch {
     /* ignore — message is already in the inbox */
   }
 
-  return { message: data as DirectMessage, pushedToDiscord };
+  return { message: data as DirectMessage, pushedToDiscord, pushedToEmail };
 }
 
 /** Mark every message in a thread (between current user and other user)

@@ -12,6 +12,7 @@ import {
   fetchBlueprint,
   fetchBlueprintIdsWithSources,
   fetchBlueprintMissionFamilies,
+  fetchBlueprintSystems,
   fetchBlueprints,
   fetchBlueprintSources,
   fetchBlueprintsThatYield,
@@ -26,6 +27,7 @@ import {
   uniqueValues,
   type Blueprint,
   type BlueprintSource,
+  type SystemName,
 } from "@/lib/blueprints";
 import { useUser } from "@/lib/supabase/hooks";
 import { tokenMatch } from "@/lib/search";
@@ -49,6 +51,11 @@ function BlueprintList() {
   const { user } = useUser();
   const [rows, setRows] = useState<Blueprint[] | null>(null);
   const [idsWithSources, setIdsWithSources] = useState<Set<string>>(new Set());
+  const [systems, setSystems] = useState<{
+    byBlueprint: Map<string, Set<SystemName>>;
+    systems: SystemName[];
+  }>({ byBlueprint: new Map(), systems: [] });
+  const [selectedSystem, setSelectedSystem] = useState<SystemName | "">("");
   const [missionFamilies, setMissionFamilies] = useState<{
     byBlueprint: Map<string, Set<string>>;
     families: string[];
@@ -91,6 +98,9 @@ function BlueprintList() {
       .catch(() => {});
     fetchBlueprintMissionFamilies()
       .then(setMissionFamilies)
+      .catch(() => {});
+    fetchBlueprintSystems()
+      .then(setSystems)
       .catch(() => {});
     fetchKnownDismantleMaterials()
       .then((ms) => setMaterials(ms.map((m) => ({ name: m.name, count: m.count }))))
@@ -211,6 +221,13 @@ function BlueprintList() {
         }
         if (!match) return false;
       }
+      if (selectedSystem) {
+        // System inferred from source_name/source_key keywords. If a
+        // blueprint has no system tags at all, hide it under a system
+        // filter (we have no signal it belongs there).
+        const sys = systems.byBlueprint.get(r.id);
+        if (!sys || !sys.has(selectedSystem)) return false;
+      }
       if (qLower) {
         const hay = `${displayName(r)} ${r.output_item_class ?? ""} ${r.output_item_type ?? ""} ${r.key}`;
         if (!tokenMatch(hay, qLower)) return false;
@@ -235,7 +252,7 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, selectedWeaponKinds, grade, yieldsMatchIds, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, systems, selectedSystem, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, selectedWeaponKinds, grade, yieldsMatchIds, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
@@ -280,6 +297,23 @@ function BlueprintList() {
             </option>
           ))}
         </select>
+        {/* Star system filter — inferred from source_name + source_key
+            keywords on blueprint_sources rows. "All systems" is the
+            default; picking one hides blueprints with no system tag. */}
+        {systems.systems.length > 0 && (
+          <select
+            value={selectedSystem}
+            onChange={(e) => setSelectedSystem(e.target.value as SystemName | "")}
+            className="select"
+            style={{ width: 160 }}
+            title="Show only blueprints obtainable in this star system"
+          >
+            <option value="">All systems</option>
+            {systems.systems.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        )}
         {/* Yields-this-material filter — derived from blueprint Dismantle.Returns.
             Counts in parens are blueprints known to yield each material. */}
         <select

@@ -10,6 +10,7 @@
 // resolve and forward.
 
 import { supabase, type Env } from "./supabase";
+import { sendEmail } from "./email";
 
 const ALLOWED_HOST = /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+/;
 
@@ -47,61 +48,85 @@ export async function handleNotifyUser(req: Request, env: Env): Promise<Response
     );
   }
 
-  // Look up recipient's webhook with service-role key.
+  // Look up recipient's webhook + email-notifications preference.
   const client = supabase(env);
-  const { data, error } = await client
+  const { data: profile, error: profileErr } = await client
     .from("profiles")
-    .select("discord_webhook_url")
+    .select("discord_webhook_url, email_notifications_enabled")
     .eq("id", recipientId)
     .maybeSingle();
-  if (error) {
-    return Response.json({ ok: false, error: error.message }, { status: 500, headers: CORS });
+  if (profileErr) {
+    return Response.json({ ok: false, error: profileErr.message }, { status: 500, headers: CORS });
   }
-  const webhookUrl = (data as { discord_webhook_url?: string | null } | null)?.discord_webhook_url;
-  if (!webhookUrl) {
-    // Recipient hasn't wired up notifications. Not an error — message is
-    // still in their inbox, so the caller can ignore.
-    return Response.json({ ok: true, pushed: false }, { headers: CORS });
-  }
-  if (!ALLOWED_HOST.test(webhookUrl)) {
-    return Response.json(
-      { ok: false, error: "stored webhook URL is not a Discord webhook" },
-      { status: 500, headers: CORS },
-    );
-  }
+  const prof = (profile ?? {}) as {
+    discord_webhook_url?: string | null;
+    email_notifications_enabled?: boolean | null;
+  };
+  const webhookUrl = prof.discord_webhook_url;
+  // Email defaults ON if the column doesn't exist yet on this row (legacy
+  // accounts without the migration applied to them).
+  const emailEnabled = prof.email_notifications_enabled !== false;
 
   const sender = (body.sender_name ?? "A CitizenDex user").slice(0, 60);
   const ctx = body.context_label ? ` (re: ${body.context_label.slice(0, 80)})` : "";
-  const link = body.link ? `\n${body.link}` : "";
-  const content =
-    `💬 **${sender}** sent you a message${ctx} on CitizenDex:\n` +
-    "```\n" +
-    message.slice(0, 1500) +
-    "\n```" +
-    link;
 
-  try {
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        username: "CitizenDex Messages",
-        content,
-        allowed_mentions: { parse: [] },
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      return Response.json(
-        { ok: false, error: `discord ${res.status}: ${text.slice(0, 200)}` },
-        { status: 502, headers: CORS },
-      );
+  // ── Discord push (if webhook configured) ──
+  let discordPushed = false;
+  if (webhookUrl && ALLOWED_HOST.test(webhookUrl)) {
+    const link = body.link ? `\n${body.link}` : "";
+    const content =
+      `💬 **${sender}** sent you a message${ctx} on CitizenDex:\n` +
+      "```\n" +
+      message.slice(0, 1500) +
+      "\n```" +
+      link;
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          username: "CitizenDex Messages",
+          content,
+          allowed_mentions: { parse: [] },
+        }),
+      });
+      discordPushed = res.ok;
+    } catch {
+      /* swallow — email path may still succeed */
     }
-    return Response.json({ ok: true, pushed: true }, { headers: CORS });
-  } catch (e) {
-    return Response.json(
-      { ok: false, error: (e as Error).message ?? String(e) },
-      { status: 502, headers: CORS },
-    );
   }
+
+  // ── Email push (if enabled and Resend configured) ──
+  let emailPushed = false;
+  if (emailEnabled && env.RESEND_API_KEY) {
+    // Look up the recipient's auth.users email via service-role.
+    const { data: authData, error: authErr } =
+      await client.auth.admin.getUserById(recipientId);
+    const email = !authErr ? authData?.user?.email ?? null : null;
+    if (email) {
+      const subject = `${sender} messaged you on CitizenDex${ctx}`;
+      const text =
+        `${sender} sent you a message on CitizenDex${ctx}:\n\n` +
+        `"${message}"\n\n` +
+        `Reply on the site — your email is private and was never shared.`;
+      const res = await sendEmail(env, {
+        to: email,
+        subject,
+        text,
+        link: body.link ?? "https://citizendex.com/inbox",
+        linkLabel: "Reply on CitizenDex →",
+      });
+      emailPushed = res.ok;
+    }
+  }
+
+  return Response.json(
+    {
+      ok: true,
+      pushed: discordPushed,           // back-compat alias
+      pushedToDiscord: discordPushed,
+      pushedToEmail: emailPushed,
+    },
+    { headers: CORS },
+  );
 }

@@ -105,10 +105,14 @@ function Inbox() {
       });
       setThread((prev) => (prev ? [...prev, res.message] : [res.message]));
       setBody("");
+      const channels = [
+        res.pushedToDiscord && "Discord",
+        res.pushedToEmail && "email",
+      ].filter(Boolean);
       setLastPushNote(
-        res.pushedToDiscord
-          ? "📡 Pushed to their Discord too"
-          : "💤 They don't have Discord notifications set up — they'll see this on next visit",
+        channels.length > 0
+          ? `📡 Also notified via ${channels.join(" + ")}`
+          : "💤 No outside notifications configured — they'll see this on next visit",
       );
       // Clear the push hint after a moment so it doesn't pile up.
       setTimeout(() => setLastPushNote(null), 6000);
@@ -127,8 +131,10 @@ function Inbox() {
         <div className="accent-label">Direct messages</div>
         <h1>Inbox</h1>
         <p>
-          In-site chat. Replies you send auto-push to the other person&apos;s
-          Discord if they&apos;ve set up notifications.
+          In-site chat. Messages you send auto-push to the other person&apos;s{" "}
+          <strong>email</strong> (default-on) and to their <strong>Discord</strong>{" "}
+          if they&apos;ve set up a webhook — so they&apos;ll see it even if
+          you&apos;re in different timezones.
         </p>
       </div>
 
@@ -335,6 +341,23 @@ function Inbox() {
                   {busy ? "Sending…" : "Send"}
                 </button>
               </form>
+              <div
+                style={{
+                  margin: "0 12px 12px",
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  background: "rgba(77,217,255,0.04)",
+                  border: "1px solid rgba(77,217,255,0.12)",
+                  fontSize: "0.72rem",
+                  color: "var(--text-muted)",
+                  lineHeight: 1.5,
+                }}
+              >
+                🔒 Your email is private — never shared with anyone you message.
+                Replies stay on CitizenDex. Don&apos;t paste personal contact info
+                in messages you wouldn&apos;t share publicly.
+              </div>
+
               {err && (
                 <div
                   style={{

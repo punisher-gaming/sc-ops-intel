@@ -166,6 +166,71 @@ export async function fetchBlueprintMissionFamilies(): Promise<{
   return { byBlueprint, families };
 }
 
+// Star system inference for blueprint sources. The catalog doesn't have
+// a clean "system" column — we infer it by scanning the source_name +
+// source_key strings for known system keywords. A blueprint can be
+// reachable in multiple systems (e.g. some content drops in both
+// Stanton + Pyro variants of an event), so we return a Set per blueprint.
+//
+// Add a system here once it goes live in-game (Nyx is planned, not yet
+// shipped — keeping it in the list so the filter is forward-compatible).
+const KNOWN_SYSTEMS = ["Stanton", "Pyro", "Nyx", "Castra", "Magnus"] as const;
+export type SystemName = (typeof KNOWN_SYSTEMS)[number];
+
+function systemsFromText(...parts: Array<string | null | undefined>): Set<SystemName> {
+  const blob = parts.filter(Boolean).join(" ").toLowerCase();
+  const out = new Set<SystemName>();
+  for (const sys of KNOWN_SYSTEMS) {
+    if (blob.includes(sys.toLowerCase())) out.add(sys);
+  }
+  // Special-case: scunpacked sometimes uses "stn"/"pyr" abbreviations
+  // in source_key fragments. Catch those too.
+  if (/\bstn[_\s]/i.test(blob) || /missionreward_stn/i.test(blob)) out.add("Stanton");
+  if (/\bpyr[_\s]/i.test(blob) || /missionreward_pyr/i.test(blob)) out.add("Pyro");
+  return out;
+}
+
+/** Returns blueprint_id → set of star systems where it can be obtained,
+ *  plus a sorted list of all systems present in the catalog. */
+export async function fetchBlueprintSystems(): Promise<{
+  byBlueprint: Map<string, Set<SystemName>>;
+  systems: SystemName[];
+}> {
+  const client = createClient();
+  const PAGE = 1000;
+  const byBlueprint = new Map<string, Set<SystemName>>();
+  const seen = new Set<SystemName>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("blueprint_sources")
+      .select("blueprint_id, source_key, source_name")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{
+      blueprint_id: string;
+      source_key: string | null;
+      source_name: string | null;
+    }>;
+    for (const r of rows) {
+      const sys = systemsFromText(r.source_key, r.source_name);
+      if (sys.size === 0) continue;
+      if (!byBlueprint.has(r.blueprint_id)) byBlueprint.set(r.blueprint_id, new Set());
+      const dst = byBlueprint.get(r.blueprint_id)!;
+      for (const s of sys) {
+        dst.add(s);
+        seen.add(s);
+      }
+    }
+    if (rows.length < PAGE) break;
+  }
+  // Sort: Stanton + Pyro first (they're the live systems), then alphabetical.
+  const systems = Array.from(seen).sort((a, b) => {
+    const order = (s: SystemName) => (s === "Stanton" ? 0 : s === "Pyro" ? 1 : 2);
+    return order(a) - order(b) || a.localeCompare(b);
+  });
+  return { byBlueprint, systems };
+}
+
 // Parse the armor/gear body-part out of output_item_class. Classes look like
 // "armor_light_helmet_01" or "behr_core_medium_01". We look for a short list
 // of known part names anywhere in the string.

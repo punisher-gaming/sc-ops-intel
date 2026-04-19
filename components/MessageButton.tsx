@@ -44,7 +44,8 @@ export function MessageButton({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
-  const [pushed, setPushed] = useState(false);
+  const [pushedDiscord, setPushedDiscord] = useState(false);
+  const [pushedEmail, setPushedEmail] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +62,8 @@ export function MessageButton({
         link: link ?? (typeof window !== "undefined" ? window.location.href : undefined),
       });
       setSent(true);
-      setPushed(res.pushedToDiscord);
+      setPushedDiscord(res.pushedToDiscord);
+      setPushedEmail(res.pushedToEmail);
       setBody("");
     } catch (e) {
       setErr((e as Error).message ?? String(e));
@@ -153,9 +155,17 @@ export function MessageButton({
                 >
                   ✓ Message saved to {recipientName}&apos;s inbox.
                   <br />
-                  {pushed
-                    ? <>📡 <strong>Also pushed to their Discord</strong> — they&apos;ll see it instantly.</>
-                    : <>💤 They haven&apos;t set up Discord notifications, so they&apos;ll only see it when they next visit CitizenDex.</>}
+                  {(pushedDiscord || pushedEmail) ? (
+                    <>
+                      📡 <strong>Notified via</strong>{" "}
+                      {[pushedDiscord && "Discord", pushedEmail && "email"]
+                        .filter(Boolean)
+                        .join(" + ")}{" "}
+                      — they&apos;ll see it instantly.
+                    </>
+                  ) : (
+                    <>💤 No outside notifications configured — they&apos;ll see it when they next visit CitizenDex.</>
+                  )}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" onClick={() => setSent(false)} className="btn btn-secondary">
@@ -178,9 +188,21 @@ export function MessageButton({
                   autoFocus
                   className="textarea"
                 />
-                <div className="label-mini">
-                  Sent to <strong>{recipientName}&apos;s</strong> CitizenDex inbox.
-                  Pushed to their Discord too if they&apos;ve set up notifications.
+                <div
+                  style={{
+                    padding: "8px 10px",
+                    borderRadius: 6,
+                    background: "rgba(77,217,255,0.05)",
+                    border: "1px solid rgba(77,217,255,0.15)",
+                    fontSize: "0.76rem",
+                    color: "var(--text-muted)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  🔒 <strong>Your email stays private.</strong> {recipientName}{" "}
+                  will see your CitizenDex display name and the message text —
+                  never your email address. Don&apos;t paste personal contact
+                  info you wouldn&apos;t normally share.
                 </div>
 
                 {err && (

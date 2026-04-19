@@ -175,20 +175,16 @@ export default function NewListingPage() {
             }}
           >
             <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--warn)", marginBottom: 6 }}>
-              ⚠ How will buyers reach you?
+              📨 How buyers will reach you
             </div>
             <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              Buyers can <strong>always</strong> hit a &quot;💬 Message on CitizenDex&quot;
-              button on your listing — it lands in your{" "}
-              <Link href="/inbox" style={{ color: "var(--accent)" }}>inbox</Link>{" "}
-              (bell at top-right) within seconds.{" "}
-              <strong>For instant Discord pings,</strong> set up a one-time
-              webhook on your{" "}
-              <Link href="/account" style={{ color: "var(--accent)" }}>
-                account page
-              </Link>.{" "}
-              No Discord server you control? Make a private one in 30 seconds
-              — the account page walks you through it click-by-click.
+              Three channels, ranked by how instant they are:{" "}
+              <strong>Discord</strong> (set up a one-time webhook on your{" "}
+              <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>),{" "}
+              <strong>Email</strong> (default-on, sent to your account email),
+              and the in-site <strong>Inbox</strong> (always works, bell at
+              top-right). No Discord server of your own? Make a private one in
+              30 seconds — the account page walks you through it.
             </div>
           </div>
         )}
