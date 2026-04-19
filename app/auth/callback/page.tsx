@@ -57,9 +57,16 @@ export default function AuthCallback() {
           setStatus("Sign-in didn't complete. Try again.");
         }, 5000);
       } catch (e) {
-        setStatus(
-          `Sign-in failed: ${(e as Error).message ?? String(e)}. Try again.`,
-        );
+        // Detect the BEFORE INSERT trigger that blocks specific Discord IDs.
+        // The trigger raises an exception with the prefix "BLOCKED_DISCORD_USER:"
+        // which Supabase passes through unchanged. Anyone hitting that gets
+        // routed to the dramatic glitch page instead of a generic error.
+        const msg = (e as Error).message ?? String(e);
+        if (/BLOCKED_DISCORD_USER|blocked_discord_ids|database error/i.test(msg)) {
+          router.replace("/access-denied");
+          return;
+        }
+        setStatus(`Sign-in failed: ${msg}. Try again.`);
       }
     })();
   }, [router]);
