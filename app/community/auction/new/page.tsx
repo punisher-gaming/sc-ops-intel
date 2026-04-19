@@ -220,7 +220,7 @@ export default function NewListingPage() {
             />
           </Field>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
             <Field label="Quantity">
               <input
                 type="number"
@@ -241,18 +241,6 @@ export default function NewListingPage() {
                   <option key={u} value={u}>{UNIT_LABELS[u]}</option>
                 ))}
               </select>
-            </Field>
-            <Field label={`${LISTING_TYPE_LABELS[listingType].priceLabel} *`}>
-              <input
-                type="number"
-                min={0}
-                step={1}
-                required
-                value={priceAmount}
-                onChange={(e) => setPriceAmount(parseFloat(e.target.value) || 0)}
-                placeholder="500000"
-                className="input"
-              />
             </Field>
           </div>
 
@@ -276,23 +264,42 @@ export default function NewListingPage() {
             </Field>
           )}
 
-          <Field label="Currency *">
-            <select
-              value={priceCurrency}
-              onChange={(e) => setPriceCurrency(e.target.value)}
-              className="select"
-            >
-              {grouped.auec.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-              {Array.from(grouped.byKind.entries()).map(([kind, opts]) => (
-                <optgroup key={kind} label={kind}>
-                  {opts.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+          {/* Price + currency live side-by-side: filling in "500000"
+              followed by "aUEC" reads naturally as a single phrase. */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
+            <Field label={`${LISTING_TYPE_LABELS[listingType].priceLabel} *`}>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                required
+                value={priceAmount}
+                onChange={(e) => setPriceAmount(parseFloat(e.target.value) || 0)}
+                placeholder="500000"
+                className="input"
+              />
+            </Field>
+            <Field label="Currency *">
+              <select
+                value={priceCurrency}
+                onChange={(e) => setPriceCurrency(e.target.value)}
+                className="select"
+              >
+                {grouped.auec.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+                {Array.from(grouped.byKind.entries()).map(([kind, opts]) => (
+                  <optgroup key={kind} label={kind}>
+                    {opts.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div>
             {priceCurrency === "Custom" && (
               <input
                 value={customCurrency}
@@ -310,7 +317,7 @@ export default function NewListingPage() {
                 ? "Whatever you type here will appear on the listing as the payment unit."
                 : `Buyer pays in ${priceCurrency} — typically traded at a refinery, trade location, or NPC.`}
             </div>
-          </Field>
+          </div>
 
           <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.9rem", color: "var(--text-muted)" }}>
             <input
