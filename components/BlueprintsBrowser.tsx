@@ -70,6 +70,10 @@ function BlueprintList() {
   const [yieldsLoading, setYieldsLoading] = useState(false);
   const [onlyObtainable, setOnlyObtainable] = useState(false);
   const [hideOwned, setHideOwned] = useState(false);
+  // Inverse of hideOwned — narrow the list to ONLY blueprints the user has
+  // marked owned. Mutually exclusive with hideOwned (toggling one auto-clears
+  // the other below) since you can't both show only owned and hide owned.
+  const [onlyOwned, setOnlyOwned] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
@@ -170,6 +174,7 @@ function BlueprintList() {
       if (grade && r.output_grade !== grade) return false;
       if (yieldsMatchIds && !yieldsMatchIds.has(r.id)) return false;
       if (hideOwned && owned.has(r.id)) return false;
+      if (onlyOwned && !owned.has(r.id)) return false;
       if (onlyObtainable) {
         const hasSource = idsWithSources.has(r.id);
         const isDefault = r.available_by_default === true;
@@ -211,11 +216,11 @@ function BlueprintList() {
       return String(av).localeCompare(String(bv)) * mul;
     });
     return out;
-  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMatchIds, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [rows, idsWithSources, missionFamilies, owned, q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMatchIds, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
 
   useEffect(() => {
     setPage(0);
-  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMaterial, onlyObtainable, hideOwned, sortKey, sortDir]);
+  }, [q, selectedTypes, selectedSubtypes, selectedBodyParts, selectedFamilies, grade, yieldsMaterial, onlyObtainable, hideOwned, onlyOwned, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -328,13 +333,28 @@ function BlueprintList() {
           count={rows ? rows.filter((r) => idsWithSources.has(r.id) || r.available_by_default).length : null}
         />
         {user && (
-          <ToggleChip
-            label="Hide owned"
-            checked={hideOwned}
-            onChange={setHideOwned}
-            count={owned.size > 0 ? owned.size : null}
-            countLabel="owned"
-          />
+          <>
+            <ToggleChip
+              label="Only show mine"
+              checked={onlyOwned}
+              onChange={(v) => {
+                setOnlyOwned(v);
+                if (v) setHideOwned(false); // Mutually exclusive with hideOwned
+              }}
+              count={owned.size > 0 ? owned.size : null}
+              countLabel="owned"
+            />
+            <ToggleChip
+              label="Hide owned"
+              checked={hideOwned}
+              onChange={(v) => {
+                setHideOwned(v);
+                if (v) setOnlyOwned(false);
+              }}
+              count={owned.size > 0 ? owned.size : null}
+              countLabel="owned"
+            />
+          </>
         )}
       </div>
 
