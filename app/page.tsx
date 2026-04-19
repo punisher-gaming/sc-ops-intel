@@ -34,7 +34,13 @@ export default function LandingPage() {
                   letterSpacing: "0.32em",
                   fontWeight: 700,
                   padding: "0.4em 0.6em",
-                  textAlign: "center",  // center both lines when it wraps
+                  textAlign: "center",
+                  // CSS letter-spacing adds trailing space after the LAST
+                  // character on each line too. Without compensation, the
+                  // text-align:center math sees a wider box than the visible
+                  // glyphs and the line appears shifted left. text-indent
+                  // matching the letter-spacing cancels that out.
+                  textIndent: "0.32em",
                 }}
               >
                 THE STAR CITIZEN <span className="accent">//</span> DATABASE
