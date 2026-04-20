@@ -551,6 +551,34 @@ export function extractWeaponStats(w: Item): WeaponStats {
   };
 }
 
+/** Walk ResourceNetwork.States[].Deltas[] and sum the Rate of every
+ *  Delta whose Type=="Generation" and Resource matches the given
+ *  resource name. Used as a fallback when ResourceNetwork.Generation
+ *  doesn't have the expected field directly. */
+function sumGenerationByType(root: unknown, resource: string): number {
+  let total = 0;
+  function walk(node: unknown, depth: number) {
+    if (node == null || depth < 0) return;
+    if (Array.isArray(node)) {
+      for (const v of node) walk(v, depth - 1);
+      return;
+    }
+    if (typeof node !== "object") return;
+    const obj = node as Record<string, unknown>;
+    if (
+      obj.Type === "Generation" &&
+      typeof obj.Resource === "string" &&
+      obj.Resource.toLowerCase() === resource.toLowerCase()
+    ) {
+      const r = num(obj.Rate);
+      if (r != null) total += r;
+    }
+    for (const v of Object.values(obj)) walk(v, depth - 1);
+  }
+  walk(root, 12);
+  return total;
+}
+
 // ── COMPONENT EXTRACTION ─────────────────────────────────────────────
 
 export interface ComponentStats {
@@ -603,46 +631,53 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
     primaryLabel = "Max HP";
     secondaryLabel = "Regen/s";
   } else if (category === "powerplant") {
-    // Power plant: PowerPlant.PowerDraw is what it generates (game terminology
-    // is confusing — the "draw" here is the OUTPUT). Sometimes labeled
-    // PowerOutput or MaxOutput.
-    const pp = stdItem.PowerPlant as Record<string, unknown> | undefined;
-    primary =
-      num(pp?.PowerDraw) ??
-      num(pp?.PowerOutput) ??
-      num(pp?.MaxOutput) ??
-      findFirstNumber(sd, (k) => /^(PowerOutput|MaxOutput|PowerDraw)$/i.test(k));
-    secondary =
-      num(pp?.PowerToEM) ??
-      findFirstNumber(sd, (k) => /^(PowerToEM|EMSignature|EMRating)$/i.test(k));
+    // Power plant output lives in stdItem.ResourceNetwork.Generation.Power
+    // (it's the same value also reflected in States[0].Deltas where
+    // Type="Generation" — but Generation.Power is the cleanest path).
+    // EM signature comes from stdItem.Emission.Em.Maximum.
+    const network = stdItem.ResourceNetwork as Record<string, unknown> | undefined;
+    const generation = network?.Generation as Record<string, unknown> | undefined;
+    primary = num(generation?.Power);
+    if (primary == null) {
+      primary = sumGenerationByType(sd, "Power");
+    }
+    const emission = stdItem.Emission as Record<string, unknown> | undefined;
+    const em = emission?.Em as Record<string, unknown> | undefined;
+    secondary = num(em?.Maximum);
     primaryLabel = "Output";
     secondaryLabel = "EM sig";
   } else if (category === "cooler") {
-    const c = stdItem.Cooler as Record<string, unknown> | undefined;
-    primary =
-      num(c?.CoolingRate) ??
-      findFirstNumber(sd, (k) => /^(CoolingRate|MaxCooling|CoolRate)$/i.test(k));
-    secondary =
-      num(c?.SuppressionFactor) ??
-      findFirstNumber(sd, (k) => /^(IRSignature|SuppressionFactor)$/i.test(k));
+    // Coolers follow the same ResourceNetwork.Generation pattern but
+    // generate "Coolant" instead of "Power".
+    const network = stdItem.ResourceNetwork as Record<string, unknown> | undefined;
+    const generation = network?.Generation as Record<string, unknown> | undefined;
+    primary = num(generation?.Coolant) ?? num(generation?.Cooling);
+    if (primary == null) {
+      primary = sumGenerationByType(sd, "Coolant") || sumGenerationByType(sd, "Cooling");
+      if (primary === 0) primary = null;
+    }
+    // IR sig — if present.
+    const emission = stdItem.Emission as Record<string, unknown> | undefined;
+    secondary = num(emission?.Ir);
     primaryLabel = "Cooling";
     secondaryLabel = "IR sig";
   } else if (category === "quantum") {
+    // Quantum drive: stdItem.QuantumDrive has the live block. Look for
+    // JumpRange, DriveSpeed (m/s during jump), and SpoolUpTime.
     const q = stdItem.QuantumDrive as Record<string, unknown> | undefined;
     primary =
       num(q?.JumpRange) ??
       num(q?.MaxRange) ??
-      findFirstNumber(sd, (k) => /^(JumpRange|MaxRange|Range)$/i.test(k));
-    // Sanity guard: scunpacked stores FLT_MAX (~3.4e38) as a "no max"
-    // sentinel for a few fields. Treat anything implausibly huge as null.
+      // QuantumDrive in newer dumps puts the range under .Performance or similar
+      findFirstNumber(sd, (k) => /^(JumpRange|MaxRange)$/i.test(k));
+    // Sentinel guard.
     if (primary != null && primary > 1e15) primary = null;
-    // Convert m to km if the value is in raw meters (game sometimes stores
-    // jump distances in m). 100_000 km is a sane upper-bound for a drive.
+    // Range stored in m by some dumps — convert to km.
     if (primary != null && primary > 100_000_000) primary = primary / 1000;
     secondary =
       num(q?.DriveSpeed) ??
       num(q?.QuantumSpeed) ??
-      findFirstNumber(sd, (k) => /^(DriveSpeed|QuantumSpeed|Speed)$/i.test(k));
+      findFirstNumber(sd, (k) => /^(DriveSpeed|QuantumSpeed)$/i.test(k));
     if (secondary != null && secondary > 1e15) secondary = null;
     primaryLabel = "Range";
     secondaryLabel = "Speed";
