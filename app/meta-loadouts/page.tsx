@@ -11,9 +11,9 @@ import {
   SHIP_HARDPOINTS,
   computeLoadout,
   extractWeaponStats,
+  fetchAllShipDefs,
   fetchComponentCandidates,
   fetchShipWeaponCandidates,
-  shipDefByName,
   type ComponentCategory,
   type ComponentStats,
   type LoadoutResult,
@@ -50,6 +50,18 @@ function MetaLoadouts() {
   const [components, setComponents] = useState<Map<ComponentCategory, ComponentStats[]> | null>(null);
   const [rawSamples, setRawSamples] = useState<Array<{ name: string; size: number; sd: unknown }>>([]);
   const [err, setErr] = useState<string | null>(null);
+  // All ships with hardpoint/component data — pulled from
+  // ships.ship_loadout (ingested from scunpacked-data). Falls back to
+  // SHIP_HARDPOINTS if the DB is empty (pre-ingest).
+  const [allShips, setAllShips] = useState<ShipLoadoutDef[]>(SHIP_HARDPOINTS);
+  useEffect(() => {
+    fetchAllShipDefs().then((dbShips) => {
+      if (dbShips.length > 0) setAllShips(dbShips);
+    });
+  }, []);
+
+  // Find the currently-selected ship in our merged list.
+  const ship = allShips.find((s) => s.shipName.toLowerCase() === shipName.toLowerCase()) ?? allShips[0];
 
   useEffect(() => {
     fetchShipWeaponCandidates()
@@ -98,7 +110,6 @@ function MetaLoadouts() {
     }
   }, [debug]);
 
-  const ship = shipDefByName(shipName) ?? SHIP_HARDPOINTS[0];
   const profile = PROFILES.find((p) => p.key === profileKey)!;
   const loadout: LoadoutResult | null = useMemo(() => {
     if (!weapons) return null;
@@ -133,10 +144,10 @@ function MetaLoadouts() {
           lineHeight: 1.55,
         }}
       >
-        🛠 <strong>{SHIP_HARDPOINTS.length} ships covered in v1</strong> — the
-        most-played fighters and multicrew picks. Adding more each week as we
-        ingest hardpoint data from <a href="https://erkul.games" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>erkul.games</a> and the SC Wiki. Ship not in
-        the picker yet? Drop us a note in <Link href="/community" style={{ color: "var(--accent)" }}>Community</Link>.
+        🛠 <strong>{allShips.length} ships covered</strong> — every flyable
+        hull with swappable hardpoints, hardpoint configs ingested from
+        scunpacked-data and re-synced each patch. Ship looking weird?
+        Drop us a note in <Link href="/community" style={{ color: "var(--accent)" }}>Community</Link>.
       </div>
 
       {/* Ship + profile picker */}
@@ -155,8 +166,8 @@ function MetaLoadouts() {
             onChange={(e) => setShipName(e.target.value)}
             className="select"
           >
-            {SHIP_HARDPOINTS.map((s) => (
-              <option key={s.shipName} value={s.shipName}>
+            {allShips.map((s) => (
+              <option key={`${s.manufacturer}-${s.shipName}`} value={s.shipName}>
                 {s.manufacturer} {s.shipName}
               </option>
             ))}

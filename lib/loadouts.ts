@@ -318,6 +318,60 @@ export function shipDefByName(name: string): ShipLoadoutDef | null {
   return SHIP_HARDPOINTS.find((s) => s.shipName.toLowerCase() === lower) ?? null;
 }
 
+/** Ship def as stored in the ships.ship_loadout column (populated by
+ *  scripts/ingest-ship-loadouts.mjs). Includes manufacturer/blurb
+ *  re-derived from the joined ships row at fetch time. */
+export interface DbShipDef extends ShipLoadoutDef {
+  shipId: string;
+}
+
+/** Pull every ship that has a ship_loadout populated. Used by the
+ *  /meta-loadouts picker to surface every flyable hull (not just the
+ *  hand-curated SHIP_HARDPOINTS). */
+export async function fetchAllShipDefs(): Promise<DbShipDef[]> {
+  const client = createClient();
+  const PAGE = 500;
+  const out: DbShipDef[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("ships")
+      .select("id, name, manufacturer, role, ship_loadout")
+      .not("ship_loadout", "is", null)
+      .order("name", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{
+      id: string;
+      name: string;
+      manufacturer: string | null;
+      role: string | null;
+      ship_loadout: { hardpoints?: Hardpoint[]; components?: ComponentSlot[] } | null;
+    }>;
+    for (const r of rows) {
+      const ld = r.ship_loadout ?? {};
+      const hardpoints = (ld.hardpoints ?? []).filter(
+        (h) => h.size >= 1 && h.size <= 9,
+      );
+      const components = (ld.components ?? []).filter(
+        (c) => c.size >= 1 && c.size <= 9,
+      );
+      // Skip ships with NO interesting slots (NPC ships, internal-only
+      // ports). They're not useful for the picker.
+      if (hardpoints.length === 0 && components.length === 0) continue;
+      out.push({
+        shipId: r.id,
+        shipName: r.name,
+        manufacturer: r.manufacturer ?? "Unknown",
+        blurb: r.role ?? "",
+        hardpoints,
+        components,
+      });
+    }
+    if (rows.length < PAGE) break;
+  }
+  return out;
+}
+
 // ── WEAPON STAT EXTRACTION ───────────────────────────────────────────
 
 export interface WeaponStats {
