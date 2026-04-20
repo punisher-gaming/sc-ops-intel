@@ -538,6 +538,163 @@ function ShipPicker({
 
 type MetricKey = "dps" | "alpha" | "shield" | "hull" | "armor" | "ehpEnergy" | "ehpBallistic";
 
+/** Multi-select category picker with an "All" toggle. Renders as a
+ *  styled button that opens a checkbox panel; mirrors the look of the
+ *  existing native <select> so the row of pickers stays visually
+ *  consistent. */
+function MultiCategoryPicker({
+  categories,
+  selected,
+  allSelected,
+  onChange,
+}: {
+  categories: { cat: string; count: number }[];
+  selected: Set<string>;
+  allSelected: boolean;
+  onChange: (next: Set<string>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  // Close on outside click.
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  function toggle(cat: string) {
+    const next = new Set(selected);
+    if (next.has(cat)) next.delete(cat);
+    else next.add(cat);
+    onChange(next);
+  }
+  function selectAll() {
+    onChange(new Set()); // empty set = "All" sentinel
+  }
+  function clearAll() {
+    // Pick the largest single category as a "must have something" default
+    // so the table doesn't go empty (which would be confusing).
+    onChange(new Set([categories[0].cat]));
+  }
+
+  // Summary text shown on the closed button.
+  const summary = allSelected
+    ? `All categories (${categories.length})`
+    : selected.size === 1
+      ? Array.from(selected)[0]
+      : `${selected.size} selected`;
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <button
+        type="button"
+        className="select"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {summary}
+        </span>
+        <span style={{ color: "var(--text-dim)", fontSize: "0.7rem" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-multiselectable="true"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: "#0a0e16",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+            padding: 4,
+            maxHeight: 360,
+            overflowY: "auto",
+          }}
+        >
+          {/* All toggle row */}
+          <button
+            type="button"
+            onClick={() => (allSelected ? clearAll() : selectAll())}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "8px 12px",
+              background: allSelected ? "rgba(77,217,255,0.10)" : "transparent",
+              border: "none",
+              borderRadius: 4,
+              color: "var(--accent)",
+              fontSize: "0.88rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ width: 14, display: "inline-block" }}>{allSelected ? "✓" : ""}</span>
+            All categories
+            <span style={{ marginLeft: "auto", color: "var(--text-dim)", fontSize: "0.78rem", fontWeight: 400 }}>
+              {categories.reduce((sum, c) => sum + c.count, 0)}
+            </span>
+          </button>
+          <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
+          {categories.map(({ cat, count }) => {
+            const isOn = !allSelected && selected.has(cat);
+            return (
+              <button
+                key={cat}
+                type="button"
+                role="option"
+                aria-selected={isOn}
+                onClick={() => toggle(cat)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  width: "100%",
+                  padding: "6px 12px",
+                  background: isOn ? "rgba(77,217,255,0.08)" : "transparent",
+                  border: "none",
+                  borderRadius: 4,
+                  color: isOn ? "var(--accent)" : "var(--text)",
+                  fontSize: "0.86rem",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ width: 14, display: "inline-block" }}>{isOn ? "✓" : ""}</span>
+                {cat}
+                <span style={{ marginLeft: "auto", color: "var(--text-dim)", fontSize: "0.76rem" }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Right-aligned column header with a hover-explain tooltip. Uses the
  *  same ItemHover system as weapon/component names so the UX matches. */
 function ColHeader({ label, desc }: { label: string; desc: string }) {
@@ -581,22 +738,39 @@ function CategoryRankings({
       .map(([cat, count]) => ({ cat, count }));
   }, [ships]);
 
-  const [category, setCategory] = useState<string>(() => categories[0]?.cat ?? "");
+  // Multi-select: empty Set means "no filter" → All categories.
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(() => new Set());
   const [metric, setMetric] = useState<MetricKey>("dps");
   const [profileKey, setProfileKey] = useState<ProfileDef["key"]>("max_dps");
 
-  // Default the category to whichever has the most ships once loaded.
+  // Default to the largest category once loaded (matches the previous
+  // single-select default so the page doesn't flood users with 250 ships
+  // on first paint).
   useEffect(() => {
-    if (!category && categories.length > 0) {
-      setCategory(categories[0].cat);
+    if (selectedCats.size === 0 && categories.length > 0) {
+      setSelectedCats(new Set([categories[0].cat]));
     }
-  }, [categories, category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories.length]);
 
   const profile = PROFILES.find((p) => p.key === profileKey)!;
+  const allSelected = selectedCats.size === 0 || selectedCats.size === categories.length;
+
+  // Stable signature of the current selection — used as a React key
+  // prefix so switching filter remounts rows cleanly (avoids stale
+  // DOM nodes when the row set changes).
+  const selectionSig = useMemo(
+    () => (allSelected ? "__all__" : Array.from(selectedCats).sort().join("|")),
+    [allSelected, selectedCats],
+  );
 
   const ranked = useMemo(() => {
-    if (!category) return [];
-    const inCat = ships.filter((s) => normalizeCategory(s.blurb) === category);
+    if (categories.length === 0) return [];
+    const inCat = ships.filter((s) => {
+      const cat = normalizeCategory(s.blurb);
+      if (!cat) return false;
+      return allSelected || selectedCats.has(cat);
+    });
     const rows = inCat.map((s) => {
       const r = computeLoadout(s, profile, weapons, components);
       return {
@@ -613,36 +787,49 @@ function CategoryRankings({
     });
     rows.sort((a, b) => (b[metric] ?? 0) - (a[metric] ?? 0));
     return rows;
-  }, [ships, category, weapons, components, profile, metric]);
+  }, [ships, categories.length, allSelected, selectedCats, weapons, components, profile, metric]);
 
   if (categories.length === 0) return null;
+
+  // Friendly title — collapses to "ships" / "[Cat]" / "[Cat] + [Cat]" /
+  // "X categories" depending on selection.
+  const titleSubject = allSelected
+    ? "ships across all categories"
+    : selectedCats.size === 1
+      ? Array.from(selectedCats)[0]
+      : selectedCats.size <= 3
+        ? Array.from(selectedCats).sort().join(" + ")
+        : `${selectedCats.size} categories`;
 
   return (
     <div className="card" style={{ padding: "1.5rem", marginTop: 24 }}>
       <div className="accent-label">🏆 Category rankings</div>
       <h2 style={{ margin: "4px 0 12px", fontSize: "1.4rem" }}>
-        Best {category || "ships"} by metric
+        Best {titleSubject} by metric
       </h2>
       <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: 16, lineHeight: 1.6 }}>
-        Computes the full math-optimal loadout for every ship in this category
-        and ranks them. Click any ship to load its loadout above.
+        Computes the full math-optimal loadout for every ship in your selected
+        categories and ranks them. Tick multiple categories to compare across
+        roles, or pick &ldquo;All&rdquo; to rank every flyable hull. Click any
+        ship to load its loadout above.
       </p>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 12,
           marginBottom: 16,
         }}
       >
         <div>
           <div className="label-mini" style={{ marginBottom: 6 }}>Category</div>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="select">
-            {categories.map(({ cat, count }) => (
-              <option key={cat} value={cat}>{cat} ({count})</option>
-            ))}
-          </select>
+          <MultiCategoryPicker
+            categories={categories}
+            selected={selectedCats}
+            allSelected={allSelected}
+            onChange={setSelectedCats}
+          />
         </div>
         <div>
           <div className="label-mini" style={{ marginBottom: 6 }}>Build profile</div>
@@ -692,7 +879,7 @@ function CategoryRankings({
           <tbody>
             {ranked.slice(0, 30).map((r, i) => (
               <tr
-                key={`${category}::${r.ship.shipName.toLowerCase()}`}
+                key={`${selectionSig}::${r.ship.shipName.toLowerCase()}`}
                 onClick={() => onPick(r.ship.shipName)}
                 style={{
                   borderBottom: "1px solid rgba(255,255,255,0.04)",
