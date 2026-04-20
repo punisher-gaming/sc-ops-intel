@@ -53,7 +53,7 @@ export default function LandingPage() {
           </p>
           <p className="tagline">
             The Star Citizen database. Blueprints, resources, crafting
-            recipes, commodities, ships — auto-synced every patch. Save notes.
+            recipes, commodities, ships, auto-synced every patch. Save notes.
             Track your fleet. Trade intel.
           </p>
           <div className="cta-row">
@@ -163,12 +163,12 @@ export default function LandingPage() {
             <FeatureCard
               href="/community/auction"
               title="⚖ Auction House"
-              body="User-to-user marketplace. WTS or WTB, pay in aUEC or any commodity. Discord pings when buyers bite. No real money — ever."
+              body="User-to-user marketplace. WTS or WTB, pay in aUEC or any commodity. Discord pings when buyers bite. No real money, ever."
             />
             <FeatureCard
               href="/ai"
               title="🤖 AI Assistant"
-              body="Ask anything in plain English. Backed by our live catalog plus Star Citizen Wiki — answers in 2–3 seconds."
+              body="Ask anything in plain English. Backed by our live catalog plus Star Citizen Wiki. Answers in 2–3 seconds."
             />
           </div>
         </section>
@@ -193,7 +193,7 @@ export default function LandingPage() {
               <StatusLine state="done" label="AI assistant" detail="Plain-English Q&A backed by our catalog + Star Citizen Wiki, powered by Cloudflare Workers AI" />
               <StatusLine state="done" label="Lore Chronicle" detail="32-page comic-book history of the Verse with sticky timeline + cinematic page-flip" />
               <StatusLine state="done" label="Site music" detail="Moderator-uploaded tracks, floating player on every page" />
-              <StatusLine state="done" label="Hangar Import" detail="Hangarlink JSON drop-in — auto-matches your fleet to our ship catalog" />
+              <StatusLine state="done" label="Hangar Import" detail="Hangarlink JSON drop-in, auto-matches your fleet to our ship catalog" />
             </ul>
           </div>
         </section>
@@ -202,7 +202,7 @@ export default function LandingPage() {
         <StaffCredits />
       </main>
       <footer className="site-footer">
-        <div>CITIZENDEX · Unofficial — no affiliation with CIG</div>
+        <div>CITIZENDEX · Unofficial, no affiliation with CIG</div>
         <div style={{ marginTop: 4, fontSize: "0.72rem", color: "var(--text-dim)" }}>
           Hosted by <strong>Punisher Gaming</strong>
         </div>
