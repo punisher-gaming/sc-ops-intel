@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
+import { createClient as supabase } from "@/lib/supabase/client";
 import {
   PROFILES,
   SHIP_HARDPOINTS,
@@ -69,23 +70,30 @@ function MetaLoadouts() {
       .then(setComponents)
       .catch(() => { /* leave components null — UI handles gracefully */ });
 
-    // Component debug — fetch raw items separately so we keep the
-    // un-extracted source_data for inspection.
+    // Component debug — fetch raw rows from the components table for
+    // inspection. Pulls a wide variety of types and sizes so we have
+    // good schema coverage to work from.
     if (debug) {
-      import("@/lib/supabase/client").then(({ createClient }) => {
-        const c = createClient();
-        c.from("components")
-          .select("name, size, type, source_data")
-          .in("type", ["Shield", "PowerPlant", "Cooler", "QuantumDrive"])
-          .gte("size", 1)
-          .lte("size", 3)
-          .limit(4)
-          .then(({ data }) => {
-            const extras = ((data ?? []) as Array<{ name: string; size: number; type: string; source_data: unknown }>)
-              .map((r) => ({ name: `${r.type}: ${r.name}`, size: r.size, sd: r.source_data }));
-            setRawSamples((cur) => [...cur, ...extras]);
-          });
-      });
+      const c = supabase();
+      c.from("components")
+        .select("name, size, type, source_data")
+        .gte("size", 1)
+        .lte("size", 3)
+        .limit(8)
+        .then(({ data, error }) => {
+          if (error) {
+            console.warn("[meta-loadouts debug] components fetch failed:", error);
+            return;
+          }
+          const extras = ((data ?? []) as Array<{ name: string; size: number; type: string | null; source_data: unknown }>)
+            .map((r) => ({
+              name: `${r.type ?? "Component"}: ${r.name}`,
+              size: r.size,
+              sd: r.source_data,
+            }));
+          console.log("[meta-loadouts debug] component samples:", extras.length);
+          setRawSamples((cur) => [...cur, ...extras]);
+        });
     }
   }, [debug]);
 
