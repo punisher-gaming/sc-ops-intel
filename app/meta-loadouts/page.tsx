@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { createClient as supabase } from "@/lib/supabase/client";
@@ -60,8 +60,16 @@ function MetaLoadouts() {
     });
   }, []);
 
+  // Sort the picker list: manufacturer A→Z, then ship name A→Z within each.
+  const sortedShips = useMemo(() => {
+    return [...allShips].sort((a, b) => {
+      const m = (a.manufacturer || "").localeCompare(b.manufacturer || "");
+      return m !== 0 ? m : a.shipName.localeCompare(b.shipName);
+    });
+  }, [allShips]);
+
   // Find the currently-selected ship in our merged list.
-  const ship = allShips.find((s) => s.shipName.toLowerCase() === shipName.toLowerCase()) ?? allShips[0];
+  const ship = sortedShips.find((s) => s.shipName.toLowerCase() === shipName.toLowerCase()) ?? sortedShips[0];
 
   useEffect(() => {
     fetchShipWeaponCandidates()
@@ -161,17 +169,11 @@ function MetaLoadouts() {
       >
         <div>
           <div className="label-mini" style={{ marginBottom: 6 }}>Ship</div>
-          <select
+          <ShipPicker
+            ships={sortedShips}
             value={shipName}
-            onChange={(e) => setShipName(e.target.value)}
-            className="select"
-          >
-            {allShips.map((s) => (
-              <option key={`${s.manufacturer}-${s.shipName}`} value={s.shipName}>
-                {s.manufacturer} {s.shipName}
-              </option>
-            ))}
-          </select>
+            onChange={setShipName}
+          />
           <div className="label-mini" style={{ marginTop: 6, color: "var(--text-muted)", textTransform: "none", letterSpacing: 0, fontSize: "0.78rem" }}>
             {ship.blurb}
           </div>
@@ -281,6 +283,202 @@ function MetaLoadouts() {
         <a href="https://erkul.games" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>erkul.games</a>{" "}
         remains the gold standard.
       </p>
+    </div>
+  );
+}
+
+/** Searchable ship picker — text input + filtered dropdown grouped by
+ *  manufacturer. Click an option to select; arrow keys + Enter to
+ *  navigate; Esc closes. */
+function ShipPicker({
+  ships,
+  value,
+  onChange,
+}: {
+  ships: ShipLoadoutDef[];
+  value: string;
+  onChange: (s: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Filter as user types — match against "Manufacturer ShipName".
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return ships;
+    return ships.filter((s) =>
+      `${s.manufacturer} ${s.shipName}`.toLowerCase().includes(q),
+    );
+  }, [ships, query]);
+
+  // Group by manufacturer for visual scanning.
+  const grouped = useMemo(() => {
+    const map = new Map<string, ShipLoadoutDef[]>();
+    for (const s of filtered) {
+      const key = s.manufacturer || "—";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(s);
+    }
+    return map;
+  }, [filtered]);
+
+  // Clamp highlight when filter changes.
+  useEffect(() => {
+    setHighlight((h) => Math.min(h, Math.max(0, filtered.length - 1)));
+  }, [filtered]);
+
+  // Close on outside click.
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  function pick(s: ShipLoadoutDef) {
+    onChange(s.shipName);
+    setQuery("");
+    setOpen(false);
+    inputRef.current?.blur();
+  }
+
+  function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+      setHighlight((h) => Math.min(h + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter" && filtered[highlight]) {
+      e.preventDefault();
+      pick(filtered[highlight]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  }
+
+  // Build a flat-index map so per-row highlighting works inside groups.
+  const flatIndex = new Map<string, number>();
+  let i = 0;
+  for (const s of filtered) {
+    flatIndex.set(`${s.manufacturer}-${s.shipName}`, i++);
+  }
+
+  // Display value: when not focused, show the currently-selected ship.
+  const placeholder = open ? "Type to search 277 ships…" : value;
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <input
+        ref={inputRef}
+        value={open ? query : ""}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          setHighlight(0);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKey}
+        placeholder={placeholder}
+        className="input"
+        autoComplete="off"
+      />
+      {open && filtered.length > 0 && (
+        <div
+          role="listbox"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: "#0a0e16",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+            padding: 4,
+            maxHeight: 360,
+            overflowY: "auto",
+          }}
+        >
+          {Array.from(grouped.entries()).map(([mfr, list]) => (
+            <div key={mfr}>
+              <div
+                className="label-mini"
+                style={{
+                  padding: "8px 10px 4px",
+                  color: "var(--accent)",
+                  background: "rgba(77,217,255,0.04)",
+                  borderRadius: 3,
+                  marginTop: 4,
+                }}
+              >
+                {mfr}
+              </div>
+              {list.map((s) => {
+                const idx = flatIndex.get(`${s.manufacturer}-${s.shipName}`) ?? 0;
+                const isHighlighted = idx === highlight;
+                return (
+                  <button
+                    key={`${s.manufacturer}-${s.shipName}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isHighlighted}
+                    onClick={() => pick(s)}
+                    onMouseEnter={() => setHighlight(idx)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "6px 14px",
+                      borderRadius: 4,
+                      border: "none",
+                      background: isHighlighted ? "rgba(77,217,255,0.12)" : "transparent",
+                      color: isHighlighted ? "var(--accent)" : "var(--text)",
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {s.shipName}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          <div
+            className="label-mini"
+            style={{ padding: "6px 10px 4px", color: "var(--text-dim)", textAlign: "center" }}
+          >
+            ↑↓ to navigate · Enter to pick · Esc closes
+          </div>
+        </div>
+      )}
+      {open && filtered.length === 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: "#0a0e16",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            padding: "10px 14px",
+            color: "var(--text-muted)",
+            fontSize: "0.85rem",
+          }}
+        >
+          No ships match &ldquo;{query}&rdquo;
+        </div>
+      )}
     </div>
   );
 }
