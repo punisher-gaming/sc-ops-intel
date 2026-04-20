@@ -621,7 +621,7 @@ function CategoryRankings({
           <tbody>
             {ranked.slice(0, 30).map((r, i) => (
               <tr
-                key={`${r.ship.manufacturer}-${r.ship.shipName}`}
+                key={`${category}::${r.ship.shipName.toLowerCase()}`}
                 onClick={() => onPick(r.ship.shipName)}
                 style={{
                   borderBottom: "1px solid rgba(255,255,255,0.04)",

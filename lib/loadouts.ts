@@ -369,7 +369,19 @@ export async function fetchAllShipDefs(): Promise<DbShipDef[]> {
     }
     if (rows.length < PAGE) break;
   }
-  return out;
+  // Dedupe — the ships table has occasional literal duplicates (same
+  // name, different ids) from multi-pass ingest. Keep the first seen
+  // for each (lowercased) name so the leaderboard / picker doesn't
+  // show the same ship 4× and React doesn't get key collisions.
+  const seen = new Set<string>();
+  const deduped: DbShipDef[] = [];
+  for (const s of out) {
+    const k = s.shipName.trim().toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    deduped.push(s);
+  }
+  return deduped;
 }
 
 // ── WEAPON STAT EXTRACTION ───────────────────────────────────────────
