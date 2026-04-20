@@ -346,69 +346,82 @@ function sumDamageByType(root: unknown): {
 }
 
 /** Extract combat stats from a weapon's source_data jsonb.
- *  Tries three damage shapes (DamageValue arrays, per-type keys, scalar
- *  damage) so we maximize coverage of scunpacked's varied schemas. */
+ *  scunpacked already pre-computes DPS / alpha / per-type damage in the
+ *  stdItem.Weapon.Damage block, so we read those directly first. Falls
+ *  back to deep-search heuristics for older / non-standard weapon dumps. */
 export function extractWeaponStats(w: Item): WeaponStats {
   const sd: unknown = w.source_data ?? {};
+  const sdAny = sd as Record<string, unknown>;
+  const stdItem = (sdAny.stdItem ?? sdAny) as Record<string, unknown>;
+  const weapon = (stdItem.Weapon ?? null) as Record<string, unknown> | null;
+  const damage = (weapon?.Damage ?? null) as
+    | { Dps?: Record<string, number>; Alpha?: Record<string, number>; DpsTotal?: number; AlphaTotal?: number }
+    | null;
 
-  // Shape A: array of {DamageType, DamageValue} entries (most common
-  // for ship guns in scunpacked).
-  const byType = sumDamageByType(sd);
-  let dmgPhys = byType.physical;
-  let dmgEnergy = byType.energy + byType.thermal;
-  let dmgDist = byType.distortion;
-  let dmgBio = byType.bio;
+  // Primary path: stdItem.Weapon.Damage already has totals + per-type.
+  let dmgPhys = num(damage?.Dps?.Physical) ?? 0;
+  let dmgEnergy = (num(damage?.Dps?.Energy) ?? 0) + (num(damage?.Dps?.Thermal) ?? 0);
+  let dmgDist = num(damage?.Dps?.Distortion) ?? 0;
+  let alphaPhys = num(damage?.Alpha?.Physical) ?? 0;
+  let alphaEnergy = (num(damage?.Alpha?.Energy) ?? 0) + (num(damage?.Alpha?.Thermal) ?? 0);
+  let alphaDist = num(damage?.Alpha?.Distortion) ?? 0;
+  let alpha = num(damage?.AlphaTotal) ?? (alphaPhys + alphaEnergy + alphaDist || null);
+  let dps = num(damage?.DpsTotal) ?? (dmgPhys + dmgEnergy + dmgDist || null);
 
-  // Shape B: per-type top-level keys (damagePhysical, damageEnergy, etc.)
-  if (dmgPhys + dmgEnergy + dmgDist + dmgBio === 0) {
-    dmgPhys = sumAllNumbers(sd, (k) => /^damage(Physical|Kinetic)$/i.test(k));
-    dmgEnergy = sumAllNumbers(sd, (k) => /^damage(Energy|Thermal)$/i.test(k));
-    dmgDist = sumAllNumbers(sd, (k) => /^damageDistortion$/i.test(k));
-    dmgBio = sumAllNumbers(sd, (k) => /^damageBiochemical$/i.test(k));
+  // Fallback path: walk the tree for older shapes when stdItem.Weapon
+  // isn't present (some defensive guns / turrets in older dumps).
+  if (alpha == null) {
+    const byType = sumDamageByType(sd);
+    dmgPhys = byType.physical;
+    dmgEnergy = byType.energy + byType.thermal;
+    dmgDist = byType.distortion;
+    if (dmgPhys + dmgEnergy + dmgDist === 0) {
+      dmgPhys = sumAllNumbers(sd, (k) => /^damage(Physical|Kinetic)$/i.test(k));
+      dmgEnergy = sumAllNumbers(sd, (k) => /^damage(Energy|Thermal)$/i.test(k));
+      dmgDist = sumAllNumbers(sd, (k) => /^damageDistortion$/i.test(k));
+    }
+    const totalDamage = dmgPhys + dmgEnergy + dmgDist;
+    if (totalDamage > 0) alpha = totalDamage;
   }
 
-  // Shape C: scalar fallback — single "damage" or "Damage" number.
-  let totalDamage = dmgPhys + dmgEnergy + dmgDist + dmgBio;
-  if (totalDamage === 0) {
-    const scalar = findFirstNumber(sd, (k) => k === "damage" || k === "Damage");
-    if (scalar != null) totalDamage = scalar;
+  // Fire rate — RateOfFire is the canonical key in stdItem.Weapon.
+  let fireRate = num(weapon?.RateOfFire);
+  if (fireRate == null) {
+    fireRate = findFirstNumber(sd, (k) =>
+      /^(RoundsPerMinute|RateOfFire|FireRate|RPM|FireFrequency|CycleTime)$/i.test(k),
+    );
+    if (fireRate != null && fireRate < 50) fireRate = fireRate * 60; // Hz → RPM
   }
-  const alpha = totalDamage > 0 ? totalDamage : null;
 
-  // Fire rate — try every reasonable name. RPM is most common; if the
-  // value is small we assume Hz and convert.
-  let fireRate = findFirstNumber(sd, (k) =>
-    /^(roundsPerMinute|fireRate|rateOfFire|RPM|fireFrequency|cycleTime)$/i.test(k),
-  );
-  if (fireRate != null && fireRate < 50) fireRate = fireRate * 60; // Hz → RPM
+  // Compute DPS from alpha × fireRate if not already provided.
+  if (dps == null && alpha != null && fireRate != null) {
+    dps = (alpha * fireRate) / 60;
+  }
 
-  const dps = alpha != null && fireRate != null ? (alpha * fireRate) / 60 : null;
+  // Projectile speed — stdItem.Ammunition.Speed is canonical.
+  const ammunition = stdItem.Ammunition as Record<string, unknown> | undefined;
+  const projectileSpeed =
+    num(ammunition?.Speed) ??
+    findFirstNumber(sd, (k) => /^(Speed|MuzzleVelocity|ProjectileVelocity)$/i.test(k));
 
-  // Projectile / muzzle speed
-  const projectileSpeed = findFirstNumber(sd, (k) =>
-    /^(speed|muzzleVelocity|projectileVelocity)$/i.test(k),
-  );
-
-  // Damage type — pick the dominant subtype.
+  // Damage type — pick the dominant subtype from the Damage block.
   let damageType: WeaponStats["damageType"] = "unknown";
-  const max = Math.max(dmgPhys, dmgEnergy, dmgDist);
-  if (max > 0) {
-    if (dmgPhys === max) damageType = "ballistic";
-    else if (dmgEnergy === max) damageType = "energy";
+  const maxAlpha = Math.max(alphaPhys || dmgPhys, alphaEnergy || dmgEnergy, alphaDist || dmgDist);
+  if (maxAlpha > 0) {
+    if ((alphaPhys || dmgPhys) === maxAlpha) damageType = "ballistic";
+    else if ((alphaEnergy || dmgEnergy) === maxAlpha) damageType = "energy";
     else damageType = "distortion";
   } else if (typeof w.classification === "string") {
     const c = w.classification.toLowerCase();
     if (c.includes("ballistic") || c.includes("kinetic")) damageType = "ballistic";
-    else if (c.includes("energy") || c.includes("laser") || c.includes("plasma")) damageType = "energy";
+    else if (c.includes("energy") || c.includes("laser") || c.includes("plasma") || c.includes("neutron")) damageType = "energy";
     else if (c.includes("distortion")) damageType = "distortion";
   }
-  // Belt-and-suspenders: name often carries the type.
   if (damageType === "unknown") {
-    const n = (w.name ?? "").toLowerCase();
-    if (/(repeater|cannon).*ballistic|gatling|gallant|tarantula|deadbolt|panther/.test(n))
-      damageType = "ballistic";
-    else if (/laser|plasma|distortion|disruptor/.test(n))
-      damageType = "energy";
+    // Tags are reliable when present — VNCL guns are tagged NeutronCannon etc.
+    const tagsLower = ((typeof w.tags === "string" ? w.tags : "") + " " + (Array.isArray(stdItem.Tags) ? (stdItem.Tags as string[]).join(" ") : "")).toLowerCase();
+    if (/ballistic|gatling|repeater|kinetic|cannon[^a-z]/i.test(tagsLower)) damageType = "ballistic";
+    if (/laser|plasma|neutron|distortion|disruptor|tachyon/i.test(tagsLower)) damageType = "energy";
   }
 
   // Mount kind — scunpacked sometimes puts this in tags.
