@@ -899,7 +899,7 @@ export function pickBestComponent(
 
 // ── PROFILES + SCORING ───────────────────────────────────────────────
 
-export type ProfileKey = "max_dps" | "max_alpha" | "balanced" | "ballistic" | "energy" | "long_range";
+export type ProfileKey = "max_dps" | "max_alpha" | "balanced" | "ballistic" | "energy" | "long_range" | "tank";
 
 export interface ProfileDef {
   key: ProfileKey;
@@ -955,6 +955,22 @@ export const PROFILES: ProfileDef[] = [
     emoji: "🎯",
     blurb: "Picks weapons with the highest projectile speed for kiting / stand-off duels.",
     score: (s) => s.projectileSpeed ?? -Infinity,
+  },
+  {
+    key: "tank",
+    label: "Tank",
+    emoji: "🛡",
+    blurb: "Built to soak hits and outlast. Favors fast projectiles + sustained DPS so you can trade at range while your shield/hull/armor wins the attrition fight. Pair with a tanky hull (high EHP vs Energy).",
+    // Projectile speed dominates so shots actually connect during a
+    // kite-and-tank exchange; DPS tiebreaks for sustained pressure.
+    // Weapons with no projectile-speed data fall back to pure DPS so the
+    // slot still fills with something useful.
+    score: (s) => {
+      if (s.projectileSpeed != null && s.dps != null) {
+        return s.projectileSpeed * 1000 + s.dps;
+      }
+      return s.dps ?? -Infinity;
+    },
   },
 ];
 

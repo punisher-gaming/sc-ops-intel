@@ -889,6 +889,47 @@ function DurabilityStrip({
     const ehpBoost = (1 / mult - 1) * 100;
     return `${mult.toFixed(2)}× incoming · +${Math.round(ehpBoost)}% EHP`;
   }
+  // Hover explainer meta for each card — reuses the ItemHover tooltip
+  // system so the UX matches the rest of the site.
+  const ENERGY_DESC =
+    "Energy weapons = lasers, plasma, neutron cannons. EHP vs Energy is how much raw damage this ship can eat from laser-type weapons before it dies: shield + (hull ÷ energy multiplier) + armor. Lower multiplier = the hull shrugs off more laser damage.";
+  const BALLISTIC_DESC =
+    "Ballistic weapons = gatlings, repeaters, cannons (kinetic / physical damage). Ballistic bypasses shields more effectively in practice, but this number shows the full damage bucket: shield + (hull ÷ physical multiplier) + armor.";
+  const THERMAL_DESC =
+    "Thermal damage comes from a few exotic weapons + ship overheats. A 1.00× multiplier means full damage applied; lower = resistant. Most ships are neutral (1.00×) here.";
+  const DISTORTION_DESC =
+    "Distortion knocks out systems (power, quantum, etc.) rather than destroying hull. Distortion-resistant hulls stay online longer under EMP-style fire. 1.00× = standard, lower = more resistant.";
+
+  function ResistCard({
+    label,
+    ehp,
+    resist,
+    desc,
+    emphasis,
+  }: {
+    label: string;
+    ehp?: number;
+    resist: number | null;
+    desc: string;
+    emphasis?: boolean;
+  }) {
+    return (
+      <ItemHover description={desc} meta={{ "Incoming multiplier": resist != null ? `${resist.toFixed(2)}×` : "—" }}>
+        <span style={{ display: "block", cursor: "help" }}>
+          <span className="label-mini" style={{ display: "block" }}>{label}</span>
+          {ehp != null && (
+            <span style={{ display: "block", marginTop: 2, fontSize: "1.1rem", fontFamily: "var(--font-mono)", color: "var(--accent)" }}>
+              {ehp.toLocaleString()}
+            </span>
+          )}
+          <span style={{ display: "block", fontSize: ehp != null ? "0.7rem" : "0.85rem", color: ehp != null ? "var(--text-dim)" : "var(--text-muted)", marginTop: 2, fontFamily: ehp == null ? "var(--font-mono)" : undefined }}>
+            {fmtResist(resist)}
+          </span>
+        </span>
+      </ItemHover>
+    );
+  }
+
   return (
     <div
       style={{
@@ -902,36 +943,10 @@ function DurabilityStrip({
         gap: 14,
       }}
     >
-      <div>
-        <div className="label-mini">⚡ EHP vs Energy</div>
-        <div style={{ marginTop: 2, fontSize: "1.1rem", fontFamily: "var(--font-mono)", color: "var(--accent)" }}>
-          {ehpEnergy.toLocaleString()}
-        </div>
-        <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 2 }}>
-          {fmtResist(r?.energy ?? null)}
-        </div>
-      </div>
-      <div>
-        <div className="label-mini">🔫 EHP vs Ballistic</div>
-        <div style={{ marginTop: 2, fontSize: "1.1rem", fontFamily: "var(--font-mono)", color: "var(--accent)" }}>
-          {ehpBallistic.toLocaleString()}
-        </div>
-        <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 2 }}>
-          {fmtResist(r?.physical ?? null)}
-        </div>
-      </div>
-      <div>
-        <div className="label-mini">🔥 Thermal resist</div>
-        <div style={{ marginTop: 2, fontSize: "0.85rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-          {fmtResist(r?.thermal ?? null)}
-        </div>
-      </div>
-      <div>
-        <div className="label-mini">🌀 Distortion resist</div>
-        <div style={{ marginTop: 2, fontSize: "0.85rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-          {fmtResist(r?.distortion ?? null)}
-        </div>
-      </div>
+      <ResistCard label="⚡ EHP vs Energy" ehp={ehpEnergy} resist={r?.energy ?? null} desc={ENERGY_DESC} emphasis />
+      <ResistCard label="🔫 EHP vs Ballistic" ehp={ehpBallistic} resist={r?.physical ?? null} desc={BALLISTIC_DESC} emphasis />
+      <ResistCard label="🔥 Thermal resist" resist={r?.thermal ?? null} desc={THERMAL_DESC} />
+      <ResistCard label="🌀 Distortion resist" resist={r?.distortion ?? null} desc={DISTORTION_DESC} />
     </div>
   );
 }
