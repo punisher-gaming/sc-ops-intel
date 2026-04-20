@@ -46,6 +46,11 @@ export default function LandingPage() {
               <span className="brand-bar" aria-hidden />
             </div>
           </div>
+          {/* Brand catchphrase — riffs on the CITIZENDEX wordmark.
+              Pilot-shorthand: "before you jump, check the Dex." */}
+          <p className="brand-slogan">
+            Check the <span className="accent">Dex</span>.
+          </p>
           <p className="tagline">
             The Star Citizen database. Blueprints, resources, crafting
             recipes, commodities, ships — auto-synced every patch. Save notes.

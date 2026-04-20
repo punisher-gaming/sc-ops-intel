@@ -555,6 +555,24 @@ select {
   .brand-bar { width: 20px; }
   .brand-secondary { gap: 8px; }
 }
+/* Brand catchphrase — large, condensed, all-caps. Sits between the
+   wordmark and the descriptive tagline. The trailing period is part
+   of the slogan: "Check the Dex." reads as a confident command. */
+.home-hero .brand-slogan {
+  margin: 1.5rem auto 0.75rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 3.4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 0 18px rgba(77, 217, 255, 0.25);
+}
+.home-hero .brand-slogan .accent {
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(77, 217, 255, 0.55);
+}
 .home-hero .tagline {
   color: var(--text-muted);
   max-width: 56ch;
