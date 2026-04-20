@@ -892,13 +892,13 @@ function DurabilityStrip({
   // Hover explainer meta for each card — reuses the ItemHover tooltip
   // system so the UX matches the rest of the site.
   const ENERGY_DESC =
-    "Energy weapons = lasers, plasma, neutron cannons. EHP vs Energy is how much raw damage this ship can eat from laser-type weapons before it dies: shield + (hull ÷ energy multiplier) + armor. Lower multiplier = the hull shrugs off more laser damage.";
+    "EHP = Effective Hit Points: total damage this ship can absorb before it dies, accounting for armor's damage reduction. Energy weapons = lasers, plasma, neutron cannons. Math: shield + (hull ÷ energy multiplier) + armor. A 0.60× multiplier means the hull shrugs off 40% of laser damage, so its hull HP is effectively 1.67× its raw value vs energy.";
   const BALLISTIC_DESC =
-    "Ballistic weapons = gatlings, repeaters, cannons (kinetic / physical damage). Ballistic bypasses shields more effectively in practice, but this number shows the full damage bucket: shield + (hull ÷ physical multiplier) + armor.";
+    "EHP = Effective Hit Points: total damage this ship can absorb before it dies. Ballistic weapons = gatlings, repeaters, cannons (kinetic damage — finite ammo but punches harder per shot). Math: shield + (hull ÷ physical multiplier) + armor. Lower multiplier = harder to crack with bullets.";
   const THERMAL_DESC =
-    "Thermal damage comes from a few exotic weapons + ship overheats. A 1.00× multiplier means full damage applied; lower = resistant. Most ships are neutral (1.00×) here.";
+    "Thermal damage = heat-based weapons + your own ship overheating in a long fight. The multiplier scales incoming thermal damage: 1.00× = full damage taken, lower = resistant. Most hulls are neutral (1.00×) here — true thermal-resistant hulls are rare.";
   const DISTORTION_DESC =
-    "Distortion knocks out systems (power, quantum, etc.) rather than destroying hull. Distortion-resistant hulls stay online longer under EMP-style fire. 1.00× = standard, lower = more resistant.";
+    "Distortion = EMP-style damage that knocks out ship systems (power plant, quantum drive, weapons) instead of destroying the hull. A distortion-resistant hull stays online longer under suppression fire. The multiplier scales incoming distortion: 1.00× = standard, lower = more resistant.";
 
   function ResistCard({
     label,
