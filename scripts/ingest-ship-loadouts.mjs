@@ -56,14 +56,22 @@ const SHIPS_PATH = "ships";
 const GH_API = `https://api.github.com/repos/${REPO}/contents/${SHIPS_PATH}`;
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/master/${SHIPS_PATH}`;
 
-// Port-type keywords for classification. scunpacked uses dotted types
-// like "WeaponGun.Gun" or "Shield.Shield" — we match the prefix.
-const WEAPON_TYPE_PREFIXES = [
+// scunpacked ship Loadout entries. Each entry has:
+//   HardpointName: "hardpoint_weapon_class2_nose"
+//   Type: "Turret.GunTurret" / "PowerPlant.Power" / "Shield.UNDEFINED"
+//   ItemTypes: [{Type:"Turret"}, {Type:"WeaponGun"}, ...]
+//   MaxSize / MinSize: 1-9
+//   Editable: bool (is the slot user-customizable in-game)
+//
+// We classify by the head of the Type string (or any ItemTypes[].Type)
+// and bucket into our weapon vs component categories.
+
+const WEAPON_TYPE_HEADS = new Set([
   "weapongun",
-  "missilelauncher",
   "turret",
+  "missilelauncher",
   "weaponmounted",
-];
+]);
 const COMPONENT_TYPE_MAP = {
   shield: "shield",
   shieldgenerator: "shield",
@@ -72,94 +80,83 @@ const COMPONENT_TYPE_MAP = {
   quantumdrive: "quantum",
 };
 
-function typesIncludeWeapon(types) {
-  if (!Array.isArray(types)) return false;
-  return types.some((t) => {
-    const lower = String(t).toLowerCase();
-    return WEAPON_TYPE_PREFIXES.some((p) => lower.startsWith(p));
-  });
+function gatherTypeHeads(loadoutEntry) {
+  const heads = new Set();
+  if (typeof loadoutEntry.Type === "string") {
+    heads.add(loadoutEntry.Type.toLowerCase().split(".")[0]);
+  }
+  if (Array.isArray(loadoutEntry.ItemTypes)) {
+    for (const t of loadoutEntry.ItemTypes) {
+      if (t && typeof t.Type === "string") {
+        heads.add(t.Type.toLowerCase().split(".")[0]);
+      }
+    }
+  }
+  return heads;
 }
 
-function typesIncludeComponent(types) {
-  if (!Array.isArray(types)) return null;
-  for (const t of types) {
-    const head = String(t).toLowerCase().split(".")[0];
-    if (COMPONENT_TYPE_MAP[head]) return COMPONENT_TYPE_MAP[head];
+function classifyLoadoutEntry(loadoutEntry) {
+  const heads = gatherTypeHeads(loadoutEntry);
+  for (const h of heads) {
+    if (WEAPON_TYPE_HEADS.has(h)) return { kind: "weapon" };
+  }
+  for (const h of heads) {
+    if (COMPONENT_TYPE_MAP[h]) return { kind: "component", category: COMPONENT_TYPE_MAP[h] };
   }
   return null;
 }
 
-// Mount classification — fixed vs gimbal vs turret. scunpacked
-// usually puts this in the port's Loadout default or in subtypes.
-function detectMount(port) {
-  const tags = (port.Tags || []).map((t) => String(t).toLowerCase()).join(" ");
-  const types = (port.Types || []).map((t) => String(t).toLowerCase()).join(" ");
-  const portName = String(port.PortName || "").toLowerCase();
-  if (tags.includes("turret") || types.includes("turret") || portName.includes("turret")) return "turret";
-  if (tags.includes("gimbal") || portName.includes("gimbal")) return "gimbal";
+// Mount classification — fixed vs gimbal vs turret. Use the Type
+// string (Turret.GunTurret = turret) and the hardpoint name
+// (any "_turret" or "_ball" suggests turret).
+function detectMount(loadoutEntry) {
+  const t = (loadoutEntry.Type || "").toLowerCase();
+  const name = (loadoutEntry.HardpointName || "").toLowerCase();
+  if (t.startsWith("turret") || name.includes("turret") || name.includes("_ball")) return "turret";
+  if (name.includes("gimbal")) return "gimbal";
   return "fixed";
 }
 
-// Humanize a port name — "hardpoint_left_wing" → "Left wing".
-function humanizeName(portName) {
-  return String(portName || "")
+// Humanize a hardpoint name — "hardpoint_weapon_class2_nose" → "Nose".
+function humanizeName(name) {
+  return String(name || "")
     .replace(/^hardpoint[_\s]?/i, "")
+    .replace(/^weapon[_\s]?/i, "")
+    .replace(/^class\d+[_\s]?/i, "")
     .replace(/[_\-]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim() || "Hardpoint";
 }
 
-// Walk the ports tree depth-first. Returns a flat array of port objects.
-function collectPortsRecursive(node, out = [], depth = 0) {
-  if (depth > 10 || node == null) return out;
-  if (Array.isArray(node)) {
-    for (const v of node) collectPortsRecursive(v, out, depth + 1);
-    return out;
-  }
-  if (typeof node !== "object") return out;
-  // A port has Types + Size — pretty reliable signal.
-  if (Array.isArray(node.Types) && (typeof node.Size === "number" || typeof node.MaxSize === "number")) {
-    out.push(node);
-  }
-  for (const v of Object.values(node)) {
-    if (v && (typeof v === "object" || Array.isArray(v))) {
-      collectPortsRecursive(v, out, depth + 1);
-    }
-  }
-  return out;
-}
-
-// Parse a single ship's JSON into our loadout structure.
+// Parse a single ship's JSON into our loadout structure. The top-level
+// `Loadout` array is the canonical source.
 function parseShipLoadout(shipJson) {
   const hardpoints = [];
   const components = [];
-  const ports = collectPortsRecursive(shipJson);
-  // De-dupe by PortName so nested copies don't double-count.
+  const loadout = Array.isArray(shipJson.Loadout) ? shipJson.Loadout : [];
   const seen = new Set();
-  for (const port of ports) {
-    const portName = String(port.PortName || "");
-    if (!portName || seen.has(portName)) continue;
-    seen.add(portName);
-    const types = port.Types || [];
-    const size = Number(port.Size ?? port.MaxSize ?? port.MinSize ?? 0);
-    if (size < 1 || size > 10) continue;
-    if (typesIncludeWeapon(types)) {
+  for (const entry of loadout) {
+    const name = String(entry.HardpointName || "");
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    const size = Number(entry.MaxSize ?? entry.MinSize ?? 0);
+    if (size < 1 || size > 9) continue;
+    const cls = classifyLoadoutEntry(entry);
+    if (!cls) continue;
+    if (cls.kind === "weapon") {
       hardpoints.push({
-        id: portName,
-        label: humanizeName(portName),
+        id: name,
+        label: humanizeName(name),
         size,
-        mount: detectMount(port),
+        mount: detectMount(entry),
       });
     } else {
-      const cat = typesIncludeComponent(types);
-      if (cat) {
-        components.push({
-          id: portName,
-          label: humanizeName(portName),
-          category: cat,
-          size,
-        });
-      }
+      components.push({
+        id: name,
+        label: humanizeName(name),
+        category: cls.category,
+        size,
+      });
     }
   }
   return { hardpoints, components };
