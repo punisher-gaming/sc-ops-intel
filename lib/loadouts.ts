@@ -336,6 +336,10 @@ export interface WeaponStats {
   projectileSpeed: number | null;
   /** Mount type the weapon supports (fixed, gimbal, turret-mounted). */
   mountKind: "fixed" | "gimbal" | "turret" | "any";
+  /** Marketing blurb from stdItem.DescriptionText — shown on hover. */
+  description: string | null;
+  /** Item Type / Class / Grade etc. for hover panel. */
+  meta: Record<string, string>;
 }
 
 function num(x: unknown): number | null {
@@ -538,6 +542,14 @@ export function extractWeaponStats(w: Item): WeaponStats {
     if (sdSize != null) size = Math.round(sdSize);
   }
 
+  // Hover-info: short blurb + structured meta (Item Type, Grade, Class).
+  const description = typeof stdItem.DescriptionText === "string" ? (stdItem.DescriptionText as string) : null;
+  const dd = (stdItem.DescriptionData as Record<string, string> | undefined) ?? {};
+  const meta: Record<string, string> = {};
+  for (const k of ["Item Type", "Manufacturer", "Size", "Grade", "Class"]) {
+    if (typeof dd[k] === "string" && dd[k]) meta[k] = dd[k];
+  }
+
   return {
     name: w.name,
     size,
@@ -548,6 +560,8 @@ export function extractWeaponStats(w: Item): WeaponStats {
     dps,
     projectileSpeed,
     mountKind,
+    description,
+    meta,
   };
 }
 
@@ -596,6 +610,8 @@ export interface ComponentStats {
   secondary: number | null;
   primaryLabel: string;
   secondaryLabel: string;
+  description: string | null;
+  meta: Record<string, string>;
 }
 
 /** Classify a component into our category enum based on its scunpacked
@@ -683,6 +699,14 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
     secondaryLabel = "Speed";
   }
 
+  // Hover-info — same shape as weapons.
+  const description = typeof stdItem.DescriptionText === "string" ? (stdItem.DescriptionText as string) : null;
+  const dd = (stdItem.DescriptionData as Record<string, string> | undefined) ?? {};
+  const meta: Record<string, string> = {};
+  for (const k of ["Item Type", "Manufacturer", "Size", "Grade", "Class"]) {
+    if (typeof dd[k] === "string" && dd[k]) meta[k] = dd[k];
+  }
+
   return {
     name: item.name,
     size: item.size ?? 0,
@@ -692,6 +716,8 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
     secondary,
     primaryLabel,
     secondaryLabel,
+    description,
+    meta,
   };
 }
 

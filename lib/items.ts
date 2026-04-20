@@ -20,17 +20,26 @@ export interface Item {
   // Projected from source_data.stdItem.DescriptionData.Class at list-fetch
   // time. Detail fetch resolves via itemClass() instead.
   item_class?: string | null;
+  // Projected for hover tooltips on list rows — keeps the payload small
+  // (~100 bytes per row) vs. fetching full source_data jsonb. We skip
+  // "Item Type" since it has a space (PostgREST jsonb arrow doesn't love
+  // that) and the existing `type` column carries the same info.
+  description?: string | null;
+  meta_grade?: string | null;
 }
 
 const LIST_COLS =
   "id, class_name, name, manufacturer, type, subtype, classification, grade, size, tags, game_version, last_synced_at";
 
 // For list views we also want the in-game "Class" (Industrial / Military /
-// Civilian / Stealth / Competition). It lives inside source_data jsonb,
-// so we project just that path via PostgREST's jsonb arrow syntax.
+// Civilian / Stealth / Competition) plus the marketing blurb for the
+// hover tooltip. All live inside source_data jsonb, so we project just
+// those paths via PostgREST's jsonb arrows.
 const LIST_COLS_WITH_CLASS =
   LIST_COLS +
-  ", item_class:source_data->stdItem->DescriptionData->>Class";
+  ", item_class:source_data->stdItem->DescriptionData->>Class" +
+  ", description:source_data->stdItem->>DescriptionText" +
+  ", meta_grade:source_data->stdItem->DescriptionData->>Grade";
 
 export async function fetchItems(table: "weapons" | "components"): Promise<Item[]> {
   const client = createClient();

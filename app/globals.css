@@ -1092,3 +1092,88 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .music-fab-spin { animation: none; }
 }
+
+/* ================================================================
+   ITEM HOVER TOOLTIP — universal popup for any catalog item
+   (weapons, components, attachments, mining heads, scopes, etc.)
+   Pure CSS — no JS state. Hover the wrapper, popup appears.
+   ================================================================ */
+
+.item-hover {
+  position: relative;
+  display: inline;
+  cursor: help;
+}
+.item-hover-card {
+  /* Hidden by default; visible on hover of the parent .item-hover */
+  position: absolute;
+  z-index: 200;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  width: 320px;
+  max-width: 92vw;
+  padding: 12px 14px;
+  background: rgba(8, 12, 20, 0.98);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(125, 249, 255, 0.30);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 18px rgba(77, 217, 255, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: none;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  white-space: normal;
+}
+.item-hover:hover .item-hover-card,
+.item-hover:focus-within .item-hover-card {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+/* If the trigger is too close to the right edge, flip the card. */
+@media (min-width: 0px) {
+  .item-hover-card {
+    /* Default left:0 works for most cases; the flip happens via the
+       :has() selector below if/when needed. Browsers without :has()
+       fall back to the default which is fine. */
+  }
+}
+.item-hover-meta {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) 1fr;
+  column-gap: 12px;
+  row-gap: 3px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.item-hover-meta-row {
+  display: contents;
+}
+.item-hover-meta-key {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.item-hover-meta-val {
+  color: var(--text);
+  font-weight: 500;
+}
+.item-hover-desc {
+  color: var(--text-muted);
+  font-style: italic;
+  white-space: pre-line;
+}

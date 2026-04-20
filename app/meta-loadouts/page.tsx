@@ -5,6 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { createClient as supabase } from "@/lib/supabase/client";
+import { ItemHover } from "@/components/ItemHover";
 import {
   PROFILES,
   SHIP_HARDPOINTS,
@@ -350,7 +351,9 @@ function ComponentRow({ choice }: { choice: LoadoutResult["components"][number] 
         {component ? (
           <>
             <div style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 600 }}>
-              {component.name}
+              <ItemHover description={component.description} meta={component.meta}>
+                {component.name}
+              </ItemHover>
             </div>
             <div className="label-mini" style={{ marginTop: 2, color: "var(--text-muted)", textTransform: "none", letterSpacing: 0, fontSize: "0.74rem" }}>
               {component.manufacturer ? `${component.manufacturer} · ` : ""}
@@ -402,7 +405,9 @@ function SlotRow({ slot }: { slot: LoadoutResult["slots"][number] }) {
         {weapon ? (
           <>
             <div style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 600 }}>
-              {weapon.name}
+              <ItemHover description={weapon.description} meta={weapon.meta}>
+                {weapon.name}
+              </ItemHover>
             </div>
             <div className="label-mini" style={{ marginTop: 2, color: "var(--text-muted)", textTransform: "none", letterSpacing: 0, fontSize: "0.74rem" }}>
               {weapon.manufacturer ? `${weapon.manufacturer} · ` : ""}

@@ -18,6 +18,7 @@ import { tokenMatch } from "@/lib/search";
 import { CURRENT_PATCH } from "./PatchPill";
 import { ItemImage, ItemImageCredit } from "./ItemImage";
 import { WhereToBuy } from "./WhereToBuy";
+import { ItemHover } from "./ItemHover";
 
 const PAGE_SIZE = 50;
 
@@ -209,12 +210,23 @@ function ItemList({
               {pageRows.map((r) => (
                 <tr key={r.id}>
                   <td style={tdStyle}>
-                    <Link
-                      href={`?id=${encodeURIComponent(r.id)}`}
-                      style={{ color: "var(--accent)", fontWeight: 500 }}
+                    <ItemHover
+                      description={r.description}
+                      meta={{
+                        ...(r.manufacturer ? { Manufacturer: r.manufacturer } : {}),
+                        ...(r.type ? { Type: prettyType(r.type) } : {}),
+                        ...(r.size != null ? { Size: String(r.size) } : {}),
+                        ...(r.meta_grade ? { Grade: r.meta_grade } : {}),
+                        ...(r.item_class ? { Class: r.item_class } : {}),
+                      }}
                     >
-                      {isPlaceholderName(r.name) ? r.class_name : r.name}
-                    </Link>
+                      <Link
+                        href={`?id=${encodeURIComponent(r.id)}`}
+                        style={{ color: "var(--accent)", fontWeight: 500 }}
+                      >
+                        {isPlaceholderName(r.name) ? r.class_name : r.name}
+                      </Link>
+                    </ItemHover>
                     {r.subtype && (
                       <div style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: 2 }}>
                         {r.subtype}
