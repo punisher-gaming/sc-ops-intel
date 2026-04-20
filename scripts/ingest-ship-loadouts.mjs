@@ -52,7 +52,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_SECRET, {
 // scunpacked-data hosts ship JSONs under v2/ships/. Each file is a
 // flattened export of the in-game ship config including hardpoints.
 const REPO = "StarCitizenWiki/scunpacked-data";
-const SHIPS_PATH = "v2/ships";
+const SHIPS_PATH = "ships";
 const GH_API = `https://api.github.com/repos/${REPO}/contents/${SHIPS_PATH}`;
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/master/${SHIPS_PATH}`;
 
