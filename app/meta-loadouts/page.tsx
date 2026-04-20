@@ -37,17 +37,30 @@ function Loading() {
 
 function MetaLoadouts() {
   const params = useSearchParams();
+  const debug = params.get("debug") === "1";
   const initialShip = params.get("ship") ?? SHIP_HARDPOINTS[0].shipName;
   const [shipName, setShipName] = useState<string>(initialShip);
   const [profileKey, setProfileKey] = useState<ProfileDef["key"]>("max_dps");
   const [weapons, setWeapons] = useState<WeaponStats[] | null>(null);
+  const [rawSamples, setRawSamples] = useState<Array<{ name: string; size: number; sd: unknown }>>([]);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     fetchShipWeaponCandidates()
-      .then((items) => setWeapons(items.map(extractWeaponStats)))
+      .then((items) => {
+        setWeapons(items.map(extractWeaponStats));
+        if (debug) {
+          // Show 3 sample weapons' raw source_data so we can see the
+          // actual scunpacked schema and refine the extractors.
+          const samples = items
+            .filter((w) => (w.size ?? 0) >= 2 && (w.size ?? 0) <= 5)
+            .slice(0, 3)
+            .map((w) => ({ name: w.name, size: w.size ?? 0, sd: w.source_data }));
+          setRawSamples(samples);
+        }
+      })
       .catch((e) => setErr((e as Error).message ?? String(e)));
-  }, []);
+  }, [debug]);
 
   const ship = shipDefByName(shipName) ?? SHIP_HARDPOINTS[0];
   const profile = PROFILES.find((p) => p.key === profileKey)!;
@@ -179,6 +192,39 @@ function MetaLoadouts() {
       )}
 
       {loadout && <LoadoutCard result={loadout} />}
+
+      {debug && rawSamples.length > 0 && (
+        <div className="card" style={{ padding: "1.25rem", marginTop: 16 }}>
+          <div className="accent-label" style={{ marginBottom: 8 }}>🐛 Debug — raw source_data samples</div>
+          <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", marginBottom: 12 }}>
+            Visible only with <code>?debug=1</code>. Shows the actual jsonb shape so we can see
+            which keys hold damage / fire-rate / projectile speed.
+          </p>
+          {rawSamples.map((s) => (
+            <details key={s.name} style={{ marginBottom: 10 }}>
+              <summary style={{ cursor: "pointer", color: "var(--accent)", fontSize: "0.9rem" }}>
+                {s.name} (S{s.size})
+              </summary>
+              <pre
+                style={{
+                  marginTop: 8,
+                  padding: 10,
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  borderRadius: 6,
+                  fontSize: "0.7rem",
+                  maxHeight: 400,
+                  overflow: "auto",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-all",
+                }}
+              >
+                {JSON.stringify(s.sd, null, 2)}
+              </pre>
+            </details>
+          ))}
+        </div>
+      )}
 
       <p style={{ marginTop: "2rem", fontSize: "0.72rem", color: "var(--text-dim)", lineHeight: 1.6 }}>
         Math-optimal builds are the ceiling, not the rule. Server desync,

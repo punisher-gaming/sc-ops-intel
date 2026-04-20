@@ -309,28 +309,78 @@ function sumAllNumbers(
   return total;
 }
 
+/** Walk the tree and sum DamageValue entries grouped by their sibling
+ *  DamageType. scunpacked's ship-weapon schema stores damage as an array
+ *  of `{ DamageType: "DAMAGE_TYPE_PHYSICAL", DamageValue: 35 }` objects
+ *  rather than per-type keys. This pulls from that shape. */
+function sumDamageByType(root: unknown): {
+  physical: number;
+  energy: number;
+  distortion: number;
+  bio: number;
+  thermal: number;
+} {
+  const out = { physical: 0, energy: 0, distortion: 0, bio: 0, thermal: 0 };
+  function walk(node: unknown, depth: number) {
+    if (node == null || depth < 0) return;
+    if (Array.isArray(node)) {
+      for (const v of node) walk(v, depth - 1);
+      return;
+    }
+    if (typeof node !== "object") return;
+    const obj = node as Record<string, unknown>;
+    const dt = obj.DamageType ?? obj.damageType ?? obj.type;
+    const dv = num(obj.DamageValue ?? obj.damageValue ?? obj.value ?? obj.amount);
+    if (typeof dt === "string" && dv != null && dv > 0) {
+      const t = dt.toLowerCase();
+      if (t.includes("physical") || t.includes("kinetic")) out.physical += dv;
+      else if (t.includes("energy")) out.energy += dv;
+      else if (t.includes("distortion")) out.distortion += dv;
+      else if (t.includes("thermal")) out.thermal += dv;
+      else if (t.includes("bio")) out.bio += dv;
+    }
+    for (const v of Object.values(obj)) walk(v, depth - 1);
+  }
+  walk(root, 12);
+  return out;
+}
+
 /** Extract combat stats from a weapon's source_data jsonb.
- *  Strategy: deep-search for known field names — scunpacked's schema
- *  varies enough between weapon kinds that hardcoded paths fail. */
+ *  Tries three damage shapes (DamageValue arrays, per-type keys, scalar
+ *  damage) so we maximize coverage of scunpacked's varied schemas. */
 export function extractWeaponStats(w: Item): WeaponStats {
   const sd: unknown = w.source_data ?? {};
 
-  // Damage — sum any key matching damage*Physical/Energy/Distortion/etc.
-  // We avoid summing keys named "damage" by itself (too vague) and
-  // restrict to the damage-by-type breakdown.
-  const dmgPhys = sumAllNumbers(sd, (k) => /^damage(Physical|Kinetic)$/i.test(k));
-  const dmgEnergy = sumAllNumbers(sd, (k) => /^damage(Energy|Thermal)$/i.test(k));
-  const dmgDist = sumAllNumbers(sd, (k) => /^damageDistortion$/i.test(k));
-  const dmgBio = sumAllNumbers(sd, (k) => /^damageBiochemical$/i.test(k));
-  const totalDamage = dmgPhys + dmgEnergy + dmgDist + dmgBio;
+  // Shape A: array of {DamageType, DamageValue} entries (most common
+  // for ship guns in scunpacked).
+  const byType = sumDamageByType(sd);
+  let dmgPhys = byType.physical;
+  let dmgEnergy = byType.energy + byType.thermal;
+  let dmgDist = byType.distortion;
+  let dmgBio = byType.bio;
+
+  // Shape B: per-type top-level keys (damagePhysical, damageEnergy, etc.)
+  if (dmgPhys + dmgEnergy + dmgDist + dmgBio === 0) {
+    dmgPhys = sumAllNumbers(sd, (k) => /^damage(Physical|Kinetic)$/i.test(k));
+    dmgEnergy = sumAllNumbers(sd, (k) => /^damage(Energy|Thermal)$/i.test(k));
+    dmgDist = sumAllNumbers(sd, (k) => /^damageDistortion$/i.test(k));
+    dmgBio = sumAllNumbers(sd, (k) => /^damageBiochemical$/i.test(k));
+  }
+
+  // Shape C: scalar fallback — single "damage" or "Damage" number.
+  let totalDamage = dmgPhys + dmgEnergy + dmgDist + dmgBio;
+  if (totalDamage === 0) {
+    const scalar = findFirstNumber(sd, (k) => k === "damage" || k === "Damage");
+    if (scalar != null) totalDamage = scalar;
+  }
   const alpha = totalDamage > 0 ? totalDamage : null;
 
-  // Fire rate — roundsPerMinute or fireRate (in scunpacked it's usually
-  // already in RPM). Some schemas use "rateOfFire" or store it in Hz.
-  let fireRate =
-    findFirstNumber(sd, (k) => /^(roundsPerMinute|fireRate|rateOfFire)$/i.test(k));
-  // If the value looks like Hz (well below typical RPM range), convert.
-  if (fireRate != null && fireRate < 50) fireRate = fireRate * 60;
+  // Fire rate — try every reasonable name. RPM is most common; if the
+  // value is small we assume Hz and convert.
+  let fireRate = findFirstNumber(sd, (k) =>
+    /^(roundsPerMinute|fireRate|rateOfFire|RPM|fireFrequency|cycleTime)$/i.test(k),
+  );
+  if (fireRate != null && fireRate < 50) fireRate = fireRate * 60; // Hz → RPM
 
   const dps = alpha != null && fireRate != null ? (alpha * fireRate) / 60 : null;
 
