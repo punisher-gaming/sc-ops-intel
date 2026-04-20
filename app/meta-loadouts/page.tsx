@@ -9,8 +9,11 @@ import {
   SHIP_HARDPOINTS,
   computeLoadout,
   extractWeaponStats,
+  fetchComponentCandidates,
   fetchShipWeaponCandidates,
   shipDefByName,
+  type ComponentCategory,
+  type ComponentStats,
   type LoadoutResult,
   type ProfileDef,
   type ShipLoadoutDef,
@@ -42,6 +45,7 @@ function MetaLoadouts() {
   const [shipName, setShipName] = useState<string>(initialShip);
   const [profileKey, setProfileKey] = useState<ProfileDef["key"]>("max_dps");
   const [weapons, setWeapons] = useState<WeaponStats[] | null>(null);
+  const [components, setComponents] = useState<Map<ComponentCategory, ComponentStats[]> | null>(null);
   const [rawSamples, setRawSamples] = useState<Array<{ name: string; size: number; sd: unknown }>>([]);
   const [err, setErr] = useState<string | null>(null);
 
@@ -60,14 +64,37 @@ function MetaLoadouts() {
         }
       })
       .catch((e) => setErr((e as Error).message ?? String(e)));
+    // Components run in parallel so the page isn't blocked by either.
+    fetchComponentCandidates()
+      .then(setComponents)
+      .catch(() => { /* leave components null — UI handles gracefully */ });
+
+    // Component debug — fetch raw items separately so we keep the
+    // un-extracted source_data for inspection.
+    if (debug) {
+      import("@/lib/supabase/client").then(({ createClient }) => {
+        const c = createClient();
+        c.from("components")
+          .select("name, size, type, source_data")
+          .in("type", ["Shield", "PowerPlant", "Cooler", "QuantumDrive"])
+          .gte("size", 1)
+          .lte("size", 3)
+          .limit(4)
+          .then(({ data }) => {
+            const extras = ((data ?? []) as Array<{ name: string; size: number; type: string; source_data: unknown }>)
+              .map((r) => ({ name: `${r.type}: ${r.name}`, size: r.size, sd: r.source_data }));
+            setRawSamples((cur) => [...cur, ...extras]);
+          });
+      });
+    }
   }, [debug]);
 
   const ship = shipDefByName(shipName) ?? SHIP_HARDPOINTS[0];
   const profile = PROFILES.find((p) => p.key === profileKey)!;
   const loadout: LoadoutResult | null = useMemo(() => {
     if (!weapons) return null;
-    return computeLoadout(ship, profile, weapons);
-  }, [ship, profile, weapons]);
+    return computeLoadout(ship, profile, weapons, components ?? undefined);
+  }, [ship, profile, weapons, components]);
 
   return (
     <div className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem", maxWidth: 1100 }}>
@@ -239,10 +266,10 @@ function MetaLoadouts() {
 }
 
 function LoadoutCard({ result }: { result: LoadoutResult }) {
-  const { ship, profile, slots, totals } = result;
+  const { ship, profile, slots, components, totals } = result;
   const coverage = totals.filled === totals.total
-    ? `${totals.filled}/${totals.total} slots filled`
-    : `${totals.filled}/${totals.total} slots filled — some weapon sizes missing from catalog`;
+    ? `${totals.filled}/${totals.total} weapon slots filled`
+    : `${totals.filled}/${totals.total} weapon slots filled — some sizes missing from catalog`;
   return (
     <div className="card" style={{ padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
@@ -255,16 +282,88 @@ function LoadoutCard({ result }: { result: LoadoutResult }) {
             {coverage}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 18, fontFamily: "var(--font-mono)" }}>
+        <div style={{ display: "flex", gap: 18, fontFamily: "var(--font-mono)", flexWrap: "wrap" }}>
           <Stat label="Total DPS" value={totals.dps.toLocaleString()} accent />
           <Stat label="Total alpha" value={totals.alpha.toLocaleString()} />
+          {totals.shieldHp > 0 && <Stat label="Shield HP" value={totals.shieldHp.toLocaleString()} />}
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: 8 }}>
+      {/* Armament */}
+      <div className="label-mini" style={{ marginBottom: 8 }}>
+        🔫 Armament
+      </div>
+      <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
         {slots.map((slot) => (
           <SlotRow key={slot.hardpoint.id} slot={slot} />
         ))}
+      </div>
+
+      {/* Systems */}
+      {components.length > 0 && (
+        <>
+          <div className="label-mini" style={{ marginBottom: 8 }}>
+            ⚙ Systems
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {components.map((c) => (
+              <ComponentRow key={c.slot.id} choice={c} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ComponentRow({ choice }: { choice: LoadoutResult["components"][number] }) {
+  const { slot, component, reason } = choice;
+  const catEmoji = slot.category === "shield" ? "🛡" : slot.category === "powerplant" ? "⚡" : slot.category === "cooler" ? "❄" : "🌀";
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(140px, 220px) 1fr auto",
+        gap: 12,
+        padding: "10px 14px",
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 6,
+        alignItems: "center",
+      }}
+    >
+      <div>
+        <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>{catEmoji} {slot.label}</div>
+        <div className="label-mini" style={{ marginTop: 2 }}>
+          S{slot.size} · {slot.category}
+        </div>
+      </div>
+      <div>
+        {component ? (
+          <>
+            <div style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 600 }}>
+              {component.name}
+            </div>
+            <div className="label-mini" style={{ marginTop: 2, color: "var(--text-muted)", textTransform: "none", letterSpacing: 0, fontSize: "0.74rem" }}>
+              {component.manufacturer ? `${component.manufacturer} · ` : ""}
+              {component.primary != null
+                ? `${component.primaryLabel}: ${Math.round(component.primary).toLocaleString()}`
+                : `${component.primaryLabel}: stats unavailable`}
+              {component.secondary != null && (
+                <> · {component.secondaryLabel}: {Math.round(component.secondary).toLocaleString()}</>
+              )}
+            </div>
+            {reason && (
+              <div style={{ marginTop: 3, fontSize: "0.7rem", color: "var(--warn)" }}>
+                {reason}
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ fontSize: "0.85rem", color: "var(--text-dim)", fontStyle: "italic" }}>
+            {reason ?? "No match"}
+          </div>
+        )}
       </div>
     </div>
   );

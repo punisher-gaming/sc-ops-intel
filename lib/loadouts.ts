@@ -66,6 +66,22 @@ export interface Hardpoint {
   weaponClass?: "ballistic" | "energy";
 }
 
+/** A non-weapon system slot (shield, power plant, cooler, etc). The
+ *  game enforces one component per slot per category; size constrains
+ *  which catalog parts fit. */
+export interface ComponentSlot {
+  id: string;
+  label: string;
+  category: ComponentCategory;
+  size: number;
+}
+
+export type ComponentCategory =
+  | "shield"
+  | "powerplant"
+  | "cooler"
+  | "quantum";
+
 export interface ShipLoadoutDef {
   /** Match against the ships table `name` (case-insensitive). */
   shipName: string;
@@ -74,6 +90,10 @@ export interface ShipLoadoutDef {
   /** Short tagline for the meta-loadouts ship picker. */
   blurb: string;
   hardpoints: Hardpoint[];
+  /** Shields / power / cooler / quantum slots. Some ships have multiples
+   *  (e.g. Freelancer MAX has 2× S2 shields) — express each as its own
+   *  entry with a unique id. */
+  components: ComponentSlot[];
 }
 
 /**
@@ -95,6 +115,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "wing-l", label: "Left wing", size: 3, mount: "gimbal" },
       { id: "wing-r", label: "Right wing", size: 3, mount: "gimbal" },
     ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 2 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
+    ],
   },
   {
     shipName: "F7A Hornet Mk II",
@@ -104,6 +130,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "nose", label: "Nose ball turret", size: 4, mount: "turret" },
       { id: "wing-l", label: "Left wing", size: 5, mount: "gimbal" },
       { id: "wing-r", label: "Right wing", size: 5, mount: "gimbal" },
+    ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 2 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
     ],
   },
   {
@@ -116,6 +148,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "underwing-l", label: "Left underwing", size: 2, mount: "fixed" },
       { id: "underwing-r", label: "Right underwing", size: 2, mount: "fixed" },
     ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 1 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 1 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 1 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
+    ],
   },
   {
     shipName: "Sabre",
@@ -127,6 +165,13 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "wing-r1", label: "Right wing inner", size: 3, mount: "gimbal" },
       { id: "wing-r2", label: "Right wing outer", size: 3, mount: "gimbal" },
     ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 2 },
+      { id: "power-1", label: "Power plant 1", category: "powerplant", size: 1 },
+      { id: "power-2", label: "Power plant 2", category: "powerplant", size: 1 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 1 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
+    ],
   },
   {
     shipName: "Cutlass Black",
@@ -136,6 +181,13 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "nose-l", label: "Nose left", size: 3, mount: "fixed" },
       { id: "nose-r", label: "Nose right", size: 3, mount: "fixed" },
       { id: "turret", label: "Dorsal turret", size: 2, mount: "turret" },
+    ],
+    components: [
+      { id: "shield-1", label: "Shield 1", category: "shield", size: 1 },
+      { id: "shield-2", label: "Shield 2", category: "shield", size: 1 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
     ],
   },
   {
@@ -148,6 +200,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "wing-r", label: "Right wing", size: 4, mount: "fixed" },
       { id: "chin", label: "Chin turret", size: 3, mount: "turret" },
     ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 3 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 3 },
+    ],
   },
   {
     shipName: "Avenger Titan",
@@ -158,6 +216,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "wing-l", label: "Left wing", size: 2, mount: "fixed" },
       { id: "wing-r", label: "Right wing", size: 2, mount: "fixed" },
     ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 1 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 1 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 1 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
+    ],
   },
   {
     shipName: "Aurora LN",
@@ -166,6 +230,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
     hardpoints: [
       { id: "wing-l", label: "Left wing", size: 2, mount: "fixed" },
       { id: "wing-r", label: "Right wing", size: 2, mount: "fixed" },
+    ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 1 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 1 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 1 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 1 },
     ],
   },
   {
@@ -177,6 +247,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "wing-l", label: "Left wing", size: 4, mount: "gimbal" },
       { id: "wing-r", label: "Right wing", size: 4, mount: "gimbal" },
       { id: "ball-turret", label: "Ball turret", size: 5, mount: "turret" },
+    ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 2 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 3 },
     ],
   },
   {
@@ -191,6 +267,15 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "top-turret-1", label: "Top turret L", size: 5, mount: "turret" },
       { id: "top-turret-2", label: "Top turret R", size: 5, mount: "turret" },
     ],
+    components: [
+      { id: "shield-1", label: "Shield 1", category: "shield", size: 3 },
+      { id: "shield-2", label: "Shield 2", category: "shield", size: 3 },
+      { id: "power-1", label: "Power plant 1", category: "powerplant", size: 2 },
+      { id: "power-2", label: "Power plant 2", category: "powerplant", size: 2 },
+      { id: "cooler-1", label: "Cooler 1", category: "cooler", size: 3 },
+      { id: "cooler-2", label: "Cooler 2", category: "cooler", size: 3 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 4 },
+    ],
   },
   {
     shipName: "Freelancer MAX",
@@ -202,6 +287,13 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "turret-1", label: "Turret 1", size: 3, mount: "turret" },
       { id: "turret-2", label: "Turret 2", size: 3, mount: "turret" },
     ],
+    components: [
+      { id: "shield-1", label: "Shield 1", category: "shield", size: 2 },
+      { id: "shield-2", label: "Shield 2", category: "shield", size: 2 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 2 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 2 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 3 },
+    ],
   },
   {
     shipName: "Buccaneer",
@@ -211,6 +303,12 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
       { id: "nose", label: "Nose", size: 4, mount: "fixed" },
       { id: "wing-l", label: "Left wing", size: 3, mount: "fixed" },
       { id: "wing-r", label: "Right wing", size: 3, mount: "fixed" },
+    ],
+    components: [
+      { id: "shield", label: "Shield", category: "shield", size: 1 },
+      { id: "power", label: "Power plant", category: "powerplant", size: 1 },
+      { id: "cooler", label: "Cooler", category: "cooler", size: 1 },
+      { id: "quantum", label: "Quantum drive", category: "quantum", size: 2 },
     ],
   },
 ];
@@ -453,6 +551,161 @@ export function extractWeaponStats(w: Item): WeaponStats {
   };
 }
 
+// ── COMPONENT EXTRACTION ─────────────────────────────────────────────
+
+export interface ComponentStats {
+  name: string;
+  size: number;
+  manufacturer: string | null;
+  category: ComponentCategory;
+  /** Headline value used for ranking — meaning depends on category:
+   *  - shield: max HP
+   *  - powerplant: power output
+   *  - cooler: cooling rate
+   *  - quantum: jump range (km)  */
+  primary: number | null;
+  /** Secondary value shown alongside the primary (regen, etc.). */
+  secondary: number | null;
+  primaryLabel: string;
+  secondaryLabel: string;
+}
+
+/** Classify a component into our category enum based on its scunpacked
+ *  Type field (e.g. "Shield" / "PowerPlant" / "Cooler" / "QuantumDrive"). */
+export function categorizeComponent(item: Item): ComponentCategory | null {
+  const t = (item.type ?? "").toLowerCase();
+  if (t.includes("shield")) return "shield";
+  if (t.includes("powerplant") || t === "powerplant") return "powerplant";
+  if (t.includes("cooler")) return "cooler";
+  if (t.includes("quantum")) return "quantum";
+  return null;
+}
+
+export function extractComponentStats(item: Item, category: ComponentCategory): ComponentStats {
+  const sd: unknown = item.source_data ?? {};
+  const sdAny = sd as Record<string, unknown>;
+  const stdItem = (sdAny.stdItem ?? sdAny) as Record<string, unknown>;
+
+  let primary: number | null = null;
+  let secondary: number | null = null;
+  let primaryLabel = "Stat";
+  let secondaryLabel = "—";
+
+  if (category === "shield") {
+    // Shield block: stdItem.Shield.MaxShieldHealth + RegenerationRate.
+    const shield = stdItem.Shield as Record<string, unknown> | undefined;
+    primary =
+      num(shield?.MaxShieldHealth) ??
+      findFirstNumber(sd, (k) => /^(MaxShieldHealth|MaxHealth|ShieldPoints|HitPoints)$/i.test(k));
+    secondary =
+      num(shield?.RegenerationRate) ??
+      findFirstNumber(sd, (k) => /^(RegenerationRate|RegenRate|Regen)$/i.test(k));
+    primaryLabel = "Max HP";
+    secondaryLabel = "Regen/s";
+  } else if (category === "powerplant") {
+    // Power plant: PowerPlant.PowerDraw is what it generates (game terminology
+    // is confusing — the "draw" here is the OUTPUT). Sometimes labeled
+    // PowerOutput or MaxOutput.
+    const pp = stdItem.PowerPlant as Record<string, unknown> | undefined;
+    primary =
+      num(pp?.PowerDraw) ??
+      num(pp?.PowerOutput) ??
+      num(pp?.MaxOutput) ??
+      findFirstNumber(sd, (k) => /^(PowerOutput|MaxOutput|PowerDraw)$/i.test(k));
+    secondary =
+      num(pp?.PowerToEM) ??
+      findFirstNumber(sd, (k) => /^(PowerToEM|EMSignature|EMRating)$/i.test(k));
+    primaryLabel = "Output";
+    secondaryLabel = "EM sig";
+  } else if (category === "cooler") {
+    const c = stdItem.Cooler as Record<string, unknown> | undefined;
+    primary =
+      num(c?.CoolingRate) ??
+      findFirstNumber(sd, (k) => /^(CoolingRate|MaxCooling|CoolRate)$/i.test(k));
+    secondary =
+      num(c?.SuppressionFactor) ??
+      findFirstNumber(sd, (k) => /^(IRSignature|SuppressionFactor)$/i.test(k));
+    primaryLabel = "Cooling";
+    secondaryLabel = "IR sig";
+  } else if (category === "quantum") {
+    const q = stdItem.QuantumDrive as Record<string, unknown> | undefined;
+    primary =
+      num(q?.JumpRange) ??
+      num(q?.MaxRange) ??
+      findFirstNumber(sd, (k) => /^(JumpRange|MaxRange|Range)$/i.test(k));
+    // Convert m to km if the value is implausibly large (game stores in m sometimes).
+    if (primary != null && primary > 100_000_000) primary = primary / 1000;
+    secondary =
+      num(q?.DriveSpeed) ??
+      num(q?.QuantumSpeed) ??
+      findFirstNumber(sd, (k) => /^(DriveSpeed|QuantumSpeed|Speed)$/i.test(k));
+    primaryLabel = "Range";
+    secondaryLabel = "Speed";
+  }
+
+  return {
+    name: item.name,
+    size: item.size ?? 0,
+    manufacturer: item.manufacturer,
+    category,
+    primary,
+    secondary,
+    primaryLabel,
+    secondaryLabel,
+  };
+}
+
+// Fetch all components with source_data jsonb, classified into our four
+// categories. One round-trip, all sizes.
+export async function fetchComponentCandidates(): Promise<Map<ComponentCategory, ComponentStats[]>> {
+  const client = createClient();
+  const PAGE = 1000;
+  const out = new Map<ComponentCategory, ComponentStats[]>([
+    ["shield", []],
+    ["powerplant", []],
+    ["cooler", []],
+    ["quantum", []],
+  ]);
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from("components")
+      .select("id, class_name, name, manufacturer, type, subtype, classification, grade, size, tags, source_data")
+      .gte("size", 1)
+      .lte("size", 9)
+      .order("name", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as Item[];
+    for (const r of rows) {
+      const cat = categorizeComponent(r);
+      if (!cat) continue;
+      out.get(cat)!.push(extractComponentStats(r, cat));
+    }
+    if (rows.length < PAGE) break;
+  }
+  return out;
+}
+
+/** Pick the best component for a slot — highest primary stat that fits
+ *  the slot's size. */
+export function pickBestComponent(
+  slot: ComponentSlot,
+  candidates: ComponentStats[],
+): { component: ComponentStats | null; reason?: string } {
+  const sized = candidates.filter((c) => c.size === slot.size);
+  if (sized.length === 0) return { component: null, reason: `No size-${slot.size} ${slot.category} in catalog` };
+  const ranked = sized
+    .map((c) => ({ c, p: c.primary ?? -Infinity }))
+    .sort((a, b) => b.p - a.p);
+  if (!Number.isFinite(ranked[0].p)) {
+    return {
+      component: ranked[0].c,
+      reason: "Stats unavailable — picked first size match",
+    };
+  }
+  return { component: ranked[0].c };
+}
+
 // ── PROFILES + SCORING ───────────────────────────────────────────────
 
 export type ProfileKey = "max_dps" | "max_alpha" | "balanced" | "ballistic" | "energy" | "long_range";
@@ -523,10 +776,17 @@ export interface LoadoutSlot {
   reason?: string;
 }
 
+export interface ComponentChoice {
+  slot: ComponentSlot;
+  component: ComponentStats | null;
+  reason?: string;
+}
+
 export interface LoadoutResult {
   ship: ShipLoadoutDef;
   profile: ProfileDef;
   slots: LoadoutSlot[];
+  components: ComponentChoice[];
   // Aggregate stats across ALL slots that had a weapon assigned.
   totals: {
     dps: number;
@@ -535,6 +795,8 @@ export interface LoadoutResult {
     filled: number;
     /** Total hardpoints the ship has. */
     total: number;
+    /** Total shield HP across every shield slot. */
+    shieldHp: number;
   };
 }
 
@@ -546,6 +808,7 @@ export function computeLoadout(
   ship: ShipLoadoutDef,
   profile: ProfileDef,
   weapons: WeaponStats[],
+  componentsByCategory?: Map<ComponentCategory, ComponentStats[]>,
 ): LoadoutResult {
   const slots: LoadoutSlot[] = ship.hardpoints.map((hp) => {
     // Step 1: strict size match + class restriction (if any).
@@ -582,15 +845,27 @@ export function computeLoadout(
   const totalDps = slots.reduce((acc, s) => acc + (s.weapon?.dps ?? 0), 0);
   const totalAlpha = slots.reduce((acc, s) => acc + (s.weapon?.alpha ?? 0), 0);
 
+  // Components — pick the best per slot from each category.
+  const components: ComponentChoice[] = ship.components.map((cs) => {
+    const pool = componentsByCategory?.get(cs.category) ?? [];
+    const { component, reason } = pickBestComponent(cs, pool);
+    return { slot: cs, component, reason };
+  });
+  const shieldHp = components
+    .filter((c) => c.slot.category === "shield")
+    .reduce((acc, c) => acc + (c.component?.primary ?? 0), 0);
+
   return {
     ship,
     profile,
     slots,
+    components,
     totals: {
       dps: Math.round(totalDps),
       alpha: Math.round(totalAlpha),
       filled,
       total: slots.length,
+      shieldHp: Math.round(shieldHp),
     },
   };
 }
