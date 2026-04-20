@@ -77,7 +77,7 @@ function MetaLoadouts() {
       const c = supabase();
       c.from("components")
         .select("name, size, type, source_data")
-        .or("name.ilike.%Bolide%,name.ilike.%AbsoluteZero%,name.ilike.%CoverAll%,name.ilike.%Aither%")
+        .in("name", ["Bolide", "AbsoluteZero", "CoverAll", "Aither"])
         .limit(8)
         .then(({ data, error }) => {
           if (error) {
