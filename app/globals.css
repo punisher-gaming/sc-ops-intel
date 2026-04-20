@@ -1035,7 +1035,10 @@ select {
     inset 0 0 22px rgba(77, 217, 255, 0.10),
     0 0 22px rgba(77, 217, 255, 0.20),
     0 12px 32px rgba(0, 0, 0, 0.5);
-  position: relative;
+  /* No position override here — base .music-panel is position:fixed,
+     which is itself a valid containing block for the ::before scanline.
+     Adding position:relative reset the panel into document flow and
+     made it disappear when opened. */
 }
 .music-panel.music-panel-holo::before {
   /* Top scanline accent strip — gives "transmission feed" look */
