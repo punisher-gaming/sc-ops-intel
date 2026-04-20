@@ -61,7 +61,8 @@ function MetaLoadouts() {
             .filter((w) => (w.size ?? 0) >= 2 && (w.size ?? 0) <= 5)
             .slice(0, 3)
             .map((w) => ({ name: w.name, size: w.size ?? 0, sd: w.source_data }));
-          setRawSamples(samples);
+          // Append, don't replace — components may already be in the list.
+          setRawSamples((cur) => [...samples, ...cur.filter((c) => !samples.some((s) => s.name === c.name))]);
         }
       })
       .catch((e) => setErr((e as Error).message ?? String(e)));
