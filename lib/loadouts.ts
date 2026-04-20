@@ -633,12 +633,17 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
       num(q?.JumpRange) ??
       num(q?.MaxRange) ??
       findFirstNumber(sd, (k) => /^(JumpRange|MaxRange|Range)$/i.test(k));
-    // Convert m to km if the value is implausibly large (game stores in m sometimes).
+    // Sanity guard: scunpacked stores FLT_MAX (~3.4e38) as a "no max"
+    // sentinel for a few fields. Treat anything implausibly huge as null.
+    if (primary != null && primary > 1e15) primary = null;
+    // Convert m to km if the value is in raw meters (game sometimes stores
+    // jump distances in m). 100_000 km is a sane upper-bound for a drive.
     if (primary != null && primary > 100_000_000) primary = primary / 1000;
     secondary =
       num(q?.DriveSpeed) ??
       num(q?.QuantumSpeed) ??
       findFirstNumber(sd, (k) => /^(DriveSpeed|QuantumSpeed|Speed)$/i.test(k));
+    if (secondary != null && secondary > 1e15) secondary = null;
     primaryLabel = "Range";
     secondaryLabel = "Speed";
   }
