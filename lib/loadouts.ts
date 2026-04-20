@@ -82,6 +82,23 @@ export type ComponentCategory =
   | "cooler"
   | "quantum";
 
+/** Armor + hull stats lifted from ships.source_data — used to compute
+ *  effective HP and rank tanks vs glass cannons. Multipliers are
+ *  incoming-damage scalars (1.0 = full damage, 0.6 = 40% reduction). */
+export interface ShipDurability {
+  hullHp: number | null;
+  armorHp: number | null;
+  /** Factory shield HP (the shield that ships in the box). Useful as
+   *  a fallback when we can't pick a shield component. */
+  factoryShieldHp: number | null;
+  resists: {
+    energy: number | null;
+    physical: number | null;
+    thermal: number | null;
+    distortion: number | null;
+  };
+}
+
 export interface ShipLoadoutDef {
   /** Match against the ships table `name` (case-insensitive). */
   shipName: string;
@@ -94,6 +111,8 @@ export interface ShipLoadoutDef {
    *  (e.g. Freelancer MAX has 2× S2 shields) — express each as its own
    *  entry with a unique id. */
   components: ComponentSlot[];
+  /** Hull / armor / resists — drives the Tank profile + leaderboard. */
+  durability?: ShipDurability;
 }
 
 /**
@@ -333,20 +352,49 @@ export async function fetchAllShipDefs(): Promise<DbShipDef[]> {
   const PAGE = 500;
   const out: DbShipDef[] = [];
   for (let from = 0; ; from += PAGE) {
+    // Project hull/armor straight out of source_data via PostgREST jsonb
+    // arrows so we don't have to round-trip the full giant blob.
     const { data, error } = await client
       .from("ships")
-      .select("id, name, manufacturer, role, ship_loadout")
+      .select(
+        [
+          "id",
+          "name",
+          "manufacturer",
+          "role",
+          "ship_loadout",
+          "hull_hp:source_data->>health",
+          "armor_hp:source_data->armor->>health",
+          "shield_hp:source_data->shield->>hp",
+          "resist_energy:source_data->armor->damage_multipliers->>energy",
+          "resist_physical:source_data->armor->damage_multipliers->>physical",
+          "resist_thermal:source_data->armor->damage_multipliers->>thermal",
+          "resist_distortion:source_data->armor->damage_multipliers->>distortion",
+        ].join(","),
+      )
       .not("ship_loadout", "is", null)
       .order("name", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw error;
-    const rows = (data ?? []) as Array<{
+    const rows = (data ?? []) as unknown as Array<{
       id: string;
       name: string;
       manufacturer: string | null;
       role: string | null;
       ship_loadout: { hardpoints?: Hardpoint[]; components?: ComponentSlot[] } | null;
+      hull_hp: string | null;
+      armor_hp: string | null;
+      shield_hp: string | null;
+      resist_energy: string | null;
+      resist_physical: string | null;
+      resist_thermal: string | null;
+      resist_distortion: string | null;
     }>;
+    const toNum = (s: string | null): number | null => {
+      if (s == null) return null;
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : null;
+    };
     for (const r of rows) {
       const ld = r.ship_loadout ?? {};
       const hardpoints = (ld.hardpoints ?? []).filter(
@@ -365,6 +413,17 @@ export async function fetchAllShipDefs(): Promise<DbShipDef[]> {
         blurb: r.role ?? "",
         hardpoints,
         components,
+        durability: {
+          hullHp: toNum(r.hull_hp),
+          armorHp: toNum(r.armor_hp),
+          factoryShieldHp: toNum(r.shield_hp),
+          resists: {
+            energy: toNum(r.resist_energy),
+            physical: toNum(r.resist_physical),
+            thermal: toNum(r.resist_thermal),
+            distortion: toNum(r.resist_distortion),
+          },
+        },
       });
     }
     if (rows.length < PAGE) break;
@@ -929,7 +988,32 @@ export interface LoadoutResult {
     total: number;
     /** Total shield HP across every shield slot. */
     shieldHp: number;
+    /** Hull HP from source_data. */
+    hullHp: number;
+    /** Armor HP from source_data. */
+    armorHp: number;
+    /** Effective HP vs energy weapons: shields + (hull / energyResist) +
+     *  armor. Higher = harder to kill. */
+    ehpEnergy: number;
+    /** Effective HP vs ballistics. */
+    ehpBallistic: number;
   };
+}
+
+/** Effective HP combines shield + (hull / damage-type multiplier) + armor.
+ *  Multiplier of 0.6 means the hull effectively has 1.67× HP vs that
+ *  damage type. Armor HP is added raw — it's a separate bucket the game
+ *  burns through alongside the hull. */
+export function effectiveHp(
+  shieldHp: number,
+  durability: ShipDurability | undefined,
+  damageType: "energy" | "physical",
+): number {
+  const hull = durability?.hullHp ?? 0;
+  const armor = durability?.armorHp ?? 0;
+  const mult = durability?.resists?.[damageType] ?? 1;
+  const safeMult = mult > 0 ? mult : 1;
+  return Math.round(shieldHp + hull / safeMult + armor);
 }
 
 /** Pick the best-scoring weapon for each hardpoint per the profile.
@@ -987,6 +1071,12 @@ export function computeLoadout(
     .filter((c) => c.slot.category === "shield")
     .reduce((acc, c) => acc + (c.component?.primary ?? 0), 0);
 
+  // If the ship has no shield slots OR no shield component picked,
+  // fall back to the factory shield value baked into source_data.
+  const effShieldHp = shieldHp > 0
+    ? shieldHp
+    : (ship.durability?.factoryShieldHp ?? 0);
+
   return {
     ship,
     profile,
@@ -997,7 +1087,11 @@ export function computeLoadout(
       alpha: Math.round(totalAlpha),
       filled,
       total: slots.length,
-      shieldHp: Math.round(shieldHp),
+      shieldHp: Math.round(effShieldHp),
+      hullHp: Math.round(ship.durability?.hullHp ?? 0),
+      armorHp: Math.round(ship.durability?.armorHp ?? 0),
+      ehpEnergy: effectiveHp(effShieldHp, ship.durability, "energy"),
+      ehpBallistic: effectiveHp(effShieldHp, ship.durability, "physical"),
     },
   };
 }

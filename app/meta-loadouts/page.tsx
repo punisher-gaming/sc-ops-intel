@@ -18,6 +18,7 @@ import {
   type ComponentStats,
   type LoadoutResult,
   type ProfileDef,
+  type ShipDurability,
   type ShipLoadoutDef,
   type WeaponStats,
 } from "@/lib/loadouts";
@@ -492,6 +493,8 @@ function ShipPicker({
   );
 }
 
+type MetricKey = "dps" | "alpha" | "shield" | "hull" | "armor" | "ehpEnergy" | "ehpBallistic";
+
 /** Ranked-leaderboard view: pick a ship category (role) + a metric and
  *  see every ship in that category sorted by the metric. Computes the
  *  full math-optimal loadout per ship in-memory. */
@@ -522,7 +525,7 @@ function CategoryRankings({
   }, [ships]);
 
   const [category, setCategory] = useState<string>(() => categories[0]?.cat ?? "");
-  const [metric, setMetric] = useState<"dps" | "alpha" | "shield">("dps");
+  const [metric, setMetric] = useState<MetricKey>("dps");
   const [profileKey, setProfileKey] = useState<ProfileDef["key"]>("max_dps");
 
   // Default the category to whichever has the most ships once loaded.
@@ -544,6 +547,10 @@ function CategoryRankings({
         dps: r.totals.dps,
         alpha: r.totals.alpha,
         shield: r.totals.shieldHp,
+        hull: r.totals.hullHp,
+        armor: r.totals.armorHp,
+        ehpEnergy: r.totals.ehpEnergy,
+        ehpBallistic: r.totals.ehpBallistic,
         weaponSlots: s.hardpoints.length,
       };
     });
@@ -596,12 +603,16 @@ function CategoryRankings({
           <div className="label-mini" style={{ marginBottom: 6 }}>Rank by</div>
           <select
             value={metric}
-            onChange={(e) => setMetric(e.target.value as "dps" | "alpha" | "shield")}
+            onChange={(e) => setMetric(e.target.value as MetricKey)}
             className="select"
           >
-            <option value="dps">Total DPS</option>
-            <option value="alpha">Total alpha</option>
-            <option value="shield">Shield HP</option>
+            <option value="dps">🔥 Total DPS</option>
+            <option value="alpha">💥 Total alpha</option>
+            <option value="shield">🛡 Shield HP</option>
+            <option value="hull">🏗 Hull HP</option>
+            <option value="armor">🪖 Armor HP</option>
+            <option value="ehpEnergy">⚡ EHP vs Energy (tank)</option>
+            <option value="ehpBallistic">🔫 EHP vs Ballistic (tank)</option>
           </select>
         </div>
       </div>
@@ -614,8 +625,11 @@ function CategoryRankings({
               <th style={{ padding: "8px 10px" }}>Ship</th>
               <th style={{ padding: "8px 10px", textAlign: "right" }}>DPS</th>
               <th style={{ padding: "8px 10px", textAlign: "right" }}>Alpha</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Shield HP</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Slots</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Shield</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Hull</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Armor</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>EHP⚡</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>EHP🔫</th>
             </tr>
           </thead>
           <tbody>
@@ -642,8 +656,17 @@ function CategoryRankings({
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "shield" ? "var(--accent)" : "var(--text)" }}>
                   {r.shield > 0 ? r.shield.toLocaleString() : "—"}
                 </td>
-                <td style={{ padding: "8px 10px", textAlign: "right", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-                  {r.weaponSlots}
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "hull" ? "var(--accent)" : "var(--text-muted)" }}>
+                  {r.hull > 0 ? r.hull.toLocaleString() : "—"}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "armor" ? "var(--accent)" : "var(--text-muted)" }}>
+                  {r.armor > 0 ? r.armor.toLocaleString() : "—"}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "ehpEnergy" ? "var(--accent)" : "var(--text-muted)" }}>
+                  {r.ehpEnergy > 0 ? r.ehpEnergy.toLocaleString() : "—"}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "ehpBallistic" ? "var(--accent)" : "var(--text-muted)" }}>
+                  {r.ehpBallistic > 0 ? r.ehpBallistic.toLocaleString() : "—"}
                 </td>
               </tr>
             ))}
@@ -693,8 +716,20 @@ function LoadoutCard({ result }: { result: LoadoutResult }) {
           <Stat label="Total DPS" value={totals.dps.toLocaleString()} accent />
           <Stat label="Total alpha" value={totals.alpha.toLocaleString()} />
           {totals.shieldHp > 0 && <Stat label="Shield HP" value={totals.shieldHp.toLocaleString()} />}
+          {totals.hullHp > 0 && <Stat label="Hull HP" value={totals.hullHp.toLocaleString()} />}
+          {totals.armorHp > 0 && <Stat label="Armor HP" value={totals.armorHp.toLocaleString()} />}
         </div>
       </div>
+
+      {/* Durability strip — effective HP + per-type resists. Lower mult = harder
+          to kill against that damage type. */}
+      {(totals.ehpEnergy > 0 || totals.ehpBallistic > 0) && (
+        <DurabilityStrip
+          ehpEnergy={totals.ehpEnergy}
+          ehpBallistic={totals.ehpBallistic}
+          durability={ship.durability}
+        />
+      )}
 
       {/* Armament */}
       <div className="label-mini" style={{ marginBottom: 8 }}>
@@ -831,6 +866,72 @@ function SlotRow({ slot }: { slot: LoadoutResult["slots"][number] }) {
           {Math.round(weapon.projectileSpeed)} m/s
         </div>
       )}
+    </div>
+  );
+}
+
+/** Effective-HP + resists strip. Resists are incoming-damage multipliers
+ *  in source_data — 0.6 means the hull only takes 60% damage from that
+ *  type, which we display as "+67% effective HP" for readability. */
+function DurabilityStrip({
+  ehpEnergy,
+  ehpBallistic,
+  durability,
+}: {
+  ehpEnergy: number;
+  ehpBallistic: number;
+  durability?: ShipDurability;
+}) {
+  const r = durability?.resists;
+  // multiplier → "X.XX×" and reciprocal "+YY% EHP"
+  function fmtResist(mult: number | null): string {
+    if (mult == null || mult <= 0) return "—";
+    const ehpBoost = (1 / mult - 1) * 100;
+    return `${mult.toFixed(2)}× incoming · +${Math.round(ehpBoost)}% EHP`;
+  }
+  return (
+    <div
+      style={{
+        marginBottom: 18,
+        padding: "10px 14px",
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 6,
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+        gap: 14,
+      }}
+    >
+      <div>
+        <div className="label-mini">⚡ EHP vs Energy</div>
+        <div style={{ marginTop: 2, fontSize: "1.1rem", fontFamily: "var(--font-mono)", color: "var(--accent)" }}>
+          {ehpEnergy.toLocaleString()}
+        </div>
+        <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 2 }}>
+          {fmtResist(r?.energy ?? null)}
+        </div>
+      </div>
+      <div>
+        <div className="label-mini">🔫 EHP vs Ballistic</div>
+        <div style={{ marginTop: 2, fontSize: "1.1rem", fontFamily: "var(--font-mono)", color: "var(--accent)" }}>
+          {ehpBallistic.toLocaleString()}
+        </div>
+        <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 2 }}>
+          {fmtResist(r?.physical ?? null)}
+        </div>
+      </div>
+      <div>
+        <div className="label-mini">🔥 Thermal resist</div>
+        <div style={{ marginTop: 2, fontSize: "0.85rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
+          {fmtResist(r?.thermal ?? null)}
+        </div>
+      </div>
+      <div>
+        <div className="label-mini">🌀 Distortion resist</div>
+        <div style={{ marginTop: 2, fontSize: "0.85rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
+          {fmtResist(r?.distortion ?? null)}
+        </div>
+      </div>
     </div>
   );
 }
