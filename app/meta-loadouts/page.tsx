@@ -70,15 +70,14 @@ function MetaLoadouts() {
       .then(setComponents)
       .catch(() => { /* leave components null — UI handles gracefully */ });
 
-    // Component debug — fetch raw rows from the components table for
-    // inspection. Pulls a wide variety of types and sizes so we have
-    // good schema coverage to work from.
+    // Component debug — pull one of each category. We know from the
+    // page that Bolide/AbsoluteZero/CoverAll/Aither were picked, so
+    // grab those specifically by name to inspect their schema.
     if (debug) {
       const c = supabase();
       c.from("components")
         .select("name, size, type, source_data")
-        .gte("size", 1)
-        .lte("size", 3)
+        .or("name.ilike.%Bolide%,name.ilike.%AbsoluteZero%,name.ilike.%CoverAll%,name.ilike.%Aither%")
         .limit(8)
         .then(({ data, error }) => {
           if (error) {
@@ -91,7 +90,7 @@ function MetaLoadouts() {
               size: r.size,
               sd: r.source_data,
             }));
-          console.log("[meta-loadouts debug] component samples:", extras.length);
+          console.log("[meta-loadouts debug] component samples:", extras.length, extras.map((e) => e.name));
           setRawSamples((cur) => [...cur, ...extras]);
         });
     }
