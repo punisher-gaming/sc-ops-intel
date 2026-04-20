@@ -2,7 +2,7 @@ import { createClient } from "./supabase/client";
 
 // Returns the safe display fields for any user (used by /profile?id=…).
 // Backed by the public_user_profile(uid) SECURITY DEFINER RPC, which reads
-// auth.users.raw_user_meta_data — anon clients can't read auth.users
+// auth.users.raw_user_meta_data, anon clients can't read auth.users
 // directly, so the RPC is the only way to surface a Discord avatar/name
 // for a user that hasn't filled in profiles.display_name.
 

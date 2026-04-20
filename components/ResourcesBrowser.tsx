@@ -146,9 +146,9 @@ function ResourceList() {
                   </td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyKind(r.kind)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-                    {r.base_value != null ? r.base_value.toLocaleString() : "—"}
+                    {r.base_value != null ? r.base_value.toLocaleString() : ", "}
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.rarity ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.rarity ?? ", "}</td>
                 </tr>
               ))}
               {pageRows.length === 0 && (
@@ -233,8 +233,8 @@ function ResourceDetail({ id }: { id: string }) {
       </div>
 
       <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: "1rem" }}>
-        <Stat label="Base value" value={resource.base_value != null ? resource.base_value.toLocaleString() : "—"} />
-        <Stat label="Rarity" value={resource.rarity ?? "—"} />
+        <Stat label="Base value" value={resource.base_value != null ? resource.base_value.toLocaleString() : ", "} />
+        <Stat label="Rarity" value={resource.rarity ?? ", "} />
         <Stat label="Spawn locations" value={String(locations.length)} />
         <Stat label="Systems" value={String(bySystem.size)} />
       </div>
@@ -269,7 +269,7 @@ function ResourceDetail({ id }: { id: string }) {
                         {locs.map((l) => (
                           <div key={l.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.85rem" }}>
                             <div style={{ color: "var(--text-muted)" }}>
-                              {l.group_name ?? "—"}
+                              {l.group_name ?? ", "}
                               {l.location_type && (
                                 <span style={{ color: "var(--text-dim)" }}> · {l.location_type}</span>
                               )}
@@ -311,7 +311,7 @@ function ResourceDetail({ id }: { id: string }) {
         Last synced{" "}
         {resource.last_synced_at
           ? new Date(resource.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}
         Patch {resource.game_version ?? CURRENT_PATCH}
       </div>
@@ -376,7 +376,7 @@ function UsedInBlueprints({
       <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginBottom: 14, lineHeight: 1.5 }}>
         Blueprints whose crafted item dismantles into <strong>{resourceName}</strong>.
         The game data doesn&apos;t expose direct crafting requirements (slots
-        are abstract — Frame, Barrel, etc.), so dismantle yields are the best
+        are abstract, Frame, Barrel, etc.), so dismantle yields are the best
         bridge between resources and recipes.
       </p>
 

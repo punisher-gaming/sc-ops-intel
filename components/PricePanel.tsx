@@ -131,7 +131,7 @@ export function PricePanel({
       {!loading && prices.length === 0 && (
         <div style={{ color: "var(--text-dim)", padding: "0.5rem 0" }}>
           No community prices logged yet{locationId ? " here" : ""}.
-          {user && locationId && " Be the first — click Log price above."}
+          {user && locationId && " Be the first, click Log price above."}
         </div>
       )}
 
@@ -194,7 +194,7 @@ function StatBlock({
     >
       <div className="label-mini">{label}</div>
       <div style={{ fontSize: "1.25rem", fontWeight: 600, fontFamily: "var(--font-mono)", color, marginTop: 4 }}>
-        {stats.median != null ? formatAuec(stats.median) : "—"}
+        {stats.median != null ? formatAuec(stats.median) : ", "}
       </div>
       {stats.count > 0 && (
         <div style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: 4 }}>
@@ -332,7 +332,7 @@ function PriceForm({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           maxLength={200}
-          placeholder="Anything useful — time of day, demand level, etc."
+          placeholder="Anything useful, time of day, demand level, etc."
           className="input"
         />
       </label>

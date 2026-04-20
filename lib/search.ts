@@ -3,7 +3,7 @@
 // The naive `haystack.includes(query)` approach we had before required a
 // CONTIGUOUS substring match. Typing "Palatino Daystar" against a real item
 // named "Palatino Arms Daystar Helmet" failed because "palatino daystar"
-// isn't a substring of "palatino arms daystar helmet" — the words "arms"
+// isn't a substring of "palatino arms daystar helmet", the words "arms"
 // got in the way.
 //
 // Token matching fixes this: split the query on whitespace and require
@@ -40,7 +40,7 @@ export function tokenMatch(haystack: string, query: string): boolean {
 }
 
 // Server-side counterpart for Supabase queries. Apply each token as a
-// separate `.ilike()` filter — the supabase-js builder ANDs chained
+// separate `.ilike()` filter, the supabase-js builder ANDs chained
 // filters, so all tokens must match. Caller still has to pass the column
 // name and the filter target (usually the same).
 //

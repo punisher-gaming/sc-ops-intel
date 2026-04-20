@@ -38,7 +38,7 @@ export interface AuctionListing {
   quantity: number;
   /** Unit the quantity is in. Defaults to "each" so legacy rows render as before. */
   unit: AuctionUnit;
-  /** Minimum quality (1-1000) — only meaningful for refined materials, typically with unit=cscu. */
+  /** Minimum quality (1-1000), only meaningful for refined materials, typically with unit=cscu. */
   quality_min: number | null;
   /** Quantity of currency the seller wants. */
   price_amount: number;
@@ -52,7 +52,7 @@ export interface AuctionListing {
   created_at: string;
   updated_at: string;
   expires_at: string;
-  // From the joined view — seller display info
+  // From the joined view, seller display info
   seller_display_name?: string | null;
   seller_discord?: string | null;
   seller_rsi_handle?: string | null;
@@ -61,7 +61,7 @@ export interface AuctionListing {
   seller_is_moderator?: boolean | null;
 }
 
-/** The seller's preferred in-game identifier — RSI handle first since
+/** The seller's preferred in-game identifier, RSI handle first since
  *  that's what other players use to find them in-game, then any
  *  display_name they set, then Discord, with "Citizen" as last resort. */
 export function sellerInGameName(l: AuctionListing): string {
@@ -157,7 +157,7 @@ export async function createListing(input: {
   const client = createClient();
   // Listings auto-expire 7 days after posting. If a buyer bites and the
   // user marks it sold/filled, the row stays around regardless. Keeping
-  // this fixed so the UI stays simple — no picker, no surprises.
+  // this fixed so the UI stays simple, no picker, no surprises.
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await client
     .from("auction_listings")
@@ -215,7 +215,7 @@ export interface CurrencyOption {
 
 export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
   const client = createClient();
-  // Just commodity names + kinds — we don't need full rows
+  // Just commodity names + kinds, we don't need full rows
   const { data, error } = await client
     .from("commodities")
     .select("name, kind")
@@ -227,7 +227,7 @@ export async function fetchCurrencyOptions(): Promise<CurrencyOption[]> {
   }
   const opts: CurrencyOption[] = [
     { value: "aUEC", label: "aUEC (in-game credits)", isAuec: true },
-    // Well-known non-commodity trade tokens — handy as currencies but
+    // Well-known non-commodity trade tokens, handy as currencies but
     // they don't live in the commodities table.
     ...SPECIAL_CURRENCIES,
   ];
@@ -255,7 +255,7 @@ const SPECIAL_CURRENCIES: CurrencyOption[] = [
 // Maps an auction category to the catalog table that contains its items
 // and runs an ilike search. Returns at most `limit` names. Categories
 // without a backing catalog (paint, armor, consumable, other) return an
-// empty list — the form falls back to free text.
+// empty list, the form falls back to free text.
 
 const CATEGORY_TO_TABLE: Partial<Record<AuctionCategory, string>> = {
   ship: "ships",
@@ -320,11 +320,11 @@ export function formatPrice(amount: number, currency: string): string {
     if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K aUEC`;
     return `${amount.toLocaleString()} aUEC`;
   }
-  // Commodity payment — show units of the commodity (typically SCU)
+  // Commodity payment, show units of the commodity (typically SCU)
   return `${amount.toLocaleString()} ${currency}`;
 }
 
-// Backward-compat alias — old callers still use formatAuec().
+// Backward-compat alias, old callers still use formatAuec().
 export function formatAuec(n: number): string {
   return formatPrice(n, "aUEC");
 }

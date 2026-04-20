@@ -10,9 +10,9 @@ import {
 } from "@/lib/commodities";
 
 // Two modes:
-//   <AvailabilityList commodityId={...} />   — shows trade locations that
+//   <AvailabilityList commodityId={...} />  , shows trade locations that
 //       sell or buy this commodity
-//   <AvailabilityList locationId={...} />    — shows commodities this
+//   <AvailabilityList locationId={...} />   , shows commodities this
 //       terminal sells or buys
 
 export function AvailabilityList({

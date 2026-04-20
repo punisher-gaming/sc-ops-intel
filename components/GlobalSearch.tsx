@@ -287,7 +287,7 @@ export function GlobalSearch() {
                   <div style={{ marginBottom: 6 }}>
                     {index.entries.length.toLocaleString()} items indexed across ships, blueprints, and resources.
                   </div>
-                  <div>Start typing to search — try "Hornet", "Sniper", "Agricium"…</div>
+                  <div>Start typing to search, try "Hornet", "Sniper", "Agricium"…</div>
                 </div>
               )}
               {index.status === "ready" && q && results.total === 0 && (

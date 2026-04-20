@@ -3,7 +3,7 @@
 //
 // Ported from scripts/ingest-availability.mjs. We use native JSON.parse here
 // (not streaming) because V8's C++ parser is ~50x faster than a JS state
-// machine — critical for staying under the Worker CPU budget. The 43 MB
+// machine, critical for staying under the Worker CPU budget. The 43 MB
 // source parses to ~150 MB heap which is right at the 128 MB Worker limit,
 // so this can OOM on bad days; if it does, the local script in
 // scripts/ingest-availability.mjs remains the fallback.
@@ -40,9 +40,9 @@ export async function ingestCommodityAvailability(
   const startedAt = Date.now();
   const version = gameVersion ?? env.CURRENT_GAME_VERSION;
   try {
-    // FK preflight — load the universes of valid IDs we can reference.
+    // FK preflight, load the universes of valid IDs we can reference.
     // Use explicit large range to fetch all rows in ONE request each (PostgREST
-    // default cap is 1000 — we override to keep this to 2 subrequests total
+    // default cap is 1000, we override to keep this to 2 subrequests total
     // since Workers Free is capped at 50 subrequests per invocation).
     const [{ data: comms, error: cErr }, { data: locs, error: lErr }] =
       await Promise.all([

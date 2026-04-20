@@ -131,7 +131,7 @@ function PlanetDetail({ body }: { body: CelestialBody }) {
         <Stat label="Atmosphere" value={body.atmosphere} />
         <Stat label="Habitable" value={body.habitable ? "Yes" : "No"} />
         <Stat label="Gravity" value={`${body.gravityG.toFixed(2)} g`} />
-        <Stat label="Day length" value={body.dayHours > 0 ? `${body.dayHours} hrs` : "—"} />
+        <Stat label="Day length" value={body.dayHours > 0 ? `${body.dayHours} hrs` : ", "} />
         <Stat label="Temp range" value={`${body.tempC.low}° / ${body.tempC.high}°C`} />
         <Stat label="Type" value={body.type[0].toUpperCase() + body.type.slice(1)} />
       </div>
@@ -169,7 +169,7 @@ function PlanetDetail({ body }: { body: CelestialBody }) {
       </section>
 
       <p style={{ marginTop: "2rem", fontSize: "0.72rem", color: "var(--text-dim)", lineHeight: 1.5 }}>
-        Surface conditions are illustrative — Star Citizen weather and physics are tuned every patch.
+        Surface conditions are illustrative, Star Citizen weather and physics are tuned every patch.
         Numbers reflect current scunpacked + Star Citizen Wiki data.
       </p>
     </div>

@@ -83,7 +83,7 @@ export async function uploadTrack(
 ): Promise<MusicTrack> {
   const client = createClient();
 
-  // Storage path — timestamp-prefixed to avoid collisions
+  // Storage path, timestamp-prefixed to avoid collisions
   const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${Date.now()}_${safe}`;
 
@@ -131,7 +131,7 @@ export async function setTrackOrder(id: string, order: number): Promise<void> {
 
 export async function deleteTrack(id: string, storagePath: string): Promise<void> {
   const client = createClient();
-  // Best-effort storage cleanup — ignore errors (file might already be gone)
+  // Best-effort storage cleanup, ignore errors (file might already be gone)
   await client.storage.from("music").remove([storagePath]).catch(() => {});
   const { error } = await client.from("music_tracks").delete().eq("id", id);
   if (error) throw error;

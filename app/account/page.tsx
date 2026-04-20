@@ -70,7 +70,7 @@ export default function AccountPage() {
       .then(({ data }) => {
         const p = (data ?? null) as Profile | null;
         // Fall back to OAuth metadata if the profile row is blank.
-        // This is common for Discord/Google first-timers — the trigger
+        // This is common for Discord/Google first-timers, the trigger
         // created a profiles row with just the id, so we pre-fill from
         // the provider's user_metadata so the form isn't empty.
         const metaName = metaString(user, [
@@ -82,7 +82,7 @@ export default function AccountPage() {
         setDisplayName(p?.display_name ?? metaName ?? "");
         setRsiHandle(p?.rsi_handle ?? "");
         setDiscordWebhook(p?.discord_webhook_url ?? "");
-        // Defaults to true if the column hasn't been backfilled — matches
+        // Defaults to true if the column hasn't been backfilled, matches
         // the DB default and keeps coverage on by default.
         setEmailNotifs(p?.email_notifications_enabled ?? true);
         setLoadingProfile(false);
@@ -110,7 +110,7 @@ export default function AccountPage() {
   }
 
   // Send a test message to whatever webhook is currently typed in the
-  // input — saved or not. Lets the user verify their channel before
+  // input, saved or not. Lets the user verify their channel before
   // committing the URL to their profile.
   async function handleTestWebhook() {
     const url = discordWebhook.trim();
@@ -124,11 +124,11 @@ export default function AccountPage() {
       const ok = await postDiscordNotice({
         webhookUrl: url,
         content:
-          "✅ CitizenDex test notification — your auction notifications are wired up correctly.",
+          "✅ CitizenDex test notification, your auction notifications are wired up correctly.",
       });
       setMessage(
         ok
-          ? { kind: "ok", text: "Test sent — check your Discord channel." }
+          ? { kind: "ok", text: "Test sent, check your Discord channel." }
           : { kind: "error", text: "Couldn't reach Discord. Double-check the URL." },
       );
     } finally {
@@ -221,12 +221,12 @@ export default function AccountPage() {
             lineHeight: 1.55,
           }}
         >
-          📝 <strong>Notes</strong> are visible only to you — they don&apos;t
+          📝 <strong>Notes</strong> are visible only to you, they don&apos;t
           show up to other citizens or moderators. Pin reminders to ships,
           blueprints, resources, anything.
         </p>
 
-        {/* Identity card — avatar + provider info, pulled from OAuth metadata */}
+        {/* Identity card, avatar + provider info, pulled from OAuth metadata */}
         <div
           className="card"
           style={{
@@ -311,12 +311,12 @@ export default function AccountPage() {
                 className="input"
               />
               <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 6, lineHeight: 1.5 }}>
-                If set, we fetch your <strong>public</strong> RSI profile — orgs, badges, join
+                If set, we fetch your <strong>public</strong> RSI profile, orgs, badges, join
                 date. We never request your RSI password.
               </div>
             </label>
 
-            {/* Email notifications — universal default, ON until the
+            {/* Email notifications, universal default, ON until the
                 user opts out. We use the email tied to your auth account
                 and never expose it to anyone you message with. */}
             <div
@@ -343,7 +343,7 @@ export default function AccountPage() {
                     <strong style={{ color: "var(--text)" }}>{user.email ?? "your account email"}</strong>{" "}
                     whenever a buyer pings one of your listings or a citizen
                     DMs you. <strong>Your email is never shared</strong> with
-                    the other party — they only see your CitizenDex display
+                    the other party, they only see your CitizenDex display
                     name.
                   </div>
                 </div>
@@ -352,7 +352,7 @@ export default function AccountPage() {
 
             <label>
               <div className="label-mini" style={{ marginBottom: 6 }}>
-                Discord webhook URL (optional) — for auction notifications
+                Discord webhook URL (optional), for auction notifications
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -388,10 +388,10 @@ export default function AccountPage() {
                 <strong style={{ color: "var(--warn)" }}>
                   &ldquo;I don&apos;t have a Discord server I control&rdquo;
                 </strong>{" "}
-                — no problem. Discord&apos;s API blocks external services from
+               , no problem. Discord&apos;s API blocks external services from
                 DMing users directly (anti-spam), but you can spin up a private
                 server <em>just for yourself</em> in literally 30 seconds. It
-                stays empty except for your own bot pings — most power-users
+                stays empty except for your own bot pings, most power-users
                 already have one. See the walkthrough below for the click path.
               </div>
 
@@ -410,35 +410,35 @@ export default function AccountPage() {
                 <summary
                   style={{ cursor: "pointer", color: "var(--accent)", fontWeight: 500, listStyle: "revert" }}
                 >
-                  🔔 How Discord notifications work — full walkthrough
+                  🔔 How Discord notifications work, full walkthrough
                 </summary>
                 <div style={{ marginTop: 12 }}>
                   <p style={{ margin: "0 0 10px" }}>
                     <strong>The short version:</strong> you give us a URL that
                     points at one of your Discord channels. When something
-                    happens — a buyer pings you, an in-site DM arrives, a
-                    listing sells — we POST a message into that channel. No
+                    happens, a buyer pings you, an in-site DM arrives, a
+                    listing sells, we POST a message into that channel. No
                     bot, no permissions on your account, no Discord login.
                   </p>
 
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
-                    Step 1 — Make sure you have a server (skip if you do):
+                    Step 1, Make sure you have a server (skip if you do):
                   </p>
                   <ol style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
                     <li>In Discord&apos;s left sidebar, click the green <strong>+</strong> button under your server list (&quot;Add a Server&quot;).</li>
                     <li>Pick <strong>Create My Own</strong> → <strong>For me and my friends</strong>.</li>
-                    <li>Name it anything — &quot;<em>My Notifications</em>&quot; or &quot;<em>Bot Spam</em>&quot; is what most people pick. Skip the icon, hit <strong>Create</strong>.</li>
+                    <li>Name it anything, &quot;<em>My Notifications</em>&quot; or &quot;<em>Bot Spam</em>&quot; is what most people pick. Skip the icon, hit <strong>Create</strong>.</li>
                     <li>You now have a private server with one channel (<code>#general</code>) that only you can see. That&apos;s your DM-replacement.</li>
                   </ol>
 
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
-                    Step 2 — Make a webhook in that channel:
+                    Step 2, Make a webhook in that channel:
                   </p>
                   <ol style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
                     <li>Right-click the channel (<code>#general</code> is fine) → <strong>Edit Channel</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong> → <strong>New Webhook</strong>.</li>
                     <li>Optionally rename it &quot;CitizenDex&quot; and pick an avatar. Click <strong>Copy Webhook URL</strong>.</li>
                     <li>Paste the URL into the field above and click <strong>Test</strong>. A test message appears in your channel in &lt;1 second.</li>
-                    <li>Hit <strong>Save</strong> at the bottom of this form. Done — Discord will go &quot;ping!&quot; on your phone every time something happens to your listings.</li>
+                    <li>Hit <strong>Save</strong> at the bottom of this form. Done, Discord will go &quot;ping!&quot; on your phone every time something happens to your listings.</li>
                   </ol>
 
                   <p style={{ margin: "0 0 10px", fontWeight: 600, color: "var(--text)" }}>
@@ -446,19 +446,19 @@ export default function AccountPage() {
                   </p>
                   <ul style={{ margin: "0 0 12px", paddingLeft: "1.2rem" }}>
                     <li>
-                      <strong>💬 In-site direct messages</strong> — when
+                      <strong>💬 In-site direct messages</strong>, when
                       another citizen DMs you on CitizenDex, the body of
                       their message appears in your Discord channel with a
                       link back to your inbox.
                     </li>
                     <li>
-                      <strong>🛒 Buyer / seller interest</strong> — when
+                      <strong>🛒 Buyer / seller interest</strong>, when
                       someone clicks &quot;🔔 Quick Discord ping&quot; on
                       one of your auction listings, we forward their handle
                       plus the listing link.
                     </li>
                     <li>
-                      <strong>🤝 Listing sold / filled</strong> — when you
+                      <strong>🤝 Listing sold / filled</strong>, when you
                       mark your own listing SOLD/FILLED, we send a reminder
                       ping with the counterparty handle so you don&apos;t lose
                       track of who to find in-game.
@@ -473,7 +473,7 @@ export default function AccountPage() {
                     DMs to users without going through a Discord <em>bot</em>
                     that you&apos;ve installed and accepted DMs from. We&apos;d
                     have to ship a CitizenDex bot, get it added to a server
-                    you&apos;re already in, and ask you to opt in — much heavier
+                    you&apos;re already in, and ask you to opt in, much heavier
                     than the 60-second webhook path above. The personal server
                     trick gets you the same outcome (Discord notifies you on
                     all your devices instantly) without any of that overhead.
@@ -483,7 +483,7 @@ export default function AccountPage() {
                     Privacy &amp; safety:
                   </p>
                   <ul style={{ margin: "0 0 0", paddingLeft: "1.2rem" }}>
-                    <li>The webhook URL is a <em>per-channel write token</em> — anyone holding it can post to that channel. Don&apos;t paste it into other sites you don&apos;t trust.</li>
+                    <li>The webhook URL is a <em>per-channel write token</em>, anyone holding it can post to that channel. Don&apos;t paste it into other sites you don&apos;t trust.</li>
                     <li>Revoke it any time from Discord (delete the webhook). Next CitizenDex notification silently fails and we just stop sending.</li>
                     <li>We never @-everyone or @-here. Discord&apos;s allowed_mentions block strips that out before forwarding.</li>
                     <li>Webhook calls are CORS-relayed via our worker; your Discord credentials never touch our servers.</li>

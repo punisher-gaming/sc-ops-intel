@@ -157,7 +157,7 @@ export async function ingestResourceLocations(client: SupabaseClient, env: Env) 
       }
     }
 
-    // Blow away the old rows for this game_version — locations change by patch
+    // Blow away the old rows for this game_version, locations change by patch
     // and there's no stable id on the join row, so delete-then-insert is cleanest.
     const { error: delErr } = await client
       .from("resource_locations")

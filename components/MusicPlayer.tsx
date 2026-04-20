@@ -52,7 +52,7 @@ export function MusicPlayer() {
         }
       })
       .catch(() => {
-        /* fail silently — player just doesn't show */
+        /* fail silently, player just doesn't show */
       });
   }, []);
 
@@ -78,7 +78,7 @@ export function MusicPlayer() {
   function pickNext(current: number, len: number): number | null {
     if (len <= 1) return loop === "off" ? null : current;
     if (shuffle) {
-      // Random other index — never repeat current immediately
+      // Random other index, never repeat current immediately
       let r = Math.floor(Math.random() * (len - 1));
       if (r >= current) r += 1;
       return r;
@@ -100,7 +100,7 @@ export function MusicPlayer() {
       el.pause();
     } else {
       el.play().catch(() => {
-        // Browser may still block — swallow silently
+        // Browser may still block, swallow silently
       });
     }
   }
@@ -108,7 +108,7 @@ export function MusicPlayer() {
   function next() {
     const n = pickNext(idx, tracks.length);
     if (n == null) {
-      // Loop=off, hit end of playlist — stop playback
+      // Loop=off, hit end of playlist, stop playback
       audioRef.current?.pause();
       return;
     }
@@ -239,7 +239,7 @@ export function MusicPlayer() {
           type="button"
           onClick={() => setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off"))}
           aria-label={`Loop ${loop}`}
-          title={loop === "off" ? "Loop off — stop at end" : loop === "all" ? "Loop playlist" : "Loop one — repeat track"}
+          title={loop === "off" ? "Loop off, stop at end" : loop === "all" ? "Loop playlist" : "Loop one, repeat track"}
           style={{
             flex: 1,
             height: 28,

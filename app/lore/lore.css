@@ -1,5 +1,5 @@
 /* ==================================================================
-   Lore subsite — Tron-cyan comic-book theme
+   Lore subsite, Tron-cyan comic-book theme
    ==================================================================
    Kept separate from the main globals.css because:
      - Uses its own CSS variables (denser glow, brighter accent)
@@ -28,7 +28,7 @@
   min-height: calc(100vh - 64px);
 }
 
-/* Page backdrop — a faint TRON grid that stretches the full viewport
+/* Page backdrop, a faint TRON grid that stretches the full viewport
    and parallaxes slightly on scroll via CSS. Cheap, no JS. */
 .lore-body-backdrop {
   position: fixed;
@@ -512,7 +512,7 @@
     linear-gradient(180deg, rgba(2, 5, 12, 0.55) 0%, rgba(2, 5, 12, 0.92) 100%);
 }
 
-/* The book — fixed aspect ratio, 3D children, subtle shadow */
+/* The book, fixed aspect ratio, 3D children, subtle shadow */
 .flipbook-book {
   position: relative;
   width: min(640px, 94vw);
@@ -575,7 +575,7 @@
   pointer-events: none;
 }
 
-/* Glowing corner brackets — military-stencil frame */
+/* Glowing corner brackets, military-stencil frame */
 .flipbook-cover-corner {
   position: absolute;
   width: 38px; height: 38px;
@@ -766,7 +766,7 @@
   color: var(--lore-cyan);
 }
 
-/* TOP CAPTION BOX — a yellow comic narration banner with year + title */
+/* TOP CAPTION BOX, a yellow comic narration banner with year + title */
 .flipbook-story-top-cap {
   position: absolute;
   top: 14px; left: 14px;
@@ -796,7 +796,7 @@
   text-transform: uppercase;
 }
 
-/* BOTTOM CAPTION — narrator prose, full-width band like a panel caption */
+/* BOTTOM CAPTION, narrator prose, full-width band like a panel caption */
 .flipbook-story-bottom-cap {
   position: absolute;
   left: 0; right: 0; bottom: 0;
@@ -829,7 +829,7 @@
   text-shadow: 0 0 12px rgba(77, 217, 255, 0.6);
 }
 
-/* SPEECH BUBBLE — pull-quote rendered like a comic balloon.
+/* SPEECH BUBBLE, pull-quote rendered like a comic balloon.
    Anchored to the upper-RIGHT. Never extends past 46% width so it
    can't collide with the SFX (which lives in the lower-LEFT). */
 .flipbook-story-bubble {
@@ -874,7 +874,7 @@
   color: #444;
 }
 
-/* SFX — big KAPOW-style sound-effect lettering.
+/* SFX, big KAPOW-style sound-effect lettering.
    Anchored to the lower-LEFT so it claims empty space diagonally
    opposite the speech bubble's upper-right. max-width keeps long
    SFX strings ("GARRON FALLS", "ORION FALLS") from crossing into
@@ -916,7 +916,7 @@
   .flipbook-story-title { font-size: 1.05rem; }
   .flipbook-story-bottom-cap { padding: 1.1rem 1rem 1rem; }
   .flipbook-story-bottom-cap p { font-size: 0.85rem; }
-  /* Keep bubble and SFX on opposite sides of centerline — never touch */
+  /* Keep bubble and SFX on opposite sides of centerline, never touch */
   .flipbook-story-bubble { max-width: 48%; right: 4%; top: 24%; }
   .flipbook-story-bubble blockquote { font-size: 0.8rem; }
   .flipbook-story-sfx { font-size: 2rem; max-width: 46%; bottom: 32%; }
@@ -1193,7 +1193,7 @@
   opacity: 0.85;
 }
 
-/* The book — positioned center-stage with drop shadow + spine */
+/* The book, positioned center-stage with drop shadow + spine */
 .comic-cover-book {
   position: relative;
   width: min(640px, 92vw);
@@ -1212,7 +1212,7 @@
   z-index: -1;
 }
 
-/* The "page" — actual cover art + typography */
+/* The "page", actual cover art + typography */
 .comic-cover-page {
   position: relative;
   width: 100%;
@@ -1239,7 +1239,7 @@
     linear-gradient(180deg, rgba(2, 5, 12, 0.15) 0%, rgba(2, 5, 12, 0.7) 100%);
 }
 
-/* Masthead — top strip */
+/* Masthead, top strip */
 .comic-cover-masthead {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -1335,7 +1335,7 @@
   background: var(--lore-cyan);
 }
 
-/* The flipping corner — a triangular pseudo-page clipped from the
+/* The flipping corner, a triangular pseudo-page clipped from the
    top-right, backed with cyan paper, that rotates on flip. */
 .comic-cover-flip {
   position: absolute;
@@ -1349,7 +1349,7 @@
   transition: transform 0s;
 }
 .comic-cover-flip::before {
-  /* The paper itself — back of page (shows when flipped) */
+  /* The paper itself, back of page (shows when flipped) */
   content: "";
   position: absolute;
   inset: 0;
@@ -1372,7 +1372,7 @@
   transition: opacity 0.8s;
 }
 
-/* Page-flip animation — corner curls forward */
+/* Page-flip animation, corner curls forward */
 .comic-cover-book.is-flipping .comic-cover-flip {
   animation: page-curl 2.6s ease-in-out;
 }
@@ -1428,7 +1428,7 @@
 
 /* ═══════════ Comic-book layouts ═══════════ */
 
-/* Full-bleed splash — cover-worthy single-art panel. Image fills the card
+/* Full-bleed splash, cover-worthy single-art panel. Image fills the card
    end to end; title + caption overlay the bottom-left corner with a dark
    gradient for legibility. */
 .lore-splash {
@@ -1493,7 +1493,7 @@
 .lore-splash[data-accent="green"] .lore-splash-panel-num { color: var(--lore-green); }
 .lore-splash[data-accent="violet"] .lore-splash-panel-num { color: var(--lore-violet); }
 
-/* Split panel — art on one side, prose on the other. alternates for
+/* Split panel, art on one side, prose on the other. alternates for
    visual rhythm down the page. */
 .lore-split {
   position: relative;
@@ -1554,7 +1554,7 @@
   margin: 0;
 }
 
-/* Speech-bubble quote — tail-pointer on the attribution side */
+/* Speech-bubble quote, tail-pointer on the attribution side */
 .lore-bubble {
   position: relative;
   margin: 2rem 0;
@@ -1617,7 +1617,7 @@
   right: 48px;
 }
 
-/* Panel counter — little numbered badge on each comic panel */
+/* Panel counter, little numbered badge on each comic panel */
 .lore-panel-num {
   position: absolute;
   top: -10px;
@@ -1633,7 +1633,7 @@
   z-index: 2;
 }
 
-/* Chapter hero art — full-bleed cinematic. sits behind title text. */
+/* Chapter hero art, full-bleed cinematic. sits behind title text. */
 .lore-chapter-hero {
   position: relative;
   min-height: 60vh;
@@ -1820,7 +1820,7 @@
   line-height: 1.6;
 }
 
-/* Card accent variants — set via CSS variable on the card element */
+/* Card accent variants, set via CSS variable on the card element */
 .accent-cyan   { --card-accent: #4dd9ff; }
 .accent-amber  { --card-accent: #ffb84d; }
 .accent-red    { --card-accent: #ff5a6a; }

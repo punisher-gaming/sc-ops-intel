@@ -1,4 +1,4 @@
-// Owner's personal note on the homepage — a free-to-play Verse message
+// Owner's personal note on the homepage, a free-to-play Verse message
 // plus the RSI enlist referral link. Sits just above the staff credits
 // panel. Styled as a signed letter rather than a banner so it reads as
 // personal rather than an ad.
@@ -40,11 +40,11 @@ export function OwnerNote() {
             margin: "0 0 14px",
           }}
         >
-          CitizenDex is <strong>free to the Verse</strong> — no paywalls, no
+          CitizenDex is <strong>free to the Verse</strong>, no paywalls, no
           logins required, no ads. If you&apos;re new to Star Citizen and
           enjoying this site, consider using my referral link when you enlist.
           You get <strong>5,000 UEC</strong> in-game credits on sign-up and it
-          helps keep the lights on here. No pressure either way — the
+          helps keep the lights on here. No pressure either way, the
           database stays free regardless.
         </p>
 
@@ -74,7 +74,7 @@ export function OwnerNote() {
           </div>
         </div>
 
-        {/* Signoff — right-aligned block: "o7 to all, — KNERFD · Owner"
+        {/* Signoff, right-aligned block: "o7 to all,, KNERFD · Owner"
             all flowing together so it reads as one hand-signed line. */}
         <div
           style={{
@@ -109,7 +109,7 @@ export function OwnerNote() {
             }}
             title="KNERFD's profile"
           >
-            — KNERFD
+           , KNERFD
             <span
               style={{
                 color: "var(--text-dim)",

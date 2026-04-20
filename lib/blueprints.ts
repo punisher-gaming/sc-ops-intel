@@ -128,7 +128,7 @@ export async function fetchBlueprintIdsWithSources(): Promise<Set<string>> {
 }
 
 // Fetch all (blueprint_id, mission_family) pairs. Mission family is derived
-// from source_key — we strip "BP_MISSIONREWARD_" and keep everything up to
+// from source_key, we strip "BP_MISSIONREWARD_" and keep everything up to
 // the first trailing variant tag (e.g. "_AB", "_A", "_B"). Lets users filter
 // blueprints by "only drops in XenoThreat missions", etc.
 export async function fetchBlueprintMissionFamilies(): Promise<{
@@ -169,7 +169,7 @@ export async function fetchBlueprintMissionFamilies(): Promise<{
 // Star system inference for blueprint sources. The catalog has no
 // system column, so we infer it from source_name / source_key by
 // keyword-matching known landmarks. The system name itself is rarely
-// in the string ("Stanton" / "Pyro" appear in <20% of source rows) —
+// in the string ("Stanton" / "Pyro" appear in <20% of source rows) , 
 // most rows reference shop names, mission keys, or planet/moon
 // landmarks that uniquely identify a system. Hence the long keyword
 // lists below.
@@ -407,7 +407,7 @@ export async function unmarkBlueprintOwned(userId: string, blueprintId: string):
 
 // Reverse lookup: which blueprints, when dismantled, yield the given
 // refined material? This is our best proxy for "what blueprints use this
-// resource" — game data doesn't expose direct crafting requirements per
+// resource", game data doesn't expose direct crafting requirements per
 // resource (slots are abstract groups), but Dismantle.Returns is canonical.
 //
 // IMPORTANT: matching is by NAME, not UUID. The `resources` table holds
@@ -499,7 +499,7 @@ export function displayName(b: Blueprint): string {
 }
 
 export function formatCraftTime(seconds: number | null | undefined): string {
-  if (seconds == null) return "—";
+  if (seconds == null) return ", ";
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -508,7 +508,7 @@ export function formatCraftTime(seconds: number | null | undefined): string {
 }
 
 export function prettyType(type: string | null): string {
-  if (!type) return "—";
+  if (!type) return ", ";
   // WeaponPersonal → "Weapon (Personal)"; ShipItem → "Ship Item"
   return type.replace(/([A-Z])/g, " $1").trim();
 }

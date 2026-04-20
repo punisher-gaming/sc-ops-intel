@@ -1,7 +1,7 @@
 import type { LoreImage } from "@/lib/lore-data";
 
 // Renders a real image (from SC Wiki) with a visible credit caption in
-// the bottom-right corner. Used wherever LoreImage data is present —
+// the bottom-right corner. Used wherever LoreImage data is present , 
 // chapter heroes, splash panels, race portraits, system banners.
 //
 // Why plain <img> vs next/image: we're a static export, and the images

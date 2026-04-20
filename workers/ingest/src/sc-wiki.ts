@@ -1,9 +1,9 @@
 // Thin wrapper around the Star Citizen Wiki API (api.star-citizen.wiki/api/v3).
 // Endpoints used:
-//   /vehicles         — ships
-//   /weapons          — FPS + ship weapons
-//   /ship-items       — components (shields, power plants, etc.)
-//   /commodities      — tradable goods
+//   /vehicles        , ships
+//   /weapons         , FPS + ship weapons
+//   /ship-items      , components (shields, power plants, etc.)
+//   /commodities     , tradable goods
 // Ref: https://docs.star-citizen.wiki/
 
 export async function fetchPage<T>(

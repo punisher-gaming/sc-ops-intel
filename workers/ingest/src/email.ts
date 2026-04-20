@@ -1,5 +1,5 @@
 // Resend transactional email integration. Used by /notify/user to
-// email the recipient when an in-site DM arrives — fallback (or
+// email the recipient when an in-site DM arrives, fallback (or
 // supplement) to the Discord webhook path.
 //
 // We never expose either party's email to the other: the message goes
@@ -56,7 +56,7 @@ export async function sendEmail(env: Env, payload: EmailPayload): Promise<{ ok: 
 }
 
 function renderHtml(p: EmailPayload): string {
-  // Inline-styled plain HTML — no template engine, no images. Keeps the
+  // Inline-styled plain HTML, no template engine, no images. Keeps the
   // Resend payload tiny and renders consistently across Gmail / Outlook
   // / Apple Mail without weird artefacts.
   const safe = (s: string) =>
@@ -77,7 +77,7 @@ function renderHtml(p: EmailPayload): string {
         <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;">
         <p style="margin:0;font-size:12px;color:#6b7280;line-height:1.5;">
           This message was sent on behalf of another CitizenDex user.
-          <strong>Your email address is private</strong> and was never shared with them —
+          <strong>Your email address is private</strong> and was never shared with them , 
           replies happen on the site.<br>
           <a href="https://citizendex.com/account" style="color:#0ea5e9;">Manage notification settings</a>
         </p>

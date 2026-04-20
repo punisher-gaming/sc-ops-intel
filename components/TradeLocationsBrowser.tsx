@@ -137,8 +137,8 @@ function TradeLocationList() {
                       </div>
                     )}
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.system ?? "—"}</td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.planet ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.system ?? ", "}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.planet ?? ", "}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyKind(t.kind)}</td>
                 </tr>
               ))}
@@ -208,13 +208,13 @@ function TradeLocationDetail({ id }: { id: string }) {
 
       <TradeLocationPrices locationId={t.id} locationName={t.name} />
 
-      {/* Raw source data block removed — jsonb dumps don't belong in the UI. */}
+      {/* Raw source data block removed, jsonb dumps don't belong in the UI. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}
         {t.last_synced_at
           ? new Date(t.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}Patch {t.game_version ?? CURRENT_PATCH}
       </div>
     </div>

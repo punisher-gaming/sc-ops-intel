@@ -1,11 +1,11 @@
-// Narrative pages for the /lore hero flip book — a 32-page chronological
+// Narrative pages for the /lore hero flip book, a 32-page chronological
 // comic reading as a single story rather than a table of contents.
 // Each page is its own comic panel with caption + art + optional
 // speech-bubble quote + optional SFX word.
 //
 // Every page's `year` must also appear as an event on its referenced
 // chapter (chapterSlug). If you add a page here, add a matching event
-// in lore-data.ts — the test is: a reader flipping through should see
+// in lore-data.ts, the test is: a reader flipping through should see
 // the exact same year+title when they click into the chapter page.
 
 import type { LoreImage } from "./lore-data";
@@ -22,7 +22,7 @@ export interface StoryPage {
 }
 
 export const STORY_PAGES: StoryPage[] = [
-  // ═══════════ I. ORIGINS (2075 — 2262) ═══════════
+  // ═══════════ I. ORIGINS (2075, 2262) ═══════════
   {
     year: 2075,
     title: "The Cradle",
@@ -46,7 +46,7 @@ export const STORY_PAGES: StoryPage[] = [
       "A lone pilot in a modified racer threads a gravitational anomaly. He arrives, dazed, sixty-eight light-years from Sol. The Verse opens.",
     pullQuote: {
       text: "They told me to turn back. I turned further in.",
-      attribution: "Nick Croshaw — logbook, 2157",
+      attribution: "Nick Croshaw, logbook, 2157",
     },
     image: IMG_SYSTEM.croshaw,
     sfx: "JUMP",
@@ -56,7 +56,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2232,
     title: "One Earth",
     narration:
-      "Two centuries of resource wars over jump-point access end in a single signature. The United Nations of Earth becomes humanity's first planetary government — and its first empire.",
+      "Two centuries of resource wars over jump-point access end in a single signature. The United Nations of Earth becomes humanity's first planetary government, and its first empire.",
     image: IMG_SCENE.solMap,
     chapterSlug: "origins",
   },
@@ -64,12 +64,12 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2262,
     title: "The Quantum Age",
     narration:
-      "The Artemis — humanity's first true FTL ship — makes the Sol–Croshaw run in hours instead of months. The jump-point network goes from curiosity to highway.",
+      "The Artemis, humanity's first true FTL ship, makes the Sol–Croshaw run in hours instead of months. The jump-point network goes from curiosity to highway.",
     image: IMG_SCENE.croshawAngeli,
     chapterSlug: "origins",
   },
 
-  // ═══════════ II. EARLY EMPIRE (2262 — 2523) ═══════════
+  // ═══════════ II. EARLY EMPIRE (2262, 2523) ═══════════
   {
     year: 2380,
     title: "United Planets",
@@ -102,7 +102,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2490,
     title: "The Merchantman Era",
     narration:
-      "Banu and human trade routes merge. Banu Merchantmen — famous for hexagonal hulls and swappable module bays — become a common sight in UPE ports. Prosperity, briefly.",
+      "Banu and human trade routes merge. Banu Merchantmen, famous for hexagonal hulls and swappable module bays, become a common sight in UPE ports. Prosperity, briefly.",
     image: IMG_SCENE.banuShip,
     chapterSlug: "early-empire",
   },
@@ -120,12 +120,12 @@ export const STORY_PAGES: StoryPage[] = [
     chapterSlug: "messer-era",
   },
 
-  // ═══════════ III. MESSER ERA (2523 — 2792) ═══════════
+  // ═══════════ III. MESSER ERA (2523, 2792) ═══════════
   {
     year: 2530,
     title: "The Cold War",
     narration:
-      "Messer propaganda casts the Xi'An as an existential threat. Both sides militarize the shared border. For four centuries no shot is ever fired — but the threat-posture pays for the regime.",
+      "Messer propaganda casts the Xi'An as an existential threat. Both sides militarize the shared border. For four centuries no shot is ever fired, but the threat-posture pays for the regime.",
     image: IMG_SCENE.uniforms,
     chapterSlug: "messer-era",
   },
@@ -142,7 +142,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2546,
     title: "First Blood",
     narration:
-      "Garron II. Ninety minutes. Half a colony erased in a single orbital pass. The aggressors leave nothing behind to question — not even their ships. Humanity has a new enemy and no name for it.",
+      "Garron II. Ninety minutes. Half a colony erased in a single orbital pass. The aggressors leave nothing behind to question, not even their ships. Humanity has a new enemy and no name for it.",
     image: IMG_SCENE.garronMassacre,
     sfx: "GARRON FALLS",
     chapterSlug: "messer-era",
@@ -159,7 +159,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2610,
     title: "The Sin",
     narration:
-      "Terraforming completes. The planet is renamed Elysium IV. The surviving Tevarin scatter across human space — a refugee people, second-class citizens in a government that took their world.",
+      "Terraforming completes. The planet is renamed Elysium IV. The surviving Tevarin scatter across human space, a refugee people, second-class citizens in a government that took their world.",
     image: IMG_RACE.tevarin,
     chapterSlug: "messer-era",
   },
@@ -175,12 +175,12 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2789,
     title: "Fair Chance",
     narration:
-      "As atonement for the Tevarin, the UEE passes the Fair Chance Act. Any star system containing sapient life — even potentially sapient life — is permanently protected from colonization. It remains the empire's most-cited law.",
+      "As atonement for the Tevarin, the UEE passes the Fair Chance Act. Any star system containing sapient life, even potentially sapient life, is permanently protected from colonization. It remains the empire's most-cited law.",
     image: IMG_SYSTEM.odin,
     chapterSlug: "messer-era",
   },
 
-  // ═══════════ IV. LIBERATION (2792 — 2920) ═══════════
+  // ═══════════ IV. LIBERATION (2792, 2920) ═══════════
   {
     year: 2792,
     title: "The March",
@@ -188,7 +188,7 @@ export const STORY_PAGES: StoryPage[] = [
       "It starts with a civil servant who refuses an order. Then a fleet captain refuses to fire. Then a tram operator refuses to drive. In seventy-two hours the Messer regime has no infrastructure, no military, and nowhere left to flee.",
     pullQuote: {
       text: "We did not vote this government in. We were born into it. We chose to no longer consent.",
-      attribution: "Ilsa Messer — final radio address, 2792",
+      attribution: "Ilsa Messer, final radio address, 2792",
     },
     image: IMG_CHAPTER.liberation,
     sfx: "FREE",
@@ -198,7 +198,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2800,
     title: "First Free Elections",
     narration:
-      "Imperator Erin Toi wins a planetary plebiscite — the first in 280 years. The Senate is reconstituted with real powers. The dictatorship becomes a democracy over the span of a single autumn.",
+      "Imperator Erin Toi wins a planetary plebiscite, the first in 280 years. The Senate is reconstituted with real powers. The dictatorship becomes a democracy over the span of a single autumn.",
     image: IMG_SCENE.senateLeft,
     chapterSlug: "liberation",
   },
@@ -206,7 +206,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2872,
     title: "Corath'Thal's Ghost",
     narration:
-      "Tevarin rebels — inheritors of the warlord's name — rise one more time. The newly democratic UEE responds not with annihilation but diplomacy. The Tevarin are integrated, not erased. The wound begins to close.",
+      "Tevarin rebels, inheritors of the warlord's name, rise one more time. The newly democratic UEE responds not with annihilation but diplomacy. The Tevarin are integrated, not erased. The wound begins to close.",
     image: IMG_SCENE.tevarinService,
     chapterSlug: "liberation",
   },
@@ -219,12 +219,12 @@ export const STORY_PAGES: StoryPage[] = [
     chapterSlug: "liberation",
   },
 
-  // ═══════════ V. GOLDEN AGE (2920 — 2942) ═══════════
+  // ═══════════ V. GOLDEN AGE (2920, 2942) ═══════════
   {
     year: 2931,
     title: "The Modern UEE",
     narration:
-      "The Terran Bill of Rights is signed into law. The modern UEE — constitutional, democratic, navy-loyal — is born. Every Imperator since has been a veteran.",
+      "The Terran Bill of Rights is signed into law. The modern UEE, constitutional, democratic, navy-loyal, is born. Every Imperator since has been a veteran.",
     image: IMG_SCENE.advocacyShip,
     chapterSlug: "golden-age",
   },
@@ -240,7 +240,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2938,
     title: "Lorville Rises",
     narration:
-      "Hurston Dynamics begins construction of Lorville. It will become the largest city on any corporate-owned world — a soot-black spire built on mining revenue and indentured labor contracts that Hurston refuses to call indentured.",
+      "Hurston Dynamics begins construction of Lorville. It will become the largest city on any corporate-owned world, a soot-black spire built on mining revenue and indentured labor contracts that Hurston refuses to call indentured.",
     image: IMG_SCENE.lorville,
     chapterSlug: "golden-age",
   },
@@ -248,7 +248,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2940,
     title: "Orison in the Clouds",
     narration:
-      "Crusader Industries completes Orison — a floating city-platform suspended in the upper atmosphere of the gas giant Crusader. No ground. Just clouds, and the ships that sell there.",
+      "Crusader Industries completes Orison, a floating city-platform suspended in the upper atmosphere of the gas giant Crusader. No ground. Just clouds, and the ships that sell there.",
     image: IMG_SCENE.orisonOverview,
     chapterSlug: "golden-age",
   },
@@ -267,14 +267,14 @@ export const STORY_PAGES: StoryPage[] = [
       "After centuries of escalating raids, the Vanduul stop being raiders. They take the entire Orion system in one coordinated campaign. Half a million dead. The UEE Navy, finally, accepts that this is no longer a border skirmish.",
     pullQuote: {
       text: "Half a million dead. The dictionary now needs a new word.",
-      attribution: "Imperator Costigan — address to the Senate, 2942",
+      attribution: "Imperator Costigan, address to the Senate, 2942",
     },
     image: IMG_SCENE.orionArmitage,
     sfx: "ORION FALLS",
     chapterSlug: "golden-age",
   },
 
-  // ═══════════ VI. CURRENT ERA (2942 — 2952) ═══════════
+  // ═══════════ VI. CURRENT ERA (2942, 2952) ═══════════
   {
     year: 2944,
     title: "Project Synthesis",
@@ -287,7 +287,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2947,
     title: "The Door Reopens",
     narration:
-      "A jump gate sealed by the UEE Navy in 2463 — sealed for four hundred and eighty-four years — opens. Pyro is on the other side: lawless, ungoverned, full of people who do not want to be found. Civilians go through anyway.",
+      "A jump gate sealed by the UEE Navy in 2463, sealed for four hundred and eighty-four years, opens. Pyro is on the other side: lawless, ungoverned, full of people who do not want to be found. Civilians go through anyway.",
     image: IMG_SCENE.pyro3Descent,
     sfx: "PYRO OPEN",
     chapterSlug: "current-era",
@@ -296,7 +296,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2950,
     title: "Xenothreat",
     narration:
-      "A coalition of Pyrotechnic pirates and ex-military hardliners — calling themselves Xenothreat — launches coordinated attacks on Stanton–Pyro traffic. The Navy answers. The conflict is ongoing.",
+      "A coalition of Pyrotechnic pirates and ex-military hardliners, calling themselves Xenothreat, launches coordinated attacks on Stanton–Pyro traffic. The Navy answers. The conflict is ongoing.",
     image: IMG_SCENE.xenothreat,
     sfx: "XENOTHREAT",
     chapterSlug: "current-era",
@@ -305,7 +305,7 @@ export const STORY_PAGES: StoryPage[] = [
     year: 2952,
     title: "Pyro Official",
     narration:
-      "The UEE formally declares the Pyro system fully charted. Civilian presence is discouraged but no longer illegal. New citizens arrive daily — some to build outposts, most to disappear.",
+      "The UEE formally declares the Pyro system fully charted. Civilian presence is discouraged but no longer illegal. New citizens arrive daily, some to build outposts, most to disappear.",
     image: IMG_SCENE.pyro3Outpost,
     chapterSlug: "current-era",
   },

@@ -137,7 +137,7 @@ export default function NotesPage() {
           <div className="accent-label">Account</div>
           <h1>Notes</h1>
           <p>
-            These are <strong>your private notes</strong> — only you can see them.
+            These are <strong>your private notes</strong>, only you can see them.
             No moderator, no other player, not even other admins. Use them for
             loadouts, mission strategies, crafting plans, or anything else
             you&apos;d jot in a personal logbook.

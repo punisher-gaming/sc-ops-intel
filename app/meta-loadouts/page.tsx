@@ -51,7 +51,7 @@ function MetaLoadouts() {
   const [components, setComponents] = useState<Map<ComponentCategory, ComponentStats[]> | null>(null);
   const [rawSamples, setRawSamples] = useState<Array<{ name: string; size: number; sd: unknown }>>([]);
   const [err, setErr] = useState<string | null>(null);
-  // All ships with hardpoint/component data — pulled from
+  // All ships with hardpoint/component data, pulled from
   // ships.ship_loadout (ingested from scunpacked-data). Falls back to
   // SHIP_HARDPOINTS if the DB is empty (pre-ingest).
   const [allShips, setAllShips] = useState<ShipLoadoutDef[]>(SHIP_HARDPOINTS);
@@ -83,7 +83,7 @@ function MetaLoadouts() {
             .filter((w) => (w.size ?? 0) >= 2 && (w.size ?? 0) <= 5)
             .slice(0, 3)
             .map((w) => ({ name: w.name, size: w.size ?? 0, sd: w.source_data }));
-          // Append, don't replace — components may already be in the list.
+          // Append, don't replace, components may already be in the list.
           setRawSamples((cur) => [...samples, ...cur.filter((c) => !samples.some((s) => s.name === c.name))]);
         }
       })
@@ -91,9 +91,9 @@ function MetaLoadouts() {
     // Components run in parallel so the page isn't blocked by either.
     fetchComponentCandidates()
       .then(setComponents)
-      .catch(() => { /* leave components null — UI handles gracefully */ });
+      .catch(() => { /* leave components null, UI handles gracefully */ });
 
-    // Component debug — pull one of each category. We know from the
+    // Component debug, pull one of each category. We know from the
     // page that Bolide/AbsoluteZero/CoverAll/Aither were picked, so
     // grab those specifically by name to inspect their schema.
     if (debug) {
@@ -133,7 +133,7 @@ function MetaLoadouts() {
         <p>
           Math-optimal weapon picks per ship per build profile. Calculated live
           from our weapon catalog (DPS × fire-rate × projectile speed where
-          known) — no hand-waving, no opinion. Community meta drifts with each
+          known), no hand-waving, no opinion. Community meta drifts with each
           patch and pilot skill matters more than spreadsheet wins.{" "}
           <strong>Use this as a starting point</strong>, then tune to your fly
           style.
@@ -153,7 +153,7 @@ function MetaLoadouts() {
           lineHeight: 1.55,
         }}
       >
-        🛠 <strong>{allShips.length} ships covered</strong> — every flyable
+        🛠 <strong>{allShips.length} ships covered</strong>, every flyable
         hull with swappable hardpoints, hardpoint configs ingested from
         scunpacked-data and re-synced each patch. Ship looking weird?
         Drop us a note in <Link href="/community" style={{ color: "var(--accent)" }}>Community</Link>.
@@ -254,7 +254,7 @@ function MetaLoadouts() {
 
       {debug && rawSamples.length > 0 && (
         <div className="card" style={{ padding: "1.25rem", marginTop: 16 }}>
-          <div className="accent-label" style={{ marginBottom: 8 }}>🐛 Debug — raw source_data samples</div>
+          <div className="accent-label" style={{ marginBottom: 8 }}>🐛 Debug, raw source_data samples</div>
           <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", marginBottom: 12 }}>
             Visible only with <code>?debug=1</code>. Shows the actual jsonb shape so we can see
             which keys hold damage / fire-rate / projectile speed.
@@ -285,31 +285,31 @@ function MetaLoadouts() {
         </div>
       )}
 
-      {/* How-to-read explainer — gives the stats meaning so casual readers
+      {/* How-to-read explainer, gives the stats meaning so casual readers
           aren't just staring at columns of numbers. */}
       <div className="card" style={{ padding: "1.5rem", marginTop: 24 }}>
         <div className="accent-label">📖 How to read these numbers</div>
         <h3 style={{ margin: "4px 0 14px", fontSize: "1.15rem" }}>
-          Tank, glass cannon, or balanced — what the stats actually tell you
+          Tank, glass cannon, or balanced, what the stats actually tell you
         </h3>
         <div style={{ display: "grid", gap: 14, fontSize: "0.88rem", lineHeight: 1.65, color: "var(--text)" }}>
           <p style={{ margin: 0 }}>
             <strong style={{ color: "var(--accent)" }}>Higher EHP⚡ = more tanky vs energy weapons.</strong>{" "}
             EHP (Effective Hit Points) is the total damage a ship can absorb before it dies, accounting
             for armor&apos;s damage reduction. A ship with 519,888 EHP⚡ takes <em>nearly 2.5× more laser
-            damage to kill</em> than one with 210,167 EHP⚡ — even if their raw hull HP looks similar.
+            damage to kill</em> than one with 210,167 EHP⚡, even if their raw hull HP looks similar.
           </p>
           <p style={{ margin: 0 }}>
             <strong style={{ color: "var(--accent)" }}>EHP🔫 is almost always lower than EHP⚡.</strong>{" "}
             Most hulls have higher physical resistance multipliers (0.75×) than energy multipliers
             (0.60×), meaning hulls eat <em>more</em> ballistic damage per shot. That&apos;s why
-            kinetic loadouts (gatlings, repeaters, cannons) are favored against tanks in PvP — they
+            kinetic loadouts (gatlings, repeaters, cannons) are favored against tanks in PvP, they
             skip the shield game faster and grind hulls down.
           </p>
           <p style={{ margin: 0 }}>
             <strong style={{ color: "var(--accent)" }}>DPS vs EHP tells you the playstyle.</strong>{" "}
             High DPS + low EHP = glass cannon (Redeemer). High EHP + low DPS = pure tank (Starlancer
-            TAC). The sweet spot is usually a hull with both — a ship like the Paladin that has
+            TAC). The sweet spot is usually a hull with both, a ship like the Paladin that has
             ~80% the tank of a dedicated tank but nearly 2× the firepower is often the actual meta
             pick over the &ldquo;best&rdquo; in either category.
           </p>
@@ -318,7 +318,7 @@ function MetaLoadouts() {
             Switching to <em>Tank</em> profile picks long-range projectile weapons so a durable hull
             can trade at distance and let its EHP advantage outlast the enemy. <em>Max DPS</em>
             picks raw damage, <em>Long Range</em> prioritizes projectile speed, and so on. The
-            ship&apos;s hull/armor stats stay constant — only the weapons change.
+            ship&apos;s hull/armor stats stay constant, only the weapons change.
           </p>
           <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.82rem" }}>
             💡 <em>Try this:</em> set Category to your favorite combat hull bucket, switch &ldquo;Rank
@@ -340,7 +340,7 @@ function MetaLoadouts() {
   );
 }
 
-/** Searchable ship picker — text input + filtered dropdown grouped by
+/** Searchable ship picker, text input + filtered dropdown grouped by
  *  manufacturer. Click an option to select; arrow keys + Enter to
  *  navigate; Esc closes. */
 function ShipPicker({
@@ -358,7 +358,7 @@ function ShipPicker({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Filter as user types — match against "Manufacturer ShipName".
+  // Filter as user types, match against "Manufacturer ShipName".
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return ships;
@@ -371,7 +371,7 @@ function ShipPicker({
   const grouped = useMemo(() => {
     const map = new Map<string, ShipLoadoutDef[]>();
     for (const s of filtered) {
-      const key = s.manufacturer || "—";
+      const key = s.manufacturer || ", ";
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     }
@@ -756,7 +756,7 @@ function CategoryRankings({
   const profile = PROFILES.find((p) => p.key === profileKey)!;
   const allSelected = selectedCats.size === 0 || selectedCats.size === categories.length;
 
-  // Stable signature of the current selection — used as a React key
+  // Stable signature of the current selection, used as a React key
   // prefix so switching filter remounts rows cleanly (avoids stale
   // DOM nodes when the row set changes).
   const selectionSig = useMemo(
@@ -791,7 +791,7 @@ function CategoryRankings({
 
   if (categories.length === 0) return null;
 
-  // Friendly title — collapses to "ships" / "[Cat]" / "[Cat] + [Cat]" /
+  // Friendly title, collapses to "ships" / "[Cat]" / "[Cat] + [Cat]" /
   // "X categories" depending on selection.
   const titleSubject = allSelected
     ? "ships across all categories"
@@ -867,13 +867,13 @@ function CategoryRankings({
             <tr style={{ textAlign: "left", color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
               <th style={{ padding: "8px 10px", width: 36 }}>#</th>
               <th style={{ padding: "8px 10px" }}>Ship</th>
-              <ColHeader label="DPS" desc="Damage Per Second — sustained damage output across every weapon slot, computed as alpha × fire-rate ÷ 60. The honest 'big number' for fights that last more than a single trigger pull." />
+              <ColHeader label="DPS" desc="Damage Per Second, sustained damage output across every weapon slot, computed as alpha × fire-rate ÷ 60. The honest 'big number' for fights that last more than a single trigger pull." />
               <ColHeader label="Alpha" desc="Total damage from a single coordinated trigger pull across every weapon slot. High alpha = big burst (assassinations / one-shots from stealth). Low alpha but high DPS = sustained brawler." />
-              <ColHeader label="Shield" desc="Total shield HP across every shield slot using the math-optimal shield component for each slot's size. Shields regenerate between fights — the first line of defense." />
+              <ColHeader label="Shield" desc="Total shield HP across every shield slot using the math-optimal shield component for each slot's size. Shields regenerate between fights, the first line of defense." />
               <ColHeader label="Hull" desc="Raw hull HP from the ship's source data. This is what's left to chew through after shields drop. Doesn't include damage-type resistances (see EHP columns for that)." />
-              <ColHeader label="Armor" desc="Raw armor HP — a separate damage bucket that absorbs hits alongside the hull. Not all ships have meaningful armor; light fighters often show small numbers here." />
+              <ColHeader label="Armor" desc="Raw armor HP, a separate damage bucket that absorbs hits alongside the hull. Not all ships have meaningful armor; light fighters often show small numbers here." />
               <ColHeader label="EHP⚡" desc="EHP = Effective Hit Points vs Energy weapons (lasers, plasma, neutron). Math: shield + (hull ÷ energy multiplier) + armor. A ship with 0.60× energy resistance has 1.67× effective hull HP vs lasers. Higher = harder to kill in a laser fight." />
-              <ColHeader label="EHP🔫" desc="EHP = Effective Hit Points vs Ballistic weapons (gatlings, repeaters, cannons — kinetic damage). Math: shield + (hull ÷ physical multiplier) + armor. Higher = harder to kill against ballistic loadouts." />
+              <ColHeader label="EHP🔫" desc="EHP = Effective Hit Points vs Ballistic weapons (gatlings, repeaters, cannons, kinetic damage). Math: shield + (hull ÷ physical multiplier) + armor. Higher = harder to kill against ballistic loadouts." />
             </tr>
           </thead>
           <tbody>
@@ -898,19 +898,19 @@ function CategoryRankings({
                   {r.alpha.toLocaleString()}
                 </td>
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "shield" ? "var(--accent)" : "var(--text)" }}>
-                  {r.shield > 0 ? r.shield.toLocaleString() : "—"}
+                  {r.shield > 0 ? r.shield.toLocaleString() : ", "}
                 </td>
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "hull" ? "var(--accent)" : "var(--text-muted)" }}>
-                  {r.hull > 0 ? r.hull.toLocaleString() : "—"}
+                  {r.hull > 0 ? r.hull.toLocaleString() : ", "}
                 </td>
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "armor" ? "var(--accent)" : "var(--text-muted)" }}>
-                  {r.armor > 0 ? r.armor.toLocaleString() : "—"}
+                  {r.armor > 0 ? r.armor.toLocaleString() : ", "}
                 </td>
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "ehpEnergy" ? "var(--accent)" : "var(--text-muted)" }}>
-                  {r.ehpEnergy > 0 ? r.ehpEnergy.toLocaleString() : "—"}
+                  {r.ehpEnergy > 0 ? r.ehpEnergy.toLocaleString() : ", "}
                 </td>
                 <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "ehpBallistic" ? "var(--accent)" : "var(--text-muted)" }}>
-                  {r.ehpBallistic > 0 ? r.ehpBallistic.toLocaleString() : "—"}
+                  {r.ehpBallistic > 0 ? r.ehpBallistic.toLocaleString() : ", "}
                 </td>
               </tr>
             ))}
@@ -943,7 +943,7 @@ function LoadoutCard({ result }: { result: LoadoutResult }) {
   const { ship, profile, slots, components, totals } = result;
   const coverage = totals.filled === totals.total
     ? `${totals.filled}/${totals.total} weapon slots filled`
-    : `${totals.filled}/${totals.total} weapon slots filled — some sizes missing from catalog`;
+    : `${totals.filled}/${totals.total} weapon slots filled, some sizes missing from catalog`;
   return (
     <div className="card" style={{ padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
@@ -965,7 +965,7 @@ function LoadoutCard({ result }: { result: LoadoutResult }) {
         </div>
       </div>
 
-      {/* Durability strip — effective HP + per-type resists. Lower mult = harder
+      {/* Durability strip, effective HP + per-type resists. Lower mult = harder
           to kill against that damage type. */}
       {(totals.ehpEnergy > 0 || totals.ehpBallistic > 0) && (
         <DurabilityStrip
@@ -1115,7 +1115,7 @@ function SlotRow({ slot }: { slot: LoadoutResult["slots"][number] }) {
 }
 
 /** Effective-HP + resists strip. Resists are incoming-damage multipliers
- *  in source_data — 0.6 means the hull only takes 60% damage from that
+ *  in source_data, 0.6 means the hull only takes 60% damage from that
  *  type, which we display as "+67% effective HP" for readability. */
 function DurabilityStrip({
   ehpEnergy,
@@ -1129,18 +1129,18 @@ function DurabilityStrip({
   const r = durability?.resists;
   // multiplier → "X.XX×" and reciprocal "+YY% EHP"
   function fmtResist(mult: number | null): string {
-    if (mult == null || mult <= 0) return "—";
+    if (mult == null || mult <= 0) return ", ";
     const ehpBoost = (1 / mult - 1) * 100;
     return `${mult.toFixed(2)}× incoming · +${Math.round(ehpBoost)}% EHP`;
   }
-  // Hover explainer meta for each card — reuses the ItemHover tooltip
+  // Hover explainer meta for each card, reuses the ItemHover tooltip
   // system so the UX matches the rest of the site.
   const ENERGY_DESC =
     "EHP = Effective Hit Points: total damage this ship can absorb before it dies, accounting for armor's damage reduction. Energy weapons = lasers, plasma, neutron cannons. Math: shield + (hull ÷ energy multiplier) + armor. A 0.60× multiplier means the hull shrugs off 40% of laser damage, so its hull HP is effectively 1.67× its raw value vs energy.";
   const BALLISTIC_DESC =
-    "EHP = Effective Hit Points: total damage this ship can absorb before it dies. Ballistic weapons = gatlings, repeaters, cannons (kinetic damage — finite ammo but punches harder per shot). Math: shield + (hull ÷ physical multiplier) + armor. Lower multiplier = harder to crack with bullets.";
+    "EHP = Effective Hit Points: total damage this ship can absorb before it dies. Ballistic weapons = gatlings, repeaters, cannons (kinetic damage, finite ammo but punches harder per shot). Math: shield + (hull ÷ physical multiplier) + armor. Lower multiplier = harder to crack with bullets.";
   const THERMAL_DESC =
-    "Thermal damage = heat-based weapons + your own ship overheating in a long fight. The multiplier scales incoming thermal damage: 1.00× = full damage taken, lower = resistant. Most hulls are neutral (1.00×) here — true thermal-resistant hulls are rare.";
+    "Thermal damage = heat-based weapons + your own ship overheating in a long fight. The multiplier scales incoming thermal damage: 1.00× = full damage taken, lower = resistant. Most hulls are neutral (1.00×) here, true thermal-resistant hulls are rare.";
   const DISTORTION_DESC =
     "Distortion = EMP-style damage that knocks out ship systems (power plant, quantum drive, weapons) instead of destroying the hull. A distortion-resistant hull stays online longer under suppression fire. The multiplier scales incoming distortion: 1.00× = standard, lower = more resistant.";
 
@@ -1158,7 +1158,7 @@ function DurabilityStrip({
     emphasis?: boolean;
   }) {
     return (
-      <ItemHover description={desc} meta={{ "Incoming multiplier": resist != null ? `${resist.toFixed(2)}×` : "—" }}>
+      <ItemHover description={desc} meta={{ "Incoming multiplier": resist != null ? `${resist.toFixed(2)}×` : ", " }}>
         <span style={{ display: "block", cursor: "help" }}>
           <span className="label-mini" style={{ display: "block" }}>{label}</span>
           {ehp != null && (

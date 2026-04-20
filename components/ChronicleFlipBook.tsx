@@ -8,7 +8,7 @@ import { LoreImageEl } from "./LoreImage";
 import { EarthScene } from "./LoreArt";
 import { IMG_COVER } from "@/lib/lore-images";
 
-// Auto-flipping comic book on /lore landing — 14 pages reading
+// Auto-flipping comic book on /lore landing, 14 pages reading
 // chronologically as a single narrative comic, not a table of contents.
 //
 // Page order:
@@ -57,7 +57,7 @@ export function ChronicleFlipBook() {
   }
 
   // What backdrop to show behind the book? The story page currently
-  // visible — its image, dimmed and blurred.
+  // visible, its image, dimmed and blurred.
   const backdropImage =
     idx === 0 || idx === total - 1
       ? null
@@ -77,7 +77,7 @@ export function ChronicleFlipBook() {
       <div className="flipbook-book">
         <div className="flipbook-spine" aria-hidden />
 
-        {/* Page 0 — front cover */}
+        {/* Page 0, front cover */}
         <Page
           turned={idx > 0}
           zBase={total + 1}
@@ -91,7 +91,7 @@ export function ChronicleFlipBook() {
           />
         </Page>
 
-        {/* Pages 1..N — story panels */}
+        {/* Pages 1..N, story panels */}
         {STORY_PAGES.map((page, i) => {
           const pageNum = i + 1;
           const turned = idx > pageNum;
@@ -112,10 +112,10 @@ export function ChronicleFlipBook() {
           );
         })}
 
-        {/* Back cover — under everything */}
+        {/* Back cover, under everything */}
         <div className="flipbook-page flipbook-backcover" aria-hidden>
           <div className="flipbook-backcover-face">
-            <div className="flipbook-backcover-eyebrow">— END OF VOLUME I —</div>
+            <div className="flipbook-backcover-eyebrow">,  END OF VOLUME I , </div>
             <div className="flipbook-backcover-title">Read on</div>
             <Link
               href="/lore/chapter/origins"
@@ -142,7 +142,7 @@ export function ChronicleFlipBook() {
           {idx === 0 ? (
             <span className="flipbook-counter-cover">Cover</span>
           ) : idx === total - 1 ? (
-            <span className="flipbook-counter-cover">— End —</span>
+            <span className="flipbook-counter-cover">,  End , </span>
           ) : (
             <>
               <span className="flipbook-counter-num">{STORY_PAGES[idx - 1].year}</span>{" "}
@@ -200,7 +200,7 @@ function Page({
   );
 }
 
-// ── Front cover — the spectacular opening shot ────────────────────────
+// ── Front cover, the spectacular opening shot ────────────────────────
 function FrontCoverFace() {
   return (
     <>
@@ -211,7 +211,7 @@ function FrontCoverFace() {
       <div className="flipbook-cover-overlay" />
       <div className="flipbook-cover-vignette" aria-hidden />
 
-      {/* Corner brackets — military / sci-fi book frame */}
+      {/* Corner brackets, military / sci-fi book frame */}
       <span className="flipbook-cover-corner tl" aria-hidden />
       <span className="flipbook-cover-corner tr" aria-hidden />
       <span className="flipbook-cover-corner bl" aria-hidden />
@@ -222,7 +222,7 @@ function FrontCoverFace() {
         <div>THE CHRONICLE</div>
       </div>
 
-      {/* Centered title block — bigger, more glow, with decorative bars */}
+      {/* Centered title block, bigger, more glow, with decorative bars */}
       <div className="flipbook-cover-title">
         <div className="flipbook-cover-bar-row">
           <span className="flipbook-cover-bar" />
@@ -235,7 +235,7 @@ function FrontCoverFace() {
         <div className="flipbook-cover-tagline">
           A Chronicle of Empire, Discovery &amp; War
         </div>
-        <div className="flipbook-cover-sub">2075 — 2952 · UEE CALENDAR</div>
+        <div className="flipbook-cover-sub">2075, 2952 · UEE CALENDAR</div>
       </div>
 
       <div className="flipbook-cover-footer">
@@ -259,7 +259,7 @@ function FrontCoverFace() {
   );
 }
 
-// ── Story page — the actual comic panel ──────────────────────────────
+// ── Story page, the actual comic panel ──────────────────────────────
 function StoryPageFace({
   page,
   pageNum,
@@ -281,28 +281,28 @@ function StoryPageFace({
         {String(pageNum).padStart(2, "0")} / {String(total).padStart(2, "0")}
       </div>
 
-      {/* TOP CAPTION BOX — year + headline */}
+      {/* TOP CAPTION BOX, year + headline */}
       <div className="flipbook-story-top-cap">
         <div className="flipbook-story-year">{page.year}</div>
         <div className="flipbook-story-title">{page.title}</div>
       </div>
 
-      {/* SFX overlay — big stylized sound effect for action moments */}
+      {/* SFX overlay, big stylized sound effect for action moments */}
       {page.sfx && (
         <div className="flipbook-story-sfx" aria-hidden>
           {page.sfx}
         </div>
       )}
 
-      {/* SPEECH BUBBLE — pull-quote rendered as a comic balloon */}
+      {/* SPEECH BUBBLE, pull-quote rendered as a comic balloon */}
       {page.pullQuote && (
         <div className="flipbook-story-bubble">
           <blockquote>"{page.pullQuote.text}"</blockquote>
-          <cite>— {page.pullQuote.attribution}</cite>
+          <cite>,  {page.pullQuote.attribution}</cite>
         </div>
       )}
 
-      {/* BOTTOM CAPTION BOX — narrator prose + read-more link */}
+      {/* BOTTOM CAPTION BOX, narrator prose + read-more link */}
       <div className="flipbook-story-bottom-cap">
         <p>{page.narration}</p>
         {page.chapterSlug && (
@@ -336,7 +336,7 @@ function StaticShelf() {
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
         <div className="lore-hero-eyebrow">◢ The Chronicle · Volume I</div>
         <h1 className="lore-hero-title">The Verse</h1>
-        <div className="lore-hero-sub">2075 — 2952 · UEE Calendar</div>
+        <div className="lore-hero-sub">2075, 2952 · UEE Calendar</div>
       </div>
       <div
         style={{

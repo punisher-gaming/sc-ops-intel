@@ -26,7 +26,7 @@ export async function fetchMyFleets(userId: string): Promise<Fleet[]> {
 }
 
 // Returns only the fleets a user has flagged is_public = true. Safe to call
-// from anon clients — the RLS policy "user_fleets public read" allows it.
+// from anon clients, the RLS policy "user_fleets public read" allows it.
 export async function fetchPublicFleets(userId: string): Promise<Fleet[]> {
   const client = createClient();
   const { data, error } = await client

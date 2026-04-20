@@ -6,7 +6,7 @@ import { PageShell } from "@/components/PageShell";
 // anyone who just installed the game can read this in 5 minutes and
 // not be lost on their first flight.
 //
-// Deliberately opinionated — we pick ONE recommended path for each
+// Deliberately opinionated, we pick ONE recommended path for each
 // question rather than listing every possibility, because choice
 // paralysis is the #1 new-player complaint. Advanced players can
 // always find the other options themselves.
@@ -26,7 +26,7 @@ export default function NewPlayersPage() {
           <h1>Your first hour in Star Citizen</h1>
           <p style={{ maxWidth: "70ch" }}>
             Star Citizen doesn&apos;t tutorial well. This is the stuff everyone
-            Googles on day one — keybinds, how to make your first money,
+            Googles on day one, keybinds, how to make your first money,
             what crime stat means, which errors are yours vs the server&apos;s.
             Read top-to-bottom once, then bookmark it for reference.
           </p>
@@ -37,7 +37,7 @@ export default function NewPlayersPage() {
         <Section id="start" title="1. Getting in-game" num="01">
           <p>
             After the launcher finishes downloading (expect 100+ GB), pick{" "}
-            <strong>Stanton</strong> as your starting system on first login —
+            <strong>Stanton</strong> as your starting system on first login , 
             it&apos;s safer, has a working tutorial, and every lifesaving
             service (medical, ship claims, loadout terminals) is one tram ride
             away. Pyro is playable but lawless and will get you killed before
@@ -64,12 +64,12 @@ export default function NewPlayersPage() {
             These are the ones you&apos;ll use constantly.
           </p>
           <div className="kb-grid">
-            <Kb keys="F" desc="Interact — doors, elevators, terminals, pick-ups, seats. The single most-used key in the game." />
+            <Kb keys="F" desc="Interact, doors, elevators, terminals, pick-ups, seats. The single most-used key in the game." />
             <Kb keys="U" desc="Toggle your mobiGlas (wrist computer). Missions, map, banking, contracts, and ship loadouts all live here." />
             <Kb keys="F1" desc="Emote wheel. Also handy for the RSI salute (o7)." />
-            <Kb keys="F2" desc="Mission manager — what contracts you have, where to go next, who pays what." />
+            <Kb keys="F2" desc="Mission manager, what contracts you have, where to go next, who pays what." />
             <Kb keys="F11" desc="Starmap. Plan quantum jumps between planets, moons, stations." />
-            <Kb keys="N" desc="Helmet on / off. Keep it on in space. Take it off indoors — oxygen tank lasts longer." />
+            <Kb keys="N" desc="Helmet on / off. Keep it on in space. Take it off indoors, oxygen tank lasts longer." />
             <Kb keys="B (hold)" desc="Quantum travel. Align toward a target on your HUD, hold B, wait for spool-up." />
             <Kb keys="I" desc="Personal / ship inventory transfer panel." />
             <Kb keys="R" desc="Ready weapon or put it away. Also toggles multi-tool mode." />
@@ -102,7 +102,7 @@ export default function NewPlayersPage() {
           <Rung
             tier="EASY"
             title="Bunker missions"
-            body="Mission Manager → Mercenary → Clear Underground Facility. Fly to a planet-side bunker, clear NPCs inside, loot them. 40–80k aUEC per bunker. Bring a medium armor set + a rifle. Your equipped armor and weapons are persistent — they stay with you when you die — but anything in your backpack (loot, MedPens, spare mags, ammo boxes) can be lost on the body. Loot, then stash back at your ship often."
+            body="Mission Manager → Mercenary → Clear Underground Facility. Fly to a planet-side bunker, clear NPCs inside, loot them. 40–80k aUEC per bunker. Bring a medium armor set + a rifle. Your equipped armor and weapons are persistent, they stay with you when you die, but anything in your backpack (loot, MedPens, spare mags, ammo boxes) can be lost on the body. Loot, then stash back at your ship often."
           />
           <Rung
             tier="MEDIUM"
@@ -145,7 +145,7 @@ export default function NewPlayersPage() {
               <strong>Landing:</strong> within 20 km of a station, press{" "}
               <Kbd>N</Kbd> or <Kbd>F9</Kbd> to request landing. ATC assigns a
               pad. You can <strong>hold <Kbd>T</Kbd></strong> to auto-land once
-              cleared — saves a lot of manual hover time.
+              cleared, saves a lot of manual hover time.
             </li>
             <li>
               <strong>Claiming a lost ship:</strong> any Ship Services terminal
@@ -170,7 +170,7 @@ export default function NewPlayersPage() {
           />
           <Gotcha
             title="Quantum fuel vs hydrogen fuel"
-            body="They're different. Hydrogen is your main engines — refuels free at any station (takes ~60 sec). Quantum fuel is for jumps — refuels free too, but some ships drain it stupidly fast (Avenger Titan is famous for this)."
+            body="They're different. Hydrogen is your main engines, refuels free at any station (takes ~60 sec). Quantum fuel is for jumps, refuels free too, but some ships drain it stupidly fast (Avenger Titan is famous for this)."
           />
           <Gotcha
             title="The bed-log trick"
@@ -184,34 +184,34 @@ export default function NewPlayersPage() {
 
         <Section id="buy-first" title="6. What to buy with your first money" num="06">
           <p>
-            These are all in-game purchases (aUEC, reset per patch — not real
+            These are all in-game purchases (aUEC, reset per patch, not real
             dollars). In rough priority order:
           </p>
           <ul style={listStyle}>
             <li>
-              <strong>A decent medium armor set</strong> — Odyssey, Novikov,
+              <strong>A decent medium armor set</strong>, Odyssey, Novikov,
               Pembroke, or Reliant. ~15–40k aUEC. Protects from small-arms fire
               long enough to get out of a bad situation. Skip light armor,
               heavy is overkill until you&apos;re doing Xenothreat-tier content.
             </li>
             <li>
-              <strong>A primary rifle</strong> — Karna or FS-9 LMG are solid
+              <strong>A primary rifle</strong>, Karna or FS-9 LMG are solid
               starters. ~15k aUEC each. The pistol you spawn with is fine as
               backup.
             </li>
             <li>
-              <strong>Cambio-SRT multi-tool + attachments</strong> — the
+              <strong>Cambio-SRT multi-tool + attachments</strong>, the
               Tractor Beam and Medical attachments are basically mandatory.
               Salvage attachment unlocks C8R-style panel scraping on foot.
               ~12k aUEC base + 8k each attachment.
             </li>
             <li>
-              <strong>MedPens</strong> — buy a stack of 10 from any medical
+              <strong>MedPens</strong>, buy a stack of 10 from any medical
               kiosk. They self-inject to revive you from unconscious and heal
               wounds. ~500 aUEC each, life-saving.
             </li>
             <li>
-              <strong>A cargo/mission ship (optional)</strong> — if you hit
+              <strong>A cargo/mission ship (optional)</strong>, if you hit
               1M+ aUEC, a rental Cutlass Black or Freelancer opens up hauling
               and salvage loops. Otherwise keep grinding with your starter ship
               until you hit 3.5M and rent/buy a Vulture for the salvage grind.
@@ -226,30 +226,30 @@ export default function NewPlayersPage() {
           </p>
           <ul style={listStyle}>
             <li>
-              <strong><a href="https://citizendex.com" style={linkStyle}>CitizenDex</a></strong> — this
+              <strong><a href="https://citizendex.com" style={linkStyle}>CitizenDex</a></strong>, this
               site. Ship specs, blueprints, crafting, commodity prices, fleet
               tracker, your private notes.
             </li>
             <li>
               <strong><a href="https://uexcorp.space" target="_blank" rel="noopener noreferrer" style={linkStyle}>UEX
-              Corp</a></strong> — live commodity prices. When you&apos;re
+              Corp</a></strong>, live commodity prices. When you&apos;re
               hauling, check UEX to see which routes are profitable right now.
               Community-submitted, usually accurate to within a day.
             </li>
             <li>
               <strong><a href="https://erkul.games" target="_blank" rel="noopener noreferrer" style={linkStyle}>Erkul
-              DPS</a></strong> — ship loadout calculator. Pick components,
+              DPS</a></strong>, ship loadout calculator. Pick components,
               weapons, shields; see actual DPS, shield HP, power draw, alpha
               strike. Essential if you PvP or bounty-hunt.
             </li>
             <li>
               <strong><a href="https://starcitizen.tools" target="_blank" rel="noopener noreferrer" style={linkStyle}>SC
-              Wiki</a></strong> — lore, mission details, NPC locations. Deeper
+              Wiki</a></strong>, lore, mission details, NPC locations. Deeper
               than the in-game mobiGlas entries.
             </li>
             <li>
               <strong><a href="https://www.reddit.com/r/starcitizen/" target="_blank" rel="noopener noreferrer" style={linkStyle}>r/starcitizen</a></strong>{" "}
-              and <strong><a href="https://www.reddit.com/r/starcitizen_guilds/" target="_blank" rel="noopener noreferrer" style={linkStyle}>r/starcitizen_guilds</a></strong> —
+              and <strong><a href="https://www.reddit.com/r/starcitizen_guilds/" target="_blank" rel="noopener noreferrer" style={linkStyle}>r/starcitizen_guilds</a></strong> , 
               patch-day pinned threads always contain the latest
               money-making and bug-avoidance tips.
             </li>
@@ -263,25 +263,25 @@ export default function NewPlayersPage() {
           </p>
           <ul style={listStyle}>
             <li>
-              <strong>Ship won&apos;t power on</strong> — sit down, press <Kbd>R</Kbd>{" "}
+              <strong>Ship won&apos;t power on</strong>, sit down, press <Kbd>R</Kbd>{" "}
               to put away your weapon first, then press the power button (<Kbd>U</Kbd>{" "}
-              by default). If still nothing, the ship may be glitched — claim it.
+              by default). If still nothing, the ship may be glitched, claim it.
             </li>
             <li>
-              <strong>Stuck in a loading screen</strong> — 30k inbound. Force-quit
+              <strong>Stuck in a loading screen</strong>, 30k inbound. Force-quit
               the client and reconnect.
             </li>
             <li>
-              <strong>Mission won&apos;t complete</strong> — common bug, not your
+              <strong>Mission won&apos;t complete</strong>, common bug, not your
               fault. Abandon the mission in F2, take a new one.
             </li>
             <li>
-              <strong>Can&apos;t interact with anything</strong> — you may be
+              <strong>Can&apos;t interact with anything</strong>, you may be
               mid-animation. Wait, or press <Kbd>Y</Kbd> to force the inner-thought
               prompt.
             </li>
             <li>
-              <strong>Random other weirdness</strong> — post a screenshot in the{" "}
+              <strong>Random other weirdness</strong>, post a screenshot in the{" "}
               <Link href="/community" style={linkStyle}>community forum</Link>{" "}
               here on CitizenDex. Our Admins are active.
             </li>
@@ -296,7 +296,7 @@ export default function NewPlayersPage() {
             <Link href="/blueprints" style={linkStyle}>every crafting recipe</Link>,{" "}
             <Link href="/commodities" style={linkStyle}>commodity prices</Link>, and{" "}
             <Link href="/resources" style={linkStyle}>mining spawn locations</Link>{" "}
-            — auto-synced every patch so nothing goes stale. o7, citizen.
+           , auto-synced every patch so nothing goes stale. o7, citizen.
           </p>
         </div>
       </div>

@@ -81,7 +81,7 @@ function BlueprintList() {
   const [yieldsLoading, setYieldsLoading] = useState(false);
   const [onlyObtainable, setOnlyObtainable] = useState(false);
   const [hideOwned, setHideOwned] = useState(false);
-  // Inverse of hideOwned — narrow the list to ONLY blueprints the user has
+  // Inverse of hideOwned, narrow the list to ONLY blueprints the user has
   // marked owned. Mutually exclusive with hideOwned (toggling one auto-clears
   // the other below) since you can't both show only owned and hide owned.
   const [onlyOwned, setOnlyOwned] = useState(false);
@@ -297,11 +297,11 @@ function BlueprintList() {
             </option>
           ))}
         </select>
-        {/* Star system filter — inferred from source_name + source_key
+        {/* Star system filter, inferred from source_name + source_key
             keywords on blueprint_sources rows. "All systems" is the
             default; picking one hides blueprints with no system tag.
             Some sources (raw UUIDs, opaque mission keys) don't expose
-            a landmark we can match — those blueprints fall through. */}
+            a landmark we can match, those blueprints fall through. */}
         {systems.systems.length > 0 && (
           <select
             value={selectedSystem}
@@ -316,7 +316,7 @@ function BlueprintList() {
             ))}
           </select>
         )}
-        {/* Yields-this-material filter — derived from blueprint Dismantle.Returns.
+        {/* Yields-this-material filter, derived from blueprint Dismantle.Returns.
             Counts in parens are blueprints known to yield each material. */}
         <select
           value={yieldsMaterial}
@@ -339,7 +339,7 @@ function BlueprintList() {
         )}
       </div>
 
-      {/* Filter dropdowns — collapses what used to be 4–5 rows of pills
+      {/* Filter dropdowns, collapses what used to be 4–5 rows of pills
           into a single flex row. Each shows its label + selection count
           and opens to a checkbox list. */}
       <div
@@ -668,7 +668,7 @@ function Th({
 }
 
 function GradeBadge({ grade }: { grade: string | null }) {
-  if (!grade) return <span style={{ color: "var(--text-dim)" }}>—</span>;
+  if (!grade) return <span style={{ color: "var(--text-dim)" }}>, </span>;
   const map: Record<string, string> = {
     "1": "badge-muted",
     "2": "badge-success",
@@ -785,14 +785,14 @@ function BlueprintDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* HOW TO OBTAIN — prominent, answers the first question */}
+      {/* HOW TO OBTAIN, prominent, answers the first question */}
       <HowToObtainPanel blueprint={blueprint} sources={sources} />
 
       <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: "1rem" }}>
         <Stat label="Craft time" value={formatCraftTime(blueprint.craft_time_seconds)} />
-        <Stat label="Grade" value={blueprint.output_grade ?? "—"} />
+        <Stat label="Grade" value={blueprint.output_grade ?? ", "} />
         <Stat label="Material groups" value={String(groups.length)} />
-        <Stat label="Kind" value={blueprint.kind ?? "—"} />
+        <Stat label="Kind" value={blueprint.kind ?? ", "} />
       </div>
 
       <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr" }}>
@@ -818,7 +818,7 @@ function BlueprintDetail({ id }: { id: string }) {
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 500 }}>{g.name ?? g.key ?? "—"}</div>
+                    <div style={{ fontWeight: 500 }}>{g.name ?? g.key ?? ", "}</div>
                     {g.modifier_count > 0 && (
                       <div className="label-mini" style={{ marginTop: 2 }}>
                         {g.modifier_count} stat modifier{g.modifier_count === 1 ? "" : "s"}
@@ -833,7 +833,7 @@ function BlueprintDetail({ id }: { id: string }) {
             </ul>
           )}
           <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 14, lineHeight: 1.5 }}>
-            Each group is a slot — the game lets you fill it with one of
+            Each group is a slot, the game lets you fill it with one of
             several compatible parts. The part you pick affects output stats.
           </p>
         </div>
@@ -847,7 +847,7 @@ function BlueprintDetail({ id }: { id: string }) {
         Last synced{" "}
         {blueprint.last_synced_at
           ? new Date(blueprint.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}
         Patch {blueprint.game_version ?? CURRENT_PATCH}
       </div>
@@ -894,7 +894,7 @@ function HowToObtainPanel({ blueprint, sources }: { blueprint: Blueprint; source
 
       {state === "default" && (
         <p style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-          This blueprint is unlocked from the start — anyone can craft it at a
+          This blueprint is unlocked from the start, anyone can craft it at a
           compatible fabricator without a mission reward or drop.
         </p>
       )}
@@ -922,7 +922,7 @@ function HowToObtainPanel({ blueprint, sources }: { blueprint: Blueprint; source
         <div>
           <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 10 }}>
             Star Citizen&apos;s game files don&apos;t record an obtain method
-            for this blueprint — it may be a cosmetic variant, an event
+            for this blueprint, it may be a cosmetic variant, an event
             reward, or tied to store purchase. We&apos;ll fill this in via
             community field reports once intel submission is live.
           </p>

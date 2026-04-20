@@ -24,7 +24,7 @@ function isDropdown(n: NavItem): n is DropdownItem {
 
 // Nav grouping notes:
 // - "Routes" replaces "Trade" so it's not confused with the Auction
-//   House (which is a different kind of trade — user-to-user listings).
+//   House (which is a different kind of trade, user-to-user listings).
 // - Crafting + Resources collapse into a Crafting dropdown since they
 //   feed each other (recipes need materials).
 // - Ships + Components collapse into a Ships dropdown since components
@@ -63,7 +63,7 @@ const PUBLIC_LINKS: NavItem[] = [
   { href: "/planets", label: "Planets" },
   { href: "/lore", label: "Lore" },
   { href: "/community", label: "Community" },
-  // AH gets the .nav-holo shimmer — most-promoted destination. Short
+  // AH gets the .nav-holo shimmer, most-promoted destination. Short
   // label to keep the nav row breathing.
   { href: "/community/auction", label: "AH" },
 ];
@@ -108,7 +108,7 @@ export function Nav() {
           </span>
         </Link>
 
-        {/* Desktop links — hidden on ≤900px via .site-nav-links CSS below */}
+        {/* Desktop links, hidden on ≤900px via .site-nav-links CSS below */}
         <div className="site-nav-links">
           {links.map((l) =>
             isDropdown(l) ? (
@@ -123,7 +123,7 @@ export function Nav() {
           <span className="site-patch-pill">Patch {CURRENT_PATCH}</span>
           <NotificationBell />
           <AuthButton />
-          {/* Hamburger — shown ≤900px only */}
+          {/* Hamburger, shown ≤900px only */}
           <button
             type="button"
             className="site-nav-hamburger"
@@ -136,7 +136,7 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Mobile drawer — full-width slide-down, touch-friendly targets */}
+      {/* Mobile drawer, full-width slide-down, touch-friendly targets */}
       {mobileOpen && (
         <div className="site-nav-drawer" role="menu">
           {links.map((l) =>
@@ -164,7 +164,7 @@ function NavLink({ item, pathname }: { item: LinkItem; pathname: string | null }
   );
 }
 
-// Mobile-drawer version of NavLink — bigger padding, full-width, no hover
+// Mobile-drawer version of NavLink, bigger padding, full-width, no hover
 // tricks (touch devices don't hover).
 function MobileLink({ item, pathname }: { item: LinkItem; pathname: string | null }) {
   const active = pathname === item.href || pathname?.startsWith(item.href + "/");

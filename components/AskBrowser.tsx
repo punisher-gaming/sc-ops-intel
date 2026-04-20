@@ -6,11 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ask, type Answer, type Hit } from "@/lib/ask";
 
 // AI assistant page. Two layers:
-//   1. Local rules-based matcher (lib/ask.ts) — fast, free, runs in
+//   1. Local rules-based matcher (lib/ask.ts), fast, free, runs in
 //      milliseconds. Returns structured Hit groups (ships / blueprints
 //      / resources / commodities).
 //   2. Real AI synthesis via Cloudflare Workers AI (/ai/chat on the
-//      ingest worker) — takes the user question + the rules-based
+//      ingest worker), takes the user question + the rules-based
 //      hits as context and writes a natural-language answer.
 //
 // We always render the rules-based hits (they're free and useful even
@@ -68,7 +68,7 @@ export function AskBrowser() {
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(turns.slice(-20)));
     } catch {
-      /* over quota — ignore */
+      /* over quota, ignore */
     }
   }, [turns]);
 
@@ -186,7 +186,7 @@ export function AskBrowser() {
         </div>
       )}
 
-      {/* Empty state — show suggested queries */}
+      {/* Empty state, show suggested queries */}
       {turns.length === 0 && (
         <div className="card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
           <div className="accent-label" style={{ marginBottom: 10 }}>Try one of these</div>
@@ -220,7 +220,7 @@ export function AskBrowser() {
         </div>
       )}
 
-      {/* Composer — fixed to bottom of viewport for chat feel */}
+      {/* Composer, fixed to bottom of viewport for chat feel */}
       <form
         onSubmit={submit}
         style={{
@@ -274,7 +274,7 @@ export function AskBrowser() {
 function Turn({ turn }: { turn: ChatTurn }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {/* User question — right-aligned bubble */}
+      {/* User question, right-aligned bubble */}
       <div style={{ alignSelf: "flex-end", maxWidth: "85%" }}>
         <div
           style={{
@@ -332,14 +332,14 @@ function Turn({ turn }: { turn: ChatTurn }) {
           )}
           {turn.aiState === "error" && (
             <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              AI synthesis unavailable right now — see the catalog matches
+              AI synthesis unavailable right now, see the catalog matches
               below for what we found.
             </div>
           )}
         </div>
       </div>
 
-      {/* Structured rules-based hits — always shown when present */}
+      {/* Structured rules-based hits, always shown when present */}
       {turn.answer && turn.answer.total > 0 && <AnswerSections answer={turn.answer} />}
       {turn.answer && turn.answer.total === 0 && (
         <div
@@ -425,7 +425,7 @@ function answerToContext(a: Answer | undefined): string {
     if (hits.length === 0) continue;
     lines.push(`${key.toUpperCase()}:`);
     for (const h of hits.slice(0, 3)) {
-      const detail = h.detail ? ` — ${h.detail}` : "";
+      const detail = h.detail ? `, ${h.detail}` : "";
       lines.push(`  • ${h.name} (${h.subtitle})${detail} → ${h.href}`);
     }
   }

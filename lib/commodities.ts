@@ -100,7 +100,7 @@ export function uniqueValuesT<T extends keyof TradeLocation>(rows: TradeLocation
 }
 
 export function prettyKind(k: string | null | undefined): string {
-  if (!k) return "—";
+  if (!k) return ", ";
   return k.replace(/_/g, " ").replace(/^([a-z])/, (m) => m.toUpperCase());
 }
 
@@ -227,7 +227,7 @@ export async function submitPrice(input: {
   return data as CommodityPrice;
 }
 
-// Aggregate helper — median of published prices per (location, kind).
+// Aggregate helper, median of published prices per (location, kind).
 export function priceStats(prices: CommodityPrice[]): {
   median: number | null;
   min: number | null;
@@ -252,6 +252,6 @@ export function priceStats(prices: CommodityPrice[]): {
 }
 
 export function formatAuec(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return ", ";
   return `${Math.round(n).toLocaleString()} aUEC`;
 }

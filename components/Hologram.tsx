@@ -1,4 +1,4 @@
-// Wraps any children in the OG Star Wars hologram effect — cyan tint,
+// Wraps any children in the OG Star Wars hologram effect, cyan tint,
 // CRT scanlines, rolling interference band, subtle flicker + jitter.
 // All the heavy lifting lives in globals.css (.hologram + .hologram-stage).
 //
@@ -6,7 +6,7 @@
 //   <Hologram>        ←→ inline projection
 //   <Hologram stage>  ←→ adds the projector "cone" beneath
 //
-// Works with text, images, SVGs — anything you can put inside a <span>.
+// Works with text, images, SVGs, anything you can put inside a <span>.
 
 import type { CSSProperties, ReactNode } from "react";
 

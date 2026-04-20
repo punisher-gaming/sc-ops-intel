@@ -83,7 +83,7 @@ export function uniqueValues<T extends keyof Resource>(resources: Resource[], ke
 }
 
 export function prettyKind(kind: string | null): string {
-  if (!kind) return "—";
+  if (!kind) return ", ";
   // cave_harvestable → "Cave harvestable"
   return kind
     .replace(/_/g, " ")
@@ -107,7 +107,7 @@ export function displayName(r: Resource): string {
 //
 // PYR3 L1     → Pyro III · L1
 // STAN2 L4    → Stanton II · L4   (Crusader L4)
-// HUR2_L1     → Stanton I · L1    (Hurston is STAN1 — but legacy keys exist)
+// HUR2_L1     → Stanton I · L1    (Hurston is STAN1, but legacy keys exist)
 // pyro_iii_l1 → Pyro III · L1
 const SYSTEM_PLANETS: Record<string, string[]> = {
   // Index 0 unused (planets are 1-indexed in-game)
@@ -128,7 +128,7 @@ export function prettyLocationName(raw: string | null | undefined): string {
   // Match a leading planet code: 2-4 letters + 1-2 digits, optionally
   // followed by anything (L1, OM4, satellite name, etc.)
   const m = norm.match(/^([A-Z]{2,4})(\d{1,2})\b\s*(.*)$/i);
-  if (!m) return raw; // Doesn't look like a code — return as-is
+  if (!m) return raw; // Doesn't look like a code, return as-is
   const prefix = m[1].toUpperCase();
   const planetIdx = parseInt(m[2], 10);
   const rest = m[3]?.trim() ?? "";
@@ -137,17 +137,17 @@ export function prettyLocationName(raw: string | null | undefined): string {
   if (sysPlanets && sysPlanets[planetIdx]) {
     planetName = sysPlanets[planetIdx];
   } else if (sysPlanets) {
-    // Known system, unknown planet idx — fall back to "<System> <Roman>"
+    // Known system, unknown planet idx, fall back to "<System> <Roman>"
     const sys = prefix === "STAN" ? "Stanton" : prefix === "PYR" ? "Pyro" : prefix;
     planetName = `${sys} ${ROMAN[planetIdx] ?? planetIdx}`;
   } else {
-    return raw; // Unknown system code — don't guess
+    return raw; // Unknown system code, don't guess
   }
   return rest ? `${planetName} · ${rest.toUpperCase()}` : planetName;
 }
 
 export function formatPct(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return ", ";
   // Probabilities come in as fractions (0–1)
   return `${(n * 100).toFixed(n < 0.01 ? 2 : 1)}%`;
 }

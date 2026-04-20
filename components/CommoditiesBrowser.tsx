@@ -64,7 +64,7 @@ function CommodityList() {
         <h1>Commodities</h1>
         <p>
           Tradable goods. Buy/sell prices per terminal are a separate
-          dataset (42 MB) we&apos;ll wire in next — for now this is the
+          dataset (42 MB) we&apos;ll wire in next, for now this is the
           canonical commodity catalog from the game files.{" "}
           <Link href="/trade-locations" style={{ color: "var(--accent)" }}>
             Browse trade locations →
@@ -127,7 +127,7 @@ function CommodityList() {
                       {c.name}
                     </Link>
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>{c.code ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>{c.code ?? ", "}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyKind(c.kind)}</td>
                 </tr>
               ))}
@@ -190,20 +190,20 @@ function CommodityDetail({ id }: { id: string }) {
         <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 10, lineHeight: 1.5 }}>
           Canonical list of terminals that sell or buy this commodity, from
           the game files. In-game aUEC prices are crowdsourced by Punisher
-          members below — click a terminal to log one.
+          members below, click a terminal to log one.
         </p>
       </div>
 
       <PricePanel commodityId={c.id} commodityName={c.name} />
 
-      {/* Raw source data block removed — leave the curated UI fields above
+      {/* Raw source data block removed, leave the curated UI fields above
           to speak for themselves; nobody outside the dev wants to see jsonb. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}
         {c.last_synced_at
           ? new Date(c.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}Patch {c.game_version ?? CURRENT_PATCH}
       </div>
     </div>

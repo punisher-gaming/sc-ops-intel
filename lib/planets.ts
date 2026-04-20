@@ -1,6 +1,6 @@
 // Static catalog of Stanton + Pyro celestial bodies. Source: Star Citizen
 // Wiki + scunpacked. Numbers are flavour-correct but the game's tuning
-// shifts patch-to-patch — treat anything inside ±10% as ground truth.
+// shifts patch-to-patch, treat anything inside ±10% as ground truth.
 //
 // We keep this as a hand-curated list (vs. trying to pull from the wiki
 // API at build time) because the dataset is small (~30 bodies), changes
@@ -35,7 +35,7 @@ export interface CelestialBody {
   gravityG: number;
   /** Sidereal day in standard hours. */
   dayHours: number;
-  /** Dominant current weather kind — drives the ticker icon + tone. */
+  /** Dominant current weather kind, drives the ticker icon + tone. */
   weather: WeatherKind;
   /** One-line weather descriptor for the ticker. */
   weatherText: string;
@@ -174,7 +174,7 @@ export const BODIES: CelestialBody[] = [
     weather: "dust",
     weatherText: "Persistent dust drift",
     landingZones: ["Shubin SAL-2", "Bountiful Harvest Hydroponics", "Kudre Ore"],
-    blurb: "Rust-orange flats and rolling dunes. The site of the legendary Daymar Rally — a 350km open-rover circuit.",
+    blurb: "Rust-orange flats and rolling dunes. The site of the legendary Daymar Rally, a 350km open-rover circuit.",
   },
   {
     slug: "yela",
@@ -190,7 +190,7 @@ export const BODIES: CelestialBody[] = [
     weather: "blizzard",
     weatherText: "Ice-particle whiteout",
     landingZones: ["GrimHEX", "Benson Mining", "Deakins Research"],
-    blurb: "Frozen moon ringed by an asteroid belt — perfect cover for the GrimHEX outlaw station carved into a hollowed-out rock.",
+    blurb: "Frozen moon ringed by an asteroid belt, perfect cover for the GrimHEX outlaw station carved into a hollowed-out rock.",
   },
   {
     slug: "arccorp",
@@ -284,7 +284,7 @@ export const BODIES: CelestialBody[] = [
     weather: "fog",
     weatherText: "Methane fog banks",
     landingZones: ["Rayari Cantwell", "Shubin SMCa-6"],
-    blurb: "Smaller of microTech's frozen moons. Stargazers love it — clearest skies in Stanton when the methane lifts.",
+    blurb: "Smaller of microTech's frozen moons. Stargazers love it, clearest skies in Stanton when the methane lifts.",
   },
   {
     slug: "euterpe",
@@ -316,7 +316,7 @@ export const BODIES: CelestialBody[] = [
     weatherText: "Mineral-rich asteroid belt",
     landingZones: [],
     blurb:
-      "Dense ring of asteroids encircling Stanton between Crusader and ArcCorp. Quantanium, agricium, and laranite — if you can dodge the rocks long enough to scan one.",
+      "Dense ring of asteroids encircling Stanton between Crusader and ArcCorp. Quantanium, agricium, and laranite, if you can dodge the rocks long enough to scan one.",
   },
 
   // ── PYRO ──────────────────────────────────────────────────────────
@@ -326,7 +326,7 @@ export const BODIES: CelestialBody[] = [
     system: "Pyro",
     type: "planet",
     habitable: false,
-    atmosphere: "None — surface boils off",
+    atmosphere: "None, surface boils off",
     tempC: { low: 280, high: 480 },
     gravityG: 0.32,
     dayHours: 38,
@@ -393,7 +393,7 @@ export const BODIES: CelestialBody[] = [
     weather: "radiation",
     weatherText: "Persistent radiation flux",
     landingZones: ["Rod's Fuel 'N Supplies", "Checkmate Station"],
-    blurb: "Pyro's frontier favourite. Long days, mild temps, but a steady solar dose — radmeds are part of the kit.",
+    blurb: "Pyro's frontier favourite. Long days, mild temps, but a steady solar dose, radmeds are part of the kit.",
   },
   {
     slug: "pyro-vi",
@@ -408,7 +408,7 @@ export const BODIES: CelestialBody[] = [
     weather: "blizzard",
     weatherText: "Methane snow, perpetual",
     landingZones: ["Rustville"],
-    blurb: "Frozen rim-world. Rustville's prefab huts cling to a thawed geothermal vent — the only liquid water in the system.",
+    blurb: "Frozen rim-world. Rustville's prefab huts cling to a thawed geothermal vent, the only liquid water in the system.",
   },
   {
     slug: "ruin-station",
@@ -451,7 +451,7 @@ export function weatherIcon(w: WeatherKind): string {
 }
 
 export function weatherTone(w: WeatherKind): string {
-  // CSS colour hint per weather kind — drives the ticker pill border.
+  // CSS colour hint per weather kind, drives the ticker pill border.
   switch (w) {
     case "clear": return "#facc15";
     case "storms": return "#60a5fa";

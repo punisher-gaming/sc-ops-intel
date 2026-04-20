@@ -20,15 +20,15 @@ export interface DirectMessage {
   recipient_avatar?: string | null;
 }
 
-// Base columns on direct_messages itself — used by the insert path.
+// Base columns on direct_messages itself, used by the insert path.
 const BASE_COLS = `id, sender_id, recipient_id, body, context_listing_id, read_at, created_at`;
-// Joined columns only available via the direct_messages_with_users view —
+// Joined columns only available via the direct_messages_with_users view , 
 // used by inbox + thread reads.
 const COLS = `${BASE_COLS},
   sender_name, sender_discord, sender_avatar,
   recipient_name, recipient_discord, recipient_avatar`;
 
-/** Result of sending a message — includes whether each side-channel
+/** Result of sending a message, includes whether each side-channel
  *  actually landed so callers can show honest feedback. */
 export interface SendResult {
   message: DirectMessage;
@@ -40,7 +40,7 @@ export interface SendResult {
 
 /** Insert a new DM, then best-effort push to the recipient's Discord
  *  webhook (if they've configured one) AND to email (if enabled). Set
- *  `notifyExternal: false` for quiet in-site-only messages — back-and-
+ *  `notifyExternal: false` for quiet in-site-only messages, back-and-
  *  forth chat that shouldn't blast their phone. */
 export async function sendMessage(opts: {
   recipient_id: string;
@@ -64,14 +64,14 @@ export async function sendMessage(opts: {
       body: opts.body.trim(),
       context_listing_id: opts.context_listing_id ?? null,
     })
-    // Base cols only — joined seller/recipient info lives on the view,
+    // Base cols only, joined seller/recipient info lives on the view,
     // not the underlying table.
     .select(BASE_COLS)
     .single();
   if (error) throw error;
 
   // Best-effort fan-out to side channels (Discord + email). Failures
-  // don't break the message send — it's already in the inbox. The
+  // don't break the message send, it's already in the inbox. The
   // returned flags let the UI confirm or nudge the right channel.
   // If the sender opted for "quiet" mode, skip the worker call entirely.
   let pushedToDiscord = false;
@@ -98,14 +98,14 @@ export async function sendMessage(opts: {
     pushedToDiscord = Boolean(body.pushedToDiscord);
     pushedToEmail = Boolean(body.pushedToEmail);
   } catch {
-    /* ignore — message is already in the inbox */
+    /* ignore, message is already in the inbox */
   }
 
   return { message: data as DirectMessage, pushedToDiscord, pushedToEmail };
 }
 
 /** Mark every message in a thread (between current user and other user)
- *  as read. Idempotent — only updates rows still unread. */
+ *  as read. Idempotent, only updates rows still unread. */
 export async function markThreadRead(otherUserId: string, currentUserId: string): Promise<void> {
   const client = createClient();
   const { error } = await client
@@ -151,7 +151,7 @@ export async function fetchThread(
 
 /** Inbox = one row per conversation, latest message + unread count.
  *  Implemented client-side because Postgres window-function views are
- *  cumbersome to set up — message volume per user is low, so pulling
+ *  cumbersome to set up, message volume per user is low, so pulling
  *  the recent rows and folding is fine. */
 export interface InboxThread {
   other_user_id: string;

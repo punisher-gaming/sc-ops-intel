@@ -2,7 +2,7 @@
 // (mine, harvest, buy, sell, recipe, blueprint, ship) anywhere in the
 // query, extracts the noun, and searches the relevant Supabase table.
 // Falls back to a parallel search across all four catalogs for bare
-// terms. Returns grouped hits — empty arrays for catalogs with no
+// terms. Returns grouped hits, empty arrays for catalogs with no
 // matches so the UI can hide them.
 
 import { createClient } from "./supabase/client";
@@ -126,7 +126,7 @@ export async function ask(raw: string): Promise<Answer> {
   // Run all four searches in parallel; intent affects ordering of detail
   // (e.g. resource hits get "best spot" detail when intent is mine).
   const [resources, blueprints, commodities, ships] = await Promise.all([
-    // Always find resources — needed for the "what uses X" reverse lookup
+    // Always find resources, needed for the "what uses X" reverse lookup
     // even when the user's wording leaned toward recipe/uses.
     findResources(term, intent === "mine" || intent === "general"),
     intent === "recipe" || intent === "uses" || intent === "general" ? findBlueprints(term) : Promise.resolve([] as Hit[]),
@@ -136,7 +136,7 @@ export async function ask(raw: string): Promise<Answer> {
 
   // Reverse lookup: if we matched any resource by name, find blueprints that
   // dismantle into it. Triggers for "uses" / "recipe" intents and also for
-  // bare "general" queries like "Torite ore" — useful for both phrasings.
+  // bare "general" queries like "Torite ore", useful for both phrasings.
   // Only runs against the TOP resource match to keep the query bounded.
   let bpFromResource: Hit[] = [];
   const wantReverse = intent === "uses" || intent === "recipe" || intent === "general";
@@ -147,7 +147,7 @@ export async function ask(raw: string): Promise<Answer> {
   }
 
   // For non-general intents, we still want to surface a cross-section if
-  // the primary search comes up empty (e.g. user typed "buy fs-9" — there's
+  // the primary search comes up empty (e.g. user typed "buy fs-9", there's
   // no commodity called fs-9, but there is a blueprint).
   let bp = blueprints;
   let res = resources;
@@ -213,7 +213,7 @@ async function findBlueprintsYielding(material: string, resourceName: string): P
 async function findResources(term: string, withTopSpawn: boolean): Promise<Hit[]> {
   const client = createClient();
   if (tokenize(term).length === 0) return [];
-  // Per-token ilike — every word in `term` must appear in name (any order)
+  // Per-token ilike, every word in `term` must appear in name (any order)
   let q = client.from("resources").select("id, name, kind");
   q = applyTokenIlike(q, "name", term);
   const { data, error } = await q.limit(5);

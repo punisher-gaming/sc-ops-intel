@@ -68,7 +68,7 @@ export default function NewListingPage() {
   // bridge story before they post.
   const [hasWebhook, setHasWebhook] = useState<boolean | null>(null);
   // RSI in-game handle is THE most important profile field for an
-  // in-game marketplace — buyers and sellers need it to find each
+  // in-game marketplace, buyers and sellers need it to find each
   // other in the verse. We block listing creation if it's missing.
   const [hasRsiHandle, setHasRsiHandle] = useState<boolean | null>(null);
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function NewListingPage() {
       setErr("Pick a currency or enter a custom one.");
       return;
     }
-    // Quality validation — must be 1..1000 if specified.
+    // Quality validation, must be 1..1000 if specified.
     let qm: number | null = null;
     if (qualityMin.trim()) {
       qm = parseInt(qualityMin, 10);
@@ -181,7 +181,7 @@ export default function NewListingPage() {
           </p>
         </div>
 
-        {/* RSI in-game handle is REQUIRED for a marketplace listing —
+        {/* RSI in-game handle is REQUIRED for a marketplace listing , 
             without it, buyers can't find the seller in-game to do the
             actual trade. Hard-block the form until it's set. */}
         {hasRsiHandle === false && (
@@ -202,7 +202,7 @@ export default function NewListingPage() {
               the verse and complete the trade. The form below is locked
               until you add it on your{" "}
               <Link href="/account" style={{ color: "var(--accent)", fontWeight: 600 }}>account page</Link>{" "}
-              (takes 10 seconds — it&apos;s the &quot;RSI handle&quot; field).
+              (takes 10 seconds, it&apos;s the &quot;RSI handle&quot; field).
             </div>
           </div>
         )}
@@ -230,13 +230,13 @@ export default function NewListingPage() {
               <strong>Email</strong> (default-on, sent to your account email),
               and the in-site <strong>Inbox</strong> (always works, bell at
               top-right). No Discord server of your own? Make a private one in
-              30 seconds — the account page walks you through it.
+              30 seconds, the account page walks you through it.
             </div>
           </div>
         )}
 
         <form onSubmit={submit} className="card" style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* WTS / WTB toggle — drives all the dynamic labels below */}
+          {/* WTS / WTB toggle, drives all the dynamic labels below */}
           <Field label="Listing type *">
             <div style={{ display: "flex", gap: 8 }}>
               {(["wts", "wtb"] as const).map((t) => {
@@ -275,7 +275,7 @@ export default function NewListingPage() {
             </div>
           </Field>
 
-          {/* Category first — picking it switches the typeahead's
+          {/* Category first, picking it switches the typeahead's
               backing catalog and pre-selects a sensible unit. */}
           <Field label="Category *">
             <select
@@ -298,8 +298,8 @@ export default function NewListingPage() {
               maxLength={120}
               placeholder={
                 listingType === "wts"
-                  ? "Start typing — e.g. Cutlass, FS-9, Frostbite paint"
-                  : "Start typing — e.g. Idris, Quantanium, Polaris BUK"
+                  ? "Start typing, e.g. Cutlass, FS-9, Frostbite paint"
+                  : "Start typing, e.g. Idris, Quantanium, Polaris BUK"
               }
             />
           </Field>
@@ -342,7 +342,7 @@ export default function NewListingPage() {
               <div className="label-mini" style={{ marginTop: 4 }}>
                 Refined materials are scored <strong>1–1000</strong>. Whatever
                 you put here means &quot;<strong>this quality or higher</strong>&quot;
-                — buyers asking for 750+ won&apos;t see anything below it.
+               , buyers asking for 750+ won&apos;t see anything below it.
                 Leave blank for any quality.
               </div>
             </Field>
@@ -388,7 +388,7 @@ export default function NewListingPage() {
               <input
                 value={customCurrency}
                 onChange={(e) => setCustomCurrency(e.target.value)}
-                placeholder="Type the currency name — e.g. 2 Wikelo Favors, OreScan Vouchers, Nine Tails creds"
+                placeholder="Type the currency name, e.g. 2 Wikelo Favors, OreScan Vouchers, Nine Tails creds"
                 maxLength={64}
                 className="input"
                 style={{ marginTop: 6 }}
@@ -399,7 +399,7 @@ export default function NewListingPage() {
                 ? "Buyer pays in in-game credits."
                 : priceCurrency === "Custom"
                 ? "Whatever you type here will appear on the listing as the payment unit."
-                : `Buyer pays in ${priceCurrency} — typically traded at a refinery, trade location, or NPC.`}
+                : `Buyer pays in ${priceCurrency}, typically traded at a refinery, trade location, or NPC.`}
             </div>
           </div>
 
@@ -427,7 +427,7 @@ export default function NewListingPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Anything else a buyer should know — included paints, in-system location for hand-off, etc."
+              placeholder="Anything else a buyer should know, included paints, in-system location for hand-off, etc."
               maxLength={2000}
               rows={5}
               className="textarea"
@@ -483,12 +483,12 @@ export default function NewListingPage() {
             Set up a one-time webhook on your{" "}
             <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>.
             We&apos;ll DM you in your channel the moment a buyer expresses
-            interest or your listing is marked sold — handle and listing link
+            interest or your listing is marked sold, handle and listing link
             included so you can jump straight into the trade.
           </div>
           <p style={{ marginTop: 4, color: "var(--text-dim)", fontSize: "0.78rem", lineHeight: 1.5 }}>
             Listings auto-expire after <strong>7 days</strong>. Cancel or mark
-            sold any time from your listing detail page — sold/filled listings
+            sold any time from your listing detail page, sold/filled listings
             stay around as a record of the trade.
           </p>
         </form>

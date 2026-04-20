@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 
-// Lightweight emoji picker — toggles a small popover next to the trigger
+// Lightweight emoji picker, toggles a small popover next to the trigger
 // button. Click any emoji to insert at the current cursor position in the
 // linked textarea (or append if the ref isn't focused).
 //

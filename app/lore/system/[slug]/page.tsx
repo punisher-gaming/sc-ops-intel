@@ -25,7 +25,7 @@ export default async function SystemDetail({
         ← All systems
       </Link>
 
-      {/* Full-width banner — real system photo preferred, orbital map fallback */}
+      {/* Full-width banner, real system photo preferred, orbital map fallback */}
       <div
         style={{
           position: "relative",

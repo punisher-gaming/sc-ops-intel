@@ -26,9 +26,9 @@ POST /ingest/resource-locations    (scunpacked, depends on /resources)
 POST /ingest/commodities           (scunpacked)
 POST /ingest/trade-locations       (scunpacked)
 POST /ingest/blueprints            (scunpacked)
-POST /ingest/shops                 (scunpacked.com — shops + inventory)
-POST /ingest/availability          (scunpacked — commodity availability, ~43 MB streamed)
-POST /ingest/items                 (scunpacked items.json — weapons + components, ~107 MB streamed)
+POST /ingest/shops                 (scunpacked.com, shops + inventory)
+POST /ingest/availability          (scunpacked, commodity availability, ~43 MB streamed)
+POST /ingest/items                 (scunpacked items.json, weapons + components, ~107 MB streamed)
 POST /ingest/all                   (everything, in dependency order)
 `;
 
@@ -40,14 +40,14 @@ export default {
       return Response.json({ ok: true, version: env.CURRENT_GAME_VERSION });
     }
 
-    // AI chat — called by the /ai page on the frontend. POST-only,
+    // AI chat, called by the /ai page on the frontend. POST-only,
     // JSON body { question, context, history }. Uses Cloudflare
     // Workers AI (llama-3.1 8B instruct).
     if (url.pathname === "/ai/chat") {
       return handleAiChat(req, env);
     }
 
-    // Discord webhook proxy — frontend can't post to discord.com
+    // Discord webhook proxy, frontend can't post to discord.com
     // directly because of CORS, so this route validates + relays.
     if (url.pathname === "/notify/discord") {
       return handleNotifyDiscord(req);
@@ -59,7 +59,7 @@ export default {
       return handleNotifyUser(req, env);
     }
 
-    // RSI profile passthrough — /rsi/<handle>. Public read-only, served
+    // RSI profile passthrough, /rsi/<handle>. Public read-only, served
     // directly off the edge cache (1h TTL via Worker fetch options). CORS
     // open since the frontend is served from a different origin.
     if (url.pathname.startsWith("/rsi/")) {
@@ -157,7 +157,7 @@ export default {
     // /ingest/<X> call runs fresh.
     //
     // Endpoints are called sequentially (not parallel) to respect ingest
-    // dependency order — resource_locations needs resources to exist first.
+    // dependency order, resource_locations needs resources to exist first.
     const SELF = "https://sc-ops-intel-ingest.clint-150.workers.dev";
     const ENDPOINTS = [
       "/ingest/ships",
@@ -175,7 +175,7 @@ export default {
         console.log(`[cron] using patch ${detected}`);
         const summary: Record<string, unknown> = { patch: detected };
         for (const path of ENDPOINTS) {
-          // One retry — Cloudflare occasionally returns CPU-limit (1102) on
+          // One retry, Cloudflare occasionally returns CPU-limit (1102) on
           // cold-start invocations even for ingests that normally fit in
           // budget. A single retry after a 2s pause clears most of those.
           let body: unknown;
@@ -213,9 +213,9 @@ export default {
 //   5. commodities           (lookup)
 //   6. trade-locations       (lookup)
 //   7. blueprints            (FK on blueprint_sources, self-contained)
-//   8. shops                 (standalone, scunpacked.com — 12 MB, fits)
+//   8. shops                 (standalone, scunpacked.com, 12 MB, fits)
 //
-// NOT in the nightly cron — these source files (43 MB and 107 MB) exceed the
+// NOT in the nightly cron, these source files (43 MB and 107 MB) exceed the
 // per-invocation subrequest cap (50 on Workers Free) even with maxed batch
 // sizes. The routes still exist for manual trigger from a beefier plan, and
 // scripts/ingest-availability.mjs + scripts/ingest-items.mjs remain the

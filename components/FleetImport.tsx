@@ -7,7 +7,7 @@ import { saveFleet } from "@/lib/fleets";
 // Import a fleet JSON exported from another tool (Hangar XPLOR, custom
 // scripts, etc.) and turn it into a saved fleet on this profile.
 //
-// We're permissive about input shape — any of these work:
+// We're permissive about input shape, any of these work:
 //   1. Array of strings:                ["Polaris", "Cutlass Black", ...]
 //   2. Array of objects with .name:     [{name: "Polaris", manufacturer: "RSI"}, ...]
 //   3. Object wrapper with .ships/.hangar/.items: {ships: [...]}
@@ -16,7 +16,7 @@ import { saveFleet } from "@/lib/fleets";
 // Matching strategy: case-insensitive, accent-insensitive contains-match
 // against ships.name and ships.class_name (via source_data when available).
 // We try the longest unique candidate first to avoid matching "Cutlass" to
-// every Cutlass variant — exact name match wins, then prefix, then contains.
+// every Cutlass variant, exact name match wins, then prefix, then contains.
 //
 // Preview shows matched + unmatched before save. User can edit the fleet
 // name and add notes. The actual ship_ids[] is what gets saved.
@@ -84,7 +84,7 @@ function extractNames(input: unknown): string[] {
       if (!foundShipItem && typeof p.contains === "string") {
         const c = p.contains.trim();
         if (!c) continue;
-        // Skip pure ship/item counts — those mean an opaque pack
+        // Skip pure ship/item counts, those mean an opaque pack
         if (/^\d+\s+ships?(\s+and\s+.*)?$/i.test(c)) continue;
         if (/^\d+\s+items?$/i.test(c)) continue;
         // Strip "and …" suffix (insurance, items count, etc.)
@@ -148,7 +148,7 @@ function matchShip(rawName: string, ships: Ship[]): Ship | null {
   for (const s of ships) {
     const sname = normalize(s.name);
     if (sname === target) {
-      // Exact name match — best possible
+      // Exact name match, best possible
       return s;
     }
     // Manufacturer + name combined ("RSI Polaris" → "polaris")
@@ -227,7 +227,7 @@ export function FleetImport({
     if (!entries) return;
     const matched = entries.filter((e) => e.matchedShip).map((e) => e.matchedShip!.id);
     if (matched.length === 0) {
-      setError("Nothing to save — no rows matched our ship catalog.");
+      setError("Nothing to save, no rows matched our ship catalog.");
       return;
     }
     setSaving(true);

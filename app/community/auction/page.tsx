@@ -67,7 +67,7 @@ export default function AuctionHomePage() {
               <strong style={{ color: "var(--warn)" }}>WTB</strong> = want to buy.
               Pay in <strong>aUEC</strong> or any in-game{" "}
               <strong>commodity</strong> (Gold, Quantanium, etc.). Trades happen
-              in-game — this is a listing board, not a payment system.
+              in-game, this is a listing board, not a payment system.
               Real-money transactions are{" "}
               <strong style={{ color: "var(--alert)" }}>strictly prohibited</strong>.
             </p>
@@ -83,7 +83,7 @@ export default function AuctionHomePage() {
           )}
         </div>
 
-        {/* WTS / WTB tabs — pinned at top so the two sides are obvious */}
+        {/* WTS / WTB tabs, pinned at top so the two sides are obvious */}
         <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", marginBottom: 16 }}>
           {(["all", "wts", "wtb"] as const).map((m) => {
             const labels: Record<typeof m, string> = {
@@ -154,7 +154,7 @@ export default function AuctionHomePage() {
 
         {listings && listings.length === 0 && !err && (
           <div className="card" style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
-            No active listings match. {user && <>Be the first to list — <Link href="/community/auction/new" style={linkStyle}>create one</Link>.</>}
+            No active listings match. {user && <>Be the first to list, <Link href="/community/auction/new" style={linkStyle}>create one</Link>.</>}
           </div>
         )}
 

@@ -4,7 +4,7 @@
 //
 // Big files (25–45 MB) are within CF Workers' 128 MB heap. We stream-parse
 // where we can, but for now the JSON.parse approach is fine for files under
-// ~50 MB. The 107 MB items.json is LFS-backed — we skip it for now and derive
+// ~50 MB. The 107 MB items.json is LFS-backed, we skip it for now and derive
 // item metadata opportunistically from blueprint outputs + shop inventory.
 
 const RAW_BASE =

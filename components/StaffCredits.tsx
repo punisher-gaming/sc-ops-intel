@@ -6,12 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 import { displayNameFor, roleLabelFor } from "@/lib/owner";
 
 // "Please respect our Admin & Moderators" panel for the homepage. Pulls the
-// staff list from public_staff_list() — a SECURITY DEFINER RPC that returns
+// staff list from public_staff_list(), a SECURITY DEFINER RPC that returns
 // just the safe display fields (name, Discord handle, avatar) for users
 // flagged as admin or moderator.
 //
 // Renders nothing if the RPC isn't available yet (migration not applied) or
-// if there are no staff — the homepage shouldn't show an empty placeholder.
+// if there are no staff, the homepage shouldn't show an empty placeholder.
 
 interface StaffMember {
   id: string;
@@ -31,7 +31,7 @@ export function StaffCredits() {
       .rpc("public_staff_list")
       .then(({ data, error }) => {
         if (error) {
-          // Migration not applied yet, or RLS denied — render nothing
+          // Migration not applied yet, or RLS denied, render nothing
           setStaff([]);
           return;
         }
@@ -130,7 +130,7 @@ function StaffPill({ member }: { member: StaffMember }) {
       title={`View ${name}'s profile`}
     >
       {member.avatar_url ? (
-        // Discord avatars come from cdn.discordapp.com or similar — bypass
+        // Discord avatars come from cdn.discordapp.com or similar, bypass
         // next/image to avoid having to whitelist the host (we're a static
         // export anyway, so it's a plain <img>).
         // eslint-disable-next-line @next/next/no-img-element
@@ -178,7 +178,7 @@ function StaffPill({ member }: { member: StaffMember }) {
   );
 }
 
-// Inline Discord wordmark glyph — no external asset, scales cleanly.
+// Inline Discord wordmark glyph, no external asset, scales cleanly.
 function DiscordIcon() {
   return (
     <svg

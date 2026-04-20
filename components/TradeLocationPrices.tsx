@@ -56,7 +56,7 @@ export function TradeLocationPrices({
       <div className="card" style={{ padding: "1.5rem", marginTop: "1rem" }}>
         <div style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 8 }}>Prices</div>
         <div style={{ color: "var(--text-dim)" }}>
-          No commodities recorded for this location — nothing to price yet.
+          No commodities recorded for this location, nothing to price yet.
         </div>
       </div>
     );

@@ -39,7 +39,7 @@ export default function AccessDeniedPage() {
         padding: "1rem",
       }}
     >
-      {/* Strobe layer — full red wash, opacity-keyed via animation */}
+      {/* Strobe layer, full red wash, opacity-keyed via animation */}
       {phase === "strobe" && (
         <div
           aria-hidden
@@ -54,7 +54,7 @@ export default function AccessDeniedPage() {
         />
       )}
 
-      {/* Scanline overlay — always on for the CRT vibe */}
+      {/* Scanline overlay, always on for the CRT vibe */}
       <div
         aria-hidden
         style={{
@@ -67,7 +67,7 @@ export default function AccessDeniedPage() {
         }}
       />
 
-      {/* The headline — glitch-shifted, blood-red, jittering */}
+      {/* The headline, glitch-shifted, blood-red, jittering */}
       <h1
         style={{
           position: "relative",
@@ -115,7 +115,7 @@ export default function AccessDeniedPage() {
       >
         Your Discord ID has been blocked from this site. This action was taken
         by a site administrator. If you believe this is in error, contact the
-        admin team — but don&apos;t hold your breath.
+        admin team, but don&apos;t hold your breath.
       </div>
 
       <div
@@ -146,7 +146,7 @@ export default function AccessDeniedPage() {
         ← Return to civilian airspace
       </a>
 
-      {/* Local keyframes — kept inline so this page stays self-contained.
+      {/* Local keyframes, kept inline so this page stays self-contained.
           (globals.css doesn't need to know about the strobe.) */}
       <style>{`
         @keyframes strobe-flash {

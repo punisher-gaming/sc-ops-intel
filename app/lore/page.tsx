@@ -12,13 +12,13 @@ import { ChronicleFlipBook } from "@/components/ChronicleFlipBook";
 import { LoreImageEl } from "@/components/LoreImage";
 import type { LoreChapter } from "@/lib/lore-data";
 
-// Lore landing — cinematic cover, then scroll into the chapter grid,
+// Lore landing, cinematic cover, then scroll into the chapter grid,
 // species roster, and systems list. Every card is visual.
 
 export default function LoreHome() {
   return (
     <>
-      {/* ── Chronological flip book — pages turn through every chapter ── */}
+      {/* ── Chronological flip book, pages turn through every chapter ── */}
       <ChronicleFlipBook />
 
       {/* Intro blurb below the cover to bridge to the table of contents */}
@@ -33,12 +33,12 @@ export default function LoreHome() {
         <p className="lore-hero-body">
           A thousand years of human history in the stars. The first fusion
           reactor, the first jump point, the empires that rose, the
-          civilizations we found already waiting for us — and the enemies
+          civilizations we found already waiting for us, and the enemies
           who found us first. Every era, every species, every system.
         </p>
       </section>
 
-      {/* ── Chapter index — each card with splash art ── */}
+      {/* ── Chapter index, each card with splash art ── */}
       <section style={{ marginTop: "3rem" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.5rem" }}>
           <SectionHead eyebrow="◢ Chronicle" title="Eras" />
@@ -54,7 +54,7 @@ export default function LoreHome() {
               className="lore-chapter-card"
               style={{ padding: 0, overflow: "hidden" }}
             >
-              {/* Art header — real image preferred, SVG fallback */}
+              {/* Art header, real image preferred, SVG fallback */}
               <div style={{ height: 180, position: "relative", borderBottom: "1px solid var(--lore-border)" }}>
                 <ChapterArt chapter={c} />
                 <div
@@ -86,7 +86,7 @@ export default function LoreHome() {
                 <h2 className="lore-chapter-card-title">{c.title}</h2>
                 <div className="lore-chapter-card-sub">{c.subtitle}</div>
                 <div className="lore-chapter-card-years" style={{ marginTop: 8 }}>
-                  {c.yearsFrom} — {c.yearsTo}
+                  {c.yearsFrom}, {c.yearsTo}
                 </div>
                 <p className="lore-chapter-card-blurb" style={{ marginTop: 10 }}>{c.blurb}</p>
               </div>
@@ -95,7 +95,7 @@ export default function LoreHome() {
         </div>
       </section>
 
-      {/* ── Species — each card with a tinted portrait ── */}
+      {/* ── Species, each card with a tinted portrait ── */}
       <section style={{ marginTop: "4rem" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.5rem" }}>
           <SectionHead eyebrow="◢ Sapient Species" title="Who's Out There" />
@@ -144,7 +144,7 @@ export default function LoreHome() {
         </div>
       </section>
 
-      {/* ── Systems — orbital maps ── */}
+      {/* ── Systems, orbital maps ── */}
       <section style={{ marginTop: "4rem" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.5rem" }}>
           <SectionHead eyebrow="◢ Star Systems" title="Known Space" />
@@ -213,7 +213,7 @@ export default function LoreHome() {
   );
 }
 
-// Chapter thumbnail — real image preferred, SVG fallback keyed by slug.
+// Chapter thumbnail, real image preferred, SVG fallback keyed by slug.
 function ChapterArt({ chapter }: { chapter: LoreChapter }) {
   if (chapter.heroImage) {
     return <LoreImageEl image={chapter.heroImage} credit="corner" />;

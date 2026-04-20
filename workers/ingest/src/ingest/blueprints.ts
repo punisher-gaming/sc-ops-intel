@@ -145,7 +145,7 @@ export async function ingestBlueprints(client: SupabaseClient, env: Env) {
       }
     }
 
-    // Wipe + reinsert — this table has no natural key.
+    // Wipe + reinsert, this table has no natural key.
     const { error: delErr } = await client
       .from("blueprint_sources")
       .delete()

@@ -44,7 +44,7 @@ export function SavedFleets({ userId }: { userId: string }) {
     reload();
   }
 
-  // Optimistic flip — update local state immediately so the toggle feels
+  // Optimistic flip, update local state immediately so the toggle feels
   // snappy, then persist. Revert on failure.
   async function handleTogglePublic(f: Fleet) {
     const next = !f.is_public;

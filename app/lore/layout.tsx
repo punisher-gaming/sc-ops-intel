@@ -11,7 +11,7 @@ import "./lore.css";
 export const metadata: Metadata = {
   title: "Lore · CitizenDex",
   description:
-    "The Star Citizen chronicle, from the first jump point to the current era. Races, systems, eras — rendered as a scrolling comic.",
+    "The Star Citizen chronicle, from the first jump point to the current era. Races, systems, eras, rendered as a scrolling comic.",
 };
 
 export default function LoreLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default function LoreLayout({ children }: { children: React.ReactNode }) 
     <>
       <div className="lore-body-backdrop" aria-hidden />
       <Nav />
-      {/* Lore-specific sub-nav — three pills under the main Nav for easy
+      {/* Lore-specific sub-nav, three pills under the main Nav for easy
           movement between the chronicle landing, species index, and
           systems index from any lore page. */}
       <div className="lore-subnav">

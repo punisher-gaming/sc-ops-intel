@@ -100,7 +100,7 @@ function ShipList() {
     const set = new Set<string>();
     for (const r of rows) {
       const s = shipSize(r);
-      if (s && s !== "—") set.add(s);
+      if (s && s !== ", ") set.add(s);
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [rows]);
@@ -150,7 +150,7 @@ function ShipList() {
         <div className="accent-label">Catalog</div>
         <h1>Ships</h1>
         <p>
-          Every flyable hull in the &apos;verse — manufacturer, role, size,
+          Every flyable hull in the &apos;verse, manufacturer, role, size,
           hull HP, shields, speed, cargo, crew. Click any row for full stats.
         </p>
       </div>
@@ -328,8 +328,8 @@ function ShipList() {
                       {s.name}
                     </Link>
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? "—"}</td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? ", "}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? ", "}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{shipSize(s)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.hull_hp)}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.shields_hp)}</td>
@@ -419,13 +419,13 @@ function ShipDetail({ id }: { id: string }) {
         <Stat label="Crew" value={formatCrew(ship)} />
       </div>
 
-      {/* Raw source data block removed — jsonb dumps don't belong in the UI. */}
+      {/* Raw source data block removed, jsonb dumps don't belong in the UI. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}
         {ship.last_synced_at
           ? new Date(ship.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}
         Patch {ship.game_version ?? CURRENT_PATCH}
       </div>
@@ -480,7 +480,7 @@ function Stat({ label, value, suffix }: { label: string; value: string; suffix?:
       <div className="label-mini" style={{ marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: "1.25rem", fontWeight: 600 }}>
         {value}
-        {suffix && value !== "—" && (
+        {suffix && value !== ", " && (
           <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 400, marginLeft: 4 }}>
             {suffix}
           </span>

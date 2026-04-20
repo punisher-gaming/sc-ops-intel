@@ -69,7 +69,7 @@ export default async function ChapterPage({
 
   return (
     <>
-      {/* ── Cinematic chapter cover — real image preferred, SVG fallback ── */}
+      {/* ── Cinematic chapter cover, real image preferred, SVG fallback ── */}
       <section className="lore-chapter-hero">
         <div className="lore-chapter-hero-art">
           {chapter.heroImage ? (
@@ -83,7 +83,7 @@ export default async function ChapterPage({
           <div className="lore-hero-eyebrow">Chapter {chapter.num}</div>
           <h1 className="lore-hero-title">{chapter.title}</h1>
           <div className="lore-hero-sub">
-            {chapter.yearsFrom} — {chapter.yearsTo} · UEE Calendar
+            {chapter.yearsFrom}, {chapter.yearsTo} · UEE Calendar
           </div>
           <p className="lore-hero-body">{chapter.subtitle}.</p>
         </div>
@@ -204,7 +204,7 @@ function Panel({ panel, num }: { panel: LoreChapterPanel; num: number }) {
     );
   }
 
-  // Fallback — art-less text/hero panel
+  // Fallback, art-less text/hero panel
   return (
     <div className={`lore-panel ${panel.kind === "hero" ? "lore-panel-hero" : ""}`}>
       <div className="lore-splash-panel-num" style={{ position: "absolute", top: -10, left: 14 }}>

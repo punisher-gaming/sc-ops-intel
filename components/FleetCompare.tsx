@@ -31,7 +31,7 @@ type SortKey =
 //           length order, images sized proportional to length, labels
 //           adjacent. Closest thing we can do to the classic SC ship-
 //           size comparison chart using wiki images (which aren't all
-//           top-down silhouettes — but it gets the point across).
+//           top-down silhouettes, but it gets the point across).
 //   list  - straightforward table of selected ships
 
 export function FleetCompare() {
@@ -120,7 +120,7 @@ export function FleetCompare() {
           <h1>Compare {ships.length} ship{ships.length === 1 ? "" : "s"}</h1>
           <p style={{ maxWidth: "56ch" }}>
             {mode === "chart"
-              ? `Ships sorted by length, smallest first. Widest ship is ${maxLength.toLocaleString()}m long — everything scales to that.`
+              ? `Ships sorted by length, smallest first. Widest ship is ${maxLength.toLocaleString()}m long, everything scales to that.`
               : "Side-by-side stats for your selected ships. Click any column header to sort."}
           </p>
         </div>
@@ -307,7 +307,7 @@ function ChartView({
                   {ship.name}
                 </Link>
                 <div className="label-mini" style={{ marginTop: 2 }}>
-                  {dims.length ? `${dims.length}m` : "—"}
+                  {dims.length ? `${dims.length}m` : ", "}
                   {ship.manufacturer && ` · ${ship.manufacturer}`}
                 </div>
               </div>
@@ -332,7 +332,7 @@ function ChartView({
   );
 }
 
-// Renders the wiki image without forcing an aspect ratio — the image's
+// Renders the wiki image without forcing an aspect ratio, the image's
 // natural shape shows through, which matches the size-chart vibe better
 // than cover-cropping into a 16:10 box.
 function FreeAspectImage({ name, alt }: { name: string; alt: string }) {
@@ -418,10 +418,10 @@ function ListView({ ships }: { ships: Ship[] }) {
                     {s.name}
                   </Link>
                 </td>
-                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? "—"}</td>
-                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? "—"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.manufacturer ?? ", "}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{s.role ?? ", "}</td>
                 <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{shipSize(s)}</td>
-                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.length != null ? `${d.length}m` : "—"}</td>
+                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{d.length != null ? `${d.length}m` : ", "}</td>
                 <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.hull_hp)}</td>
                 <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.shields_hp)}</td>
                 <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-mono)" }}>{formatNum(s.cargo_scu)}</td>

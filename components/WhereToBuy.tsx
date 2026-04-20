@@ -80,7 +80,7 @@ export function WhereToBuy({ itemReference }: { itemReference: string }) {
       )}
 
       <p style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: 12, lineHeight: 1.5 }}>
-        Prices shown are base — in-game shops apply a discount or premium
+        Prices shown are base, in-game shops apply a discount or premium
         based on local stock and demand. Stock levels shown are snapshot at
         ingest time and drift in-game.
       </p>

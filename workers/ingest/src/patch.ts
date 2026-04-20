@@ -1,6 +1,6 @@
 // Auto-detect the current Star Citizen patch version by reading the latest
 // commit on StarCitizenWiki/scunpacked-data master. Their commit messages
-// follow the pattern "4.7.0-LIVE.11592622\n\n..." — the first line IS the
+// follow the pattern "4.7.0-LIVE.11592622\n\n...", the first line IS the
 // patch identifier they extracted from. Robust because it tracks the actual
 // data we're ingesting, not a separate version feed that could drift.
 //
@@ -36,7 +36,7 @@ export async function detectPatchVersion(env: Env): Promise<string> {
     // We keep the channel ("LIVE" / "PTU" / etc.) but drop the trailing build.
     const match = firstLine.match(/^(\d+\.\d+\.\d+(?:[.-]\d+)?-[A-Z]+)/);
     if (match) return match[1];
-    // Looser fallback — first whitespace-delimited token if it looks versiony
+    // Looser fallback, first whitespace-delimited token if it looks versiony
     const loose = firstLine.match(/^(\d+\.\d+[\d.A-Z\-]*)/);
     if (loose) return loose[1];
     console.warn(

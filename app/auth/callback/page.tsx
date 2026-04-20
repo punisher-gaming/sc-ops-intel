@@ -16,13 +16,13 @@ import { createClient } from "@/lib/supabase/client";
 //    already consumed the verifier, we get the scary "PKCE code
 //    verifier not found in storage" error even though sign-in actually
 //    worked.
-// 2. Poll for a session. If one is already set, we're done — bounce.
+// 2. Poll for a session. If one is already set, we're done, bounce.
 // 3. If not, call exchangeCodeForSession explicitly as a fallback.
 //    Check session again afterward.
 // 4. If STILL no session, subscribe to onAuthStateChange for up to 5s.
 //    Some mobile browsers need the tab to regain focus before the
 //    token ships into storage.
-// 5. Only after all that do we show an error — and the message is
+// 5. Only after all that do we show an error, and the message is
 //    human, never the raw Supabase exception. Users get a retry CTA
 //    instead of wall-of-text.
 
@@ -39,10 +39,10 @@ export default function AuthCallback() {
     let authSub: { unsubscribe: () => void } | null = null;
 
     async function waitForSession(timeoutMs: number): Promise<boolean> {
-      // Fast path — already signed in?
+      // Fast path, already signed in?
       const { data: { session: s0 } } = await supabase.auth.getSession();
       if (s0) return true;
-      // Slow path — wait for the SIGNED_IN event
+      // Slow path, wait for the SIGNED_IN event
       return new Promise<boolean>((resolve) => {
         const t = setTimeout(() => {
           authSub?.unsubscribe();
@@ -76,7 +76,7 @@ export default function AuthCallback() {
         }
 
         // Step 3: explicit PKCE exchange as a fallback. Swallow errors
-        // here because they commonly mean "already exchanged" — we
+        // here because they commonly mean "already exchanged", we
         // re-check session below and don't surface the raw message.
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code");
@@ -92,7 +92,7 @@ export default function AuthCallback() {
               router.replace("/access-denied");
               return;
             }
-            // Otherwise fall through to the session-waiting loop — the
+            // Otherwise fall through to the session-waiting loop, the
             // auto-detection may have already consumed the verifier.
           }
         }
@@ -153,7 +153,7 @@ export default function AuthCallback() {
             </div>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5, marginBottom: 14 }}>
               This sometimes happens on mobile browsers (iPad Safari especially)
-              when the OAuth round-trip gets interrupted. Just try again — it
+              when the OAuth round-trip gets interrupted. Just try again, it
               almost always works on the second try.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

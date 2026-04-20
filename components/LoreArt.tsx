@@ -1,5 +1,5 @@
 // SVG art library for the /lore subsite. Every illustration is pure
-// vector — no images, no fonts, no external requests — so pages render
+// vector, no images, no fonts, no external requests, so pages render
 // instantly and scale perfectly to any viewport. Everything uses the
 // TRON-cyan palette declared in lore.css so art picks up accent tints
 // via currentColor when appropriate.
@@ -34,7 +34,7 @@ interface ArtProps {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Starfield — reusable across every scene. Seeded random so it's
+// Starfield, reusable across every scene. Seeded random so it's
 // deterministic per instance (no hydration mismatch).
 // ─────────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ function Starfield({ seed = 1, density = 120 }: { seed?: number; density?: numbe
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SPACE SCENE — nebula + stars + optional planet. Used as chapter
+// SPACE SCENE, nebula + stars + optional planet. Used as chapter
 // hero backdrops. accent drives the nebula colour.
 // ─────────────────────────────────────────────────────────────────
 
@@ -121,7 +121,7 @@ export function SpaceScene({
 }
 
 // ─────────────────────────────────────────────────────────────────
-// JUMP POINT — spiraling portal with halos. Used for discovery eras.
+// JUMP POINT, spiraling portal with halos. Used for discovery eras.
 // ─────────────────────────────────────────────────────────────────
 
 export function JumpPoint({ accent = "cyan", className, style }: ArtProps) {
@@ -162,7 +162,7 @@ export function JumpPoint({ accent = "cyan", className, style }: ArtProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SHIP SILHOUETTES — simple vector profiles. Not actual SC ships
+// SHIP SILHOUETTES, simple vector profiles. Not actual SC ships
 // (trademarked) but readable archetypes.
 // ─────────────────────────────────────────────────────────────────
 
@@ -190,7 +190,7 @@ export function ShipVanduul({ accent = "red", className, style }: ArtProps) {
   const c = ACCENT[accent];
   return (
     <svg className={className} style={style} viewBox="0 0 400 200" aria-hidden>
-      {/* Vanduul scythe — jagged, hooked */}
+      {/* Vanduul scythe, jagged, hooked */}
       <g fill={c}>
         <path d="M50 100 L130 60 L200 75 L260 95 L200 125 L130 140 L50 100 Z" opacity="0.95" />
         <path d="M130 60 L100 25 L160 65 Z" opacity="0.8" />
@@ -209,7 +209,7 @@ export function ShipTrader({ accent = "amber", className, style }: ArtProps) {
   const c = ACCENT[accent];
   return (
     <svg className={className} style={style} viewBox="0 0 400 200" aria-hidden>
-      {/* Banu trader — bulbous hull with module pods */}
+      {/* Banu trader, bulbous hull with module pods */}
       <g fill={c}>
         <ellipse cx="200" cy="100" rx="120" ry="42" opacity="0.9" />
         <rect x="80" y="80" width="30" height="40" opacity="0.75" />
@@ -226,7 +226,7 @@ export function ShipTrader({ accent = "amber", className, style }: ArtProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// BATTLE SCENE — two ships firing tracers past each other
+// BATTLE SCENE, two ships firing tracers past each other
 // ─────────────────────────────────────────────────────────────────
 
 export function BattleScene({ accent = "red", className, style }: ArtProps) {
@@ -267,7 +267,7 @@ export function BattleScene({ accent = "red", className, style }: ArtProps) {
       <g transform="translate(80, 240) scale(0.6)" opacity="0.95">
         <path d="M30 100 L160 80 L230 70 L290 95 L230 130 L160 120 L30 100 Z" fill="#4dd9ff" />
       </g>
-      {/* Enemy fighter — crashing */}
+      {/* Enemy fighter, crashing */}
       <g transform="translate(540, 220) scale(0.55) rotate(35)" opacity="0.9">
         <path d="M50 100 L130 60 L200 75 L260 95 L200 125 L130 140 L50 100 Z" fill={c} />
         <path d="M130 60 L100 25 L160 65 Z" fill={c} opacity="0.7" />
@@ -277,7 +277,7 @@ export function BattleScene({ accent = "red", className, style }: ArtProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// PLANET with orbital rings — used for system headers
+// PLANET with orbital rings, used for system headers
 // ─────────────────────────────────────────────────────────────────
 
 export function PlanetOrbit({
@@ -327,7 +327,7 @@ export function PlanetOrbit({
 }
 
 // ─────────────────────────────────────────────────────────────────
-// RACE PORTRAITS — abstract silhouettes. Not meant to depict the
+// RACE PORTRAITS, abstract silhouettes. Not meant to depict the
 // species accurately; they're iconic "data" portraits.
 // ─────────────────────────────────────────────────────────────────
 
@@ -441,7 +441,7 @@ export function RacePortrait({
 }
 
 // ─────────────────────────────────────────────────────────────────
-// EARTH — stylized cradle planet for origin chapters
+// EARTH, stylized cradle planet for origin chapters
 // ─────────────────────────────────────────────────────────────────
 
 export function EarthScene({ accent = "cyan", className, style }: ArtProps) {
@@ -478,7 +478,7 @@ export function EarthScene({ accent = "cyan", className, style }: ArtProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// CITY SILHOUETTE — for colony / golden age panels
+// CITY SILHOUETTE, for colony / golden age panels
 // ─────────────────────────────────────────────────────────────────
 
 export function CityScene({ accent = "amber", className, style }: ArtProps) {
@@ -500,7 +500,7 @@ export function CityScene({ accent = "amber", className, style }: ArtProps) {
       </defs>
       <rect width="1000" height="600" fill="url(#sky)" />
       <Starfield seed={5} density={60} />
-      {/* Layered skyline — back row */}
+      {/* Layered skyline, back row */}
       <g fill="#050b18" opacity="0.8">
         {Array.from({ length: 14 }).map((_, i) => (
           <rect
@@ -512,7 +512,7 @@ export function CityScene({ accent = "amber", className, style }: ArtProps) {
           />
         ))}
       </g>
-      {/* Front row — taller */}
+      {/* Front row, taller */}
       <g fill="#020408">
         {[100, 180, 260, 370, 470, 560, 660, 770, 850, 930].map((x, i) => (
           <g key={i}>
@@ -537,7 +537,7 @@ export function CityScene({ accent = "amber", className, style }: ArtProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// DESTRUCTION — for Vanduul / war panels. Burning world silhouette.
+// DESTRUCTION, for Vanduul / war panels. Burning world silhouette.
 // ─────────────────────────────────────────────────────────────────
 
 export function DestructionScene({ accent = "red", className, style }: ArtProps) {
@@ -584,7 +584,7 @@ export function DestructionScene({ accent = "red", className, style }: ArtProps)
 }
 
 // ─────────────────────────────────────────────────────────────────
-// UEE FLAG — for political panels
+// UEE FLAG, for political panels
 // ─────────────────────────────────────────────────────────────────
 
 export function UEEInsignia({ accent = "cyan", className, style }: ArtProps) {

@@ -1,4 +1,4 @@
-// RSI citizen profile scraper — fetches the public citizen page + orgs page
+// RSI citizen profile scraper, fetches the public citizen page + orgs page
 // and extracts the basic display fields (org, rank, citizen number, enlisted
 // date, location, language, avatar). Used by /profile?id=… on the frontend
 // when the user has set an rsi_handle.
@@ -7,7 +7,7 @@
 // server-rendered HTML with consistent class names, so a few regex passes
 // pull out everything we need.
 //
-// We aggressively edge-cache (1 hour TTL) — citizen profiles barely change,
+// We aggressively edge-cache (1 hour TTL), citizen profiles barely change,
 // and we don't want to hammer RSI on every page view.
 
 const CITIZEN_BASE = "https://robertsspaceindustries.com/citizens";
@@ -33,7 +33,7 @@ export interface RsiProfile {
   fetched_at: string;
 }
 
-// RSI's site occasionally returns 502/503/504 from their CDN/origin —
+// RSI's site occasionally returns 502/503/504 from their CDN/origin , 
 // it's almost always transient. One quick retry after a short backoff
 // clears nearly all of these without surfacing an error to the user.
 async function fetchWithRetry(url: string): Promise<Response> {
@@ -44,9 +44,9 @@ async function fetchWithRetry(url: string): Promise<Response> {
         headers: { "user-agent": UA, accept: "text/html" },
         cf: { cacheTtl: 3600, cacheEverything: true },
       });
-      // Succeeded or got a deterministic answer (404, 200, etc) — return.
+      // Succeeded or got a deterministic answer (404, 200, etc), return.
       if (!TRANSIENT.has(res.status)) return res;
-      // Transient — drain the body and try once more.
+      // Transient, drain the body and try once more.
       try { await res.body?.cancel(); } catch { /* ignore */ }
       if (attempt === 0) {
         await new Promise((r) => setTimeout(r, 600));
@@ -83,7 +83,7 @@ function clean(s: string | null | undefined): string | null {
 }
 
 // Pair each `<span class="label">Foo</span>` with the immediately-following
-// `<strong|span class="value">…</strong>` — labels are always emitted right
+// `<strong|span class="value">…</strong>`, labels are always emitted right
 // before their value in RSI's HTML. Returns a Map keyed by lowercase label.
 //
 // Way more robust than positional ordering, which breaks when fields like
@@ -114,7 +114,7 @@ function extractCitizenRecord(html: string): string | null {
 }
 
 // The moniker (mixed-case display name) is the FIRST unlabeled
-// `<strong class="value">` inside `.profile .info` — it appears before the
+// `<strong class="value">` inside `.profile .info`, it appears before the
 // "Handle name" entry. If the user hasn't set a moniker, it's just the
 // handle in uppercase, which is uninteresting; we return null in that case
 // so the UI can fall back to display_handle.
@@ -129,7 +129,7 @@ function extractMoniker(html: string, handle: string): string | null {
   return v;
 }
 
-// Main org card — RSI renders this as `<div class="main-org right-col …">`
+// Main org card, RSI renders this as `<div class="main-org right-col …">`
 // directly on the citizen page. Layout (verified):
 //   .thumb > a[href=/orgs/SID] > img        (logo)
 //   .info > p.entry > a.value (org full name)
@@ -187,7 +187,7 @@ export async function fetchRsiProfile(handle: string): Promise<RsiProfile | null
 
   const html = await citizenRes.text();
 
-  // RSI returns 200 with a "page not found" body for invalid handles — sniff
+  // RSI returns 200 with a "page not found" body for invalid handles, sniff
   // for the real profile shell to detect that case.
   if (!/citizen-record|profile-content|class="info"/i.test(html)) {
     return null;
@@ -207,12 +207,12 @@ export async function fetchRsiProfile(handle: string): Promise<RsiProfile | null
     labeled.get("language") ??
     null;
 
-  // Avatar — pulled from the profile shell. RSI lays it out as the first
+  // Avatar, pulled from the profile shell. RSI lays it out as the first
   // <img> inside .profile / .left-col.
   const avatarMatch = html.match(/<div[^>]*class="[^"]*\bprofile\b[^"]*"[\s\S]*?<img[^>]+src="([^"]+)"/i);
   const avatar_url = absolutize(avatarMatch ? avatarMatch[1] : null);
 
-  // Bio — div.bio span.value
+  // Bio, div.bio span.value
   const bioMatch = html.match(/<div[^>]*class="[^"]*\bbio\b[^"]*"[\s\S]*?<span[^>]*class="[^"]*\bvalue\b[^"]*"[^>]*>([\s\S]*?)<\/span>/i);
   const bio = clean(bioMatch ? bioMatch[1] : null);
 

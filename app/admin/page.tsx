@@ -114,13 +114,13 @@ export default function AdminHome() {
           <AdminCard
             href="#"
             title="Intel submissions"
-            body="Approve / reject community intel reports. UI coming next — for now flip status in the intel_reports Supabase table."
+            body="Approve / reject community intel reports. UI coming next, for now flip status in the intel_reports Supabase table."
             disabled
           />
           <AdminCard
             href="#"
             title="Price submissions"
-            body="Approve / reject community commodity prices. UI coming next — for now flip status in commodity_prices."
+            body="Approve / reject community commodity prices. UI coming next, for now flip status in commodity_prices."
             disabled
           />
         </div>

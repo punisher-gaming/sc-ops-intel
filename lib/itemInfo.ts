@@ -1,6 +1,6 @@
 // Tiny helper that pulls the marketing blurb + structured meta out of
 // any scunpacked item's source_data. Used by ItemHover throughout the
-// site — works for weapons, components, attachments, mining heads,
+// site, works for weapons, components, attachments, mining heads,
 // scopes, lasers, anything that ships with stdItem.DescriptionText.
 
 export interface ItemInfo {

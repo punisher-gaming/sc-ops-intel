@@ -26,7 +26,7 @@ import { EmojiPicker } from "./EmojiPicker";
 import { displayNameFor } from "@/lib/owner";
 
 // All threads (topics) in one feed. Sorted hot/new/top. Schema still has
-// chat_categories under the hood — we silently slot every new topic into
+// chat_categories under the hood, we silently slot every new topic into
 // 'general' so users don't have to pick.
 const DEFAULT_CATEGORY = "general";
 
@@ -38,7 +38,7 @@ export function CommunityBrowser() {
 }
 
 // ============================================================================
-// Topic feed — all threads, bumped by activity
+// Topic feed, all threads, bumped by activity
 // ============================================================================
 
 function TopicFeed() {
@@ -86,7 +86,7 @@ function TopicFeed() {
 
   return (
     <div className="container-wide" style={{ paddingTop: "2.5rem", maxWidth: 1000 }}>
-      {/* Community sub-nav — Topics + Auction House (more sections later) */}
+      {/* Community sub-nav, Topics + Auction House (more sections later) */}
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         <Link href="/community" className="btn btn-primary" style={{ height: 34, padding: "0 14px", fontSize: "0.85rem" }}>
           💬 Topics
@@ -101,7 +101,7 @@ function TopicFeed() {
           <div className="accent-label">Community</div>
           <h1>Topics</h1>
           <p>
-            Anyone can start a topic. Active topics rise to the top — every
+            Anyone can start a topic. Active topics rise to the top, every
             new reply or vote bumps it.
           </p>
         </div>
@@ -167,7 +167,7 @@ function TopicFeed() {
         ))}
         {loaded && threads.length === 0 && !err && (
           <div className="card" style={{ padding: "2rem", textAlign: "center", color: "var(--text-dim)" }}>
-            No topics yet — be the first to start one.
+            No topics yet, be the first to start one.
           </div>
         )}
       </div>
@@ -346,7 +346,7 @@ function ThreadView({ threadId }: { threadId: string }) {
 
   return (
     <div className="container-wide" style={{ paddingTop: "1.5rem", maxWidth: 900 }}>
-      {/* Prominent back button — replaces the small label-mini link that was
+      {/* Prominent back button, replaces the small label-mini link that was
           easy to miss. Same destination, much more obvious. */}
       <Link
         href="/community"

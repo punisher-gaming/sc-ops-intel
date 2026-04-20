@@ -1,14 +1,14 @@
-// Canonical Star Citizen lore — in-game years (all UEE calendar, not real
+// Canonical Star Citizen lore, in-game years (all UEE calendar, not real
 // calendar years). Sourced from the SC Wiki, Jump Point magazine, the
 // Galactapedia, and Chris Roberts' original design bible circa 2012.
 //
-// Only a subset of events + entities live here — enough to power the
+// Only a subset of events + entities live here, enough to power the
 // /lore chapters without becoming a full wiki mirror. Each entry is
 // self-contained (title, blurb, themed color, notable cross-refs).
 //
 // All prose is original. Images are hotlinked from Star Citizen Wiki
 // (media.starcitizen.tools) with credits shown on every image.
-// URLs live in lore-images.ts — edit there to swap in other art.
+// URLs live in lore-images.ts, edit there to swap in other art.
 
 import { IMG_CHAPTER, IMG_RACE, IMG_SYSTEM } from "./lore-images";
 
@@ -36,7 +36,7 @@ export type LoreArtKey =
 
 export interface LoreChapter {
   slug: string;
-  num: string;           // "I" "II" "III" — roman numeral
+  num: string;           // "I" "II" "III", roman numeral
   title: string;
   subtitle: string;
   yearsFrom: number;
@@ -44,10 +44,10 @@ export interface LoreChapter {
   blurb: string;        // 1–2 sentence description
   hero: string;         // theme key for hero tinting
   heroArt: LoreArtKey;  // SVG fallback if heroImage is not set
-  heroImage?: LoreImage; // real cover image — preferred when present
+  heroImage?: LoreImage; // real cover image, preferred when present
   glyph: string;        // single emoji/symbol for the chapter card
   events: LoreEvent[];
-  // Narrative panels — mixed prose and panel blocks between events
+  // Narrative panels, mixed prose and panel blocks between events
   panels: LoreChapterPanel[];
 }
 
@@ -58,7 +58,7 @@ export interface LoreChapter {
 export interface LoreImage {
   src: string;         // absolute URL or /path to a file we host
   alt: string;
-  credit: string;      // e.g. "© Cloud Imperium Games — used with permission"
+  credit: string;      // e.g. "© Cloud Imperium Games, used with permission"
   creditUrl?: string;  // optional link to source
 }
 
@@ -74,7 +74,7 @@ export interface LoreChapterPanel {
   art?: LoreArtKey;
   artSide?: "left" | "right" | "full";
   image?: LoreImage;   // wins over `art` when present (licensed swap-in)
-  // theme tint for visual panels — maps to a CSS variable
+  // theme tint for visual panels, maps to a CSS variable
   accent?: "cyan" | "amber" | "red" | "green" | "violet";
 }
 
@@ -96,7 +96,7 @@ export const CHAPTERS: LoreChapter[] = [
       { year: 2075, title: "Solar Max project goes online", tag: "tech",
         body: "Abundant fusion power ends the energy scarcity that kept humans earthbound. Within a decade, the first permanent habitats ring Mars." },
       { year: 2113, title: "First extrasolar colony established", tag: "discovery",
-        body: "A generation ship plants the flag on Croshaw — not yet knowing Croshaw is only reachable because of a jump point nobody has mapped." },
+        body: "A generation ship plants the flag on Croshaw, not yet knowing Croshaw is only reachable because of a jump point nobody has mapped." },
       { year: 2157, title: "Nick Croshaw discovers the first jump point", tag: "discovery",
         body: "A lone pilot in a modified racer threads a gravitational anomaly and arrives, dazed, 68 light-years from Sol. The Verse opens." },
       { year: 2232, title: "United Nations of Earth (UNE) formed", tag: "politics",
@@ -108,22 +108,22 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "splash", art: "earth", artSide: "full", accent: "cyan",
         title: "Before the Verse",
-        caption: "Earth, 2075 — the Solar Max project comes online.",
+        caption: "Earth, 2075, the Solar Max project comes online.",
       },
       {
         kind: "hero", title: "The Distance Problem",
         art: "space", artSide: "right", accent: "cyan",
-        body: "In the late 21st century, humanity's greatest enemy was distance. The same distance that had always been there. Then a miner named Nick Croshaw found something the physicists said was impossible — a knotted throat of spacetime that ended somewhere else.",
+        body: "In the late 21st century, humanity's greatest enemy was distance. The same distance that had always been there. Then a miner named Nick Croshaw found something the physicists said was impossible, a knotted throat of spacetime that ended somewhere else.",
       },
       {
         kind: "splash", art: "jump-point", artSide: "full", accent: "cyan",
         title: "The First Jump",
-        caption: "Croshaw System — 2157 UEE. One pilot, one anomaly, 68 light-years in a single breath.",
+        caption: "Croshaw System, 2157 UEE. One pilot, one anomaly, 68 light-years in a single breath.",
       },
       {
         kind: "quote", accent: "cyan",
         quote: "They told me to turn back. I turned further in.",
-        attribution: "— Nick Croshaw, logbook, 2157",
+        attribution: ",  Nick Croshaw, logbook, 2157",
       },
       {
         kind: "text",
@@ -160,18 +160,18 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "splash", art: "uee-insignia", artSide: "full", accent: "violet",
         title: "The United Planets of Earth",
-        caption: "2380 — the UNE restructures as the UPE, shifting power from Earth to Luna.",
+        caption: "2380, the UNE restructures as the UPE, shifting power from Earth to Luna.",
       },
       {
         kind: "text",
         art: "space", artSide: "left", accent: "violet",
         title: "Alone in the Dark",
-        body: "For two centuries after Croshaw's jump, humanity expanded alone. The universe stubbornly refused to produce neighbors. When it finally did — the Xi'An in 2438 — it was because a UPE scout strayed into space they had mapped long before our species evolved.",
+        body: "For two centuries after Croshaw's jump, humanity expanded alone. The universe stubbornly refused to produce neighbors. When it finally did, the Xi'An in 2438, it was because a UPE scout strayed into space they had mapped long before our species evolved.",
       },
       {
         kind: "quote", accent: "violet",
         quote: "We have been aware of you. You have not been aware of us. This is the nature of things.",
-        attribution: "— First recorded Xi'An transmission, 2438",
+        attribution: ",  First recorded Xi'An transmission, 2438",
       },
       {
         kind: "hero",
@@ -202,11 +202,11 @@ export const CHAPTERS: LoreChapter[] = [
       { year: 2541, title: "First Tevarin War", tag: "war",
         body: "The Tevarin Prime Empire invades the Elysium system. The UEE fleet is unprepared, loses early engagements, then rallies under a young Commodore Corsen. Twenty-two years of open war follow." },
       { year: 2546, title: "The fall of Garron II", tag: "disaster",
-        body: "A Vanduul warband — a species humanity had not yet named — destroys the Garron II colony in a single orbital pass. First recorded Vanduul aggression. The pattern will repeat." },
-      { year: 2563, title: "Kaleeth taken — Tevarin defeated", tag: "war",
-        body: "The First Tevarin War ends in UEE victory. The Messer regime announces the homeworld of Kaleeth will be terraformed into a human colony — over the surviving Tevarin population's objections." },
+        body: "A Vanduul warband, a species humanity had not yet named, destroys the Garron II colony in a single orbital pass. First recorded Vanduul aggression. The pattern will repeat." },
+      { year: 2563, title: "Kaleeth taken, Tevarin defeated", tag: "war",
+        body: "The First Tevarin War ends in UEE victory. The Messer regime announces the homeworld of Kaleeth will be terraformed into a human colony, over the surviving Tevarin population's objections." },
       { year: 2610, title: "Tevarin homeworld renamed Elysium IV", tag: "war",
-        body: "Terraforming completes. Kaleeth becomes Elysium IV. The surviving Tevarin scatter across human space — refugees in a government that took their world." },
+        body: "Terraforming completes. Kaleeth becomes Elysium IV. The surviving Tevarin scatter across human space, refugees in a government that took their world." },
       { year: 2681, title: "Second Tevarin War", tag: "war",
         body: "The last Tevarin warlord, Corath'Thal, gathers the diaspora and retakes Kaleeth for a single desperate month. He is killed in orbit. The Tevarin never rise again as an independent people." },
       { year: 2789, title: "Fair Chance Act signed", tag: "politics",
@@ -216,40 +216,40 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "splash", art: "uee-insignia", artSide: "full", accent: "red",
         title: "The Dictatorship Rises",
-        caption: "2523 — Ivar Messer dissolves the Senate. The empire has a face, and it is his.",
+        caption: "2523, Ivar Messer dissolves the Senate. The empire has a face, and it is his.",
       },
       {
         kind: "text",
         art: "city", artSide: "right", accent: "red",
         title: "Twenty-Five Generations",
-        body: "Ivar Messer's coup was supposed to last a generation. It lasted twenty-five. Under the Messers the UEE became the most powerful military force in known space — and the most oppressive government humans had ever built. State-controlled news. Disappeared dissidents. Mandatory patriotic service for every citizen.",
+        body: "Ivar Messer's coup was supposed to last a generation. It lasted twenty-five. Under the Messers the UEE became the most powerful military force in known space, and the most oppressive government humans had ever built. State-controlled news. Disappeared dissidents. Mandatory patriotic service for every citizen.",
       },
       {
         kind: "quote", accent: "red",
         quote: "The sacrifice of the few secures the future of the many. The sacrifice of the many secures the future of the empire.",
-        attribution: "— Messer doctrine, widely quoted",
+        attribution: ",  Messer doctrine, widely quoted",
       },
       {
         kind: "splash", art: "destruction", artSide: "full", accent: "red",
         title: "Garron II Burns",
-        caption: "2546 — first recorded Vanduul raid. Half a colony gone in ninety minutes.",
+        caption: "2546, first recorded Vanduul raid. Half a colony gone in ninety minutes.",
       },
       {
         kind: "hero",
         art: "ship-vanduul", artSide: "left", accent: "red",
         title: "The Vanduul Appear",
-        body: "The Vanduul don't have a homeworld — not one we've found. They raid in nomadic clan-fleets, strike without diplomacy, and vanish. The fall of Garron II in 2546 was the opening note of a war that has not stopped since.",
+        body: "The Vanduul don't have a homeworld, not one we've found. They raid in nomadic clan-fleets, strike without diplomacy, and vanish. The fall of Garron II in 2546 was the opening note of a war that has not stopped since.",
       },
       {
         kind: "splash", art: "battle", artSide: "full", accent: "red",
         title: "The Tevarin Wars",
-        caption: "2541–2610 — two wars end with the Tevarin losing their homeworld to UEE terraforming.",
+        caption: "2541–2610, two wars end with the Tevarin losing their homeworld to UEE terraforming.",
       },
       {
         kind: "text",
         art: "planet-orbit", artSide: "right", accent: "green",
-        title: "Elysium IV — formerly Kaleeth",
-        body: "The Tevarin Wars left a permanent wound. The UEE won, yes; and then it took everything. The Tevarin are still among us — fully citizens now, serving in the Navy, sitting in the Senate — but their homeworld is a human paradise called Elysium IV. You can visit. It's beautiful. That's the problem.",
+        title: "Elysium IV, formerly Kaleeth",
+        body: "The Tevarin Wars left a permanent wound. The UEE won, yes; and then it took everything. The Tevarin are still among us, fully citizens now, serving in the Navy, sitting in the Senate, but their homeworld is a human paradise called Elysium IV. You can visit. It's beautiful. That's the problem.",
       },
     ],
   },
@@ -280,7 +280,7 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "splash", art: "city", artSide: "full", accent: "green",
         title: "The March on New Paris",
-        caption: "2792 — millions converge on the capital. The fleet refuses to escalate.",
+        caption: "2792, millions converge on the capital. The fleet refuses to escalate.",
       },
       {
         kind: "hero",
@@ -291,7 +291,7 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "quote", accent: "green",
         quote: "We did not vote this government in. We were born into it. We chose to no longer consent.",
-        attribution: "— Ilsa Messer, final radio address, 2792",
+        attribution: ",  Ilsa Messer, final radio address, 2792",
       },
     ],
   },
@@ -303,7 +303,7 @@ export const CHAPTERS: LoreChapter[] = [
     yearsFrom: 2920,
     yearsTo: 2942,
     blurb:
-      "The UEE rebuilds as a democracy. Trade flourishes. But the Vanduul are no longer raiders — they are a tide.",
+      "The UEE rebuilds as a democracy. Trade flourishes. But the Vanduul are no longer raiders, they are a tide.",
     hero: "gold-prosper",
     heroArt: "city",
     heroImage: IMG_CHAPTER.goldenAge,
@@ -314,41 +314,41 @@ export const CHAPTERS: LoreChapter[] = [
       { year: 2938, title: "Stanton system sold to the MegaCorps", tag: "politics",
         body: "In an attempt to balance the budget after centuries of Messer military spending, the UEE sells development rights to four planets in the Stanton system to Hurston Dynamics, Crusader Industries, ArcCorp, and microTech." },
       { year: 2938, title: "Lorville construction begins", tag: "culture",
-        body: "Hurston Dynamics breaks ground on Lorville — a soot-black mining capital that will grow into the largest city on any corporate-owned world. Indentured contracts and air quality complaints start the same year." },
+        body: "Hurston Dynamics breaks ground on Lorville, a soot-black mining capital that will grow into the largest city on any corporate-owned world. Indentured contracts and air quality complaints start the same year." },
       { year: 2940, title: "Orison opens above Crusader", tag: "culture",
-        body: "Crusader Industries completes Orison — a floating city-platform suspended in the upper atmosphere of the gas giant. No ground. Just clouds, and the ships that sell there." },
+        body: "Crusader Industries completes Orison, a floating city-platform suspended in the upper atmosphere of the gas giant. No ground. Just clouds, and the ships that sell there." },
       { year: 2941, title: "ArcCorp declared an ecumenopolis", tag: "culture",
         body: "ArcCorp's Area18 megacity grows until it merges with the surrounding cities. The entire planet is officially declared a single continuous urban environment." },
       { year: 2942, title: "The Vanduul take Orion", tag: "disaster",
-        body: "After decades of escalating raids, the Vanduul sack the human-colonized Orion system in a single coordinated campaign. Half a million dead. The UEE finally accepts this is no longer a border skirmish — it is a war." },
+        body: "After decades of escalating raids, the Vanduul sack the human-colonized Orion system in a single coordinated campaign. Half a million dead. The UEE finally accepts this is no longer a border skirmish, it is a war." },
     ],
     panels: [
       {
         kind: "splash", art: "city", artSide: "full", accent: "amber",
         title: "The Golden Age Begins",
-        caption: "2931 — Terra Prime. Largest city-skyline outside Earth.",
+        caption: "2931, Terra Prime. Largest city-skyline outside Earth.",
       },
       {
         kind: "text",
         art: "ship-trader", artSide: "right", accent: "amber",
         title: "The Fastest Century",
-        body: "The first half of the UEE's democratic era is remembered as The Golden Age for a reason. Jump points were mapped faster than any time since Croshaw. Trade exploded. The corporations grew powerful enough to buy entire star systems — literally, in Stanton's case.",
+        body: "The first half of the UEE's democratic era is remembered as The Golden Age for a reason. Jump points were mapped faster than any time since Croshaw. Trade exploded. The corporations grew powerful enough to buy entire star systems, literally, in Stanton's case.",
       },
       {
         kind: "hero",
         art: "planet-orbit", artSide: "left", accent: "amber",
-        title: "Stanton — the Sold System",
+        title: "Stanton, the Sold System",
         body: "Four worlds. Four corporations. Hurston Dynamics bought a planet to extract minerals. Crusader Industries to build starliners. ArcCorp to manufacture electronics. microTech to develop software. Each is a company town the size of a world. They answer to shareholders first, the UEE second.",
       },
       {
         kind: "splash", art: "destruction", artSide: "full", accent: "red",
         title: "Orion Falls",
-        caption: "2942 — Vanduul coordinated offensive erases a colonized system. Half a million dead.",
+        caption: "2942, Vanduul coordinated offensive erases a colonized system. Half a million dead.",
       },
       {
         kind: "quote", accent: "amber",
         quote: "We were told the Orion system was safe. We were told the Vanduul were raiders. Half a million dead. The dictionary now needs a new word.",
-        attribution: "— Imperator Costigan, address to the Senate, 2942",
+        attribution: ",  Imperator Costigan, address to the Senate, 2942",
       },
     ],
   },
@@ -369,11 +369,11 @@ export const CHAPTERS: LoreChapter[] = [
       { year: 2944, title: "Project Synthesis begins", tag: "tech",
         body: "UEE R&D formally launches the effort to reverse-engineer Vanduul clan-ship technology. Results still classified." },
       { year: 2947, title: "The Pyro Jump opens to civilians", tag: "discovery",
-        body: "A long-sealed jump gate connecting Stanton to the Pyro system is opened. Pyro is lawless — no UEE jurisdiction, no refueling network, no help coming. Pilots go anyway." },
+        body: "A long-sealed jump gate connecting Stanton to the Pyro system is opened. Pyro is lawless, no UEE jurisdiction, no refueling network, no help coming. Pilots go anyway." },
       { year: 2950, title: "Xenothreat declares war on the UEE", tag: "war",
         body: "A splinter faction of Pyrotechnic pirates and ex-military hardliners launches coordinated attacks on Stanton-Pyro traffic. The UEE Navy responds. The conflict is ongoing." },
       { year: 2952, title: "Pyro opens officially", tag: "discovery",
-        body: "CIG — sorry, the UEE — declares the Pyro system fully explored and mapped. Civilian presence is discouraged but not illegal. New citizens arrive daily." },
+        body: "CIG, sorry, the UEE, declares the Pyro system fully explored and mapped. Civilian presence is discouraged but not illegal. New citizens arrive daily." },
       { year: 2952, title: "You arrive", tag: "culture",
         body: "Every citizen enlisting in 2952 steps into a Verse that still isn't finished being mapped. New jump points are discovered monthly. The next chapter of this history is one you write." },
     ],
@@ -381,18 +381,18 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "splash", art: "jump-point", artSide: "full", accent: "cyan",
         title: "The Pyro Gate Opens",
-        caption: "2947 — a jump point sealed for 484 years re-opens to civilians.",
+        caption: "2947, a jump point sealed for 484 years re-opens to civilians.",
       },
       {
         kind: "hero",
         art: "space", artSide: "right", accent: "cyan",
         title: "The Verse Today",
-        body: "You've arrived at a specific moment. The Banu still trade. The Xi'An still watch. The Vanduul are still out there, reshaping clan-fleets into something that terrifies the Navy. Pyro is full of people who don't want the UEE to find them. Stanton is the safe bet — but only because the corporations don't want trouble where they do business.",
+        body: "You've arrived at a specific moment. The Banu still trade. The Xi'An still watch. The Vanduul are still out there, reshaping clan-fleets into something that terrifies the Navy. Pyro is full of people who don't want the UEE to find them. Stanton is the safe bet, but only because the corporations don't want trouble where they do business.",
       },
       {
         kind: "splash", art: "battle", artSide: "full", accent: "red",
         title: "Xenothreat",
-        caption: "2950 — a pirate coalition declares war on UEE traffic. The Navy answers.",
+        caption: "2950, a pirate coalition declares war on UEE traffic. The Navy answers.",
       },
       {
         kind: "text",
@@ -403,7 +403,7 @@ export const CHAPTERS: LoreChapter[] = [
       {
         kind: "quote", accent: "cyan",
         quote: "o7, citizen. The stars are open.",
-        attribution: "— Standard UEE Navy enlistment closing",
+        attribution: ",  Standard UEE Navy enlistment closing",
       },
     ],
   },
@@ -426,14 +426,14 @@ export interface LoreRace {
   body: string[];       // longer paragraphs
   culture: string;
   notable: string[];    // bullet list of notable traits
-  heroImage?: LoreImage; // real portrait — preferred over SVG RacePortrait
+  heroImage?: LoreImage; // real portrait, preferred over SVG RacePortrait
 }
 
 export const RACES: LoreRace[] = [
   {
     slug: "human",
     name: "Human",
-    subtitle: "The Empire — dominant species of the UEE",
+    subtitle: "The Empire, dominant species of the UEE",
     relationship: "UEE",
     homeworld: "Earth",
     homeSystem: "Sol",
@@ -441,11 +441,11 @@ export const RACES: LoreRace[] = [
     glyph: "🜨",
     accent: "cyan",
     blurb:
-      "Post-scarcity, post-unification, post-everything — humanity expanded into the Verse on fusion power and hasn't stopped since.",
+      "Post-scarcity, post-unification, post-everything, humanity expanded into the Verse on fusion power and hasn't stopped since.",
     body: [
       "Humans are the species you play as. We spread from Earth through the jump-point network over 900 years, built empires and dismantled them, fought wars with neighbors we didn't know existed, and ended up with the largest contiguous territory of any known species.",
       "Human culture in 2952 is not monolithic. Core-world citizens in Sol or Terra grew up on clean water and subsidized education. Outer-rim colonists on Hurston or the Pyro border know how to weld a hull patch in hard vacuum. Corporate citizens of the four Stanton worlds pledge loyalty to Hurston or microTech or ArcCorp as easily as to the UEE.",
-      "The UEE military — the Navy, the Marine Corps, the Advocacy — is the largest institution humans have ever built. It employs one citizen in twelve, and every Imperator since Toi has been a veteran.",
+      "The UEE military, the Navy, the Marine Corps, the Advocacy, is the largest institution humans have ever built. It employs one citizen in twelve, and every Imperator since Toi has been a veteran.",
     ],
     culture:
       "Pluralistic, commercial, militarily pragmatic. Values personal freedom, economic mobility, and a wary respect for aliens who can be bargained with.",
@@ -468,18 +468,18 @@ export const RACES: LoreRace[] = [
     accent: "violet",
     firstContact: 2438,
     blurb:
-      "A civilization older than human agriculture. Patient, precise, unreadable — and, for the last century, our friends.",
+      "A civilization older than human agriculture. Patient, precise, unreadable, and, for the last century, our friends.",
     body: [
       "The Xi'An are ancient. They had interstellar flight when humans were inventing fire. Everything we know about them has been chosen by them to share.",
-      "For four centuries after first contact, the Xi'An Empire and the UEE were in a formal cold war — largely manufactured by Messer propaganda on the human side. When the Messers fell in 2792, Imperator Toi's first major diplomatic act was the Treaty of Goss, normalizing relations. The Xi'An accepted, exactly as they had quietly proposed forty years earlier.",
-      "Xi'An manufactured goods — ships, weapons, furniture — are prized throughout the UEE for unmatched craftsmanship. Aopoa, the dominant Xi'An starship manufacturer, makes every human fighter builder jealous.",
+      "For four centuries after first contact, the Xi'An Empire and the UEE were in a formal cold war, largely manufactured by Messer propaganda on the human side. When the Messers fell in 2792, Imperator Toi's first major diplomatic act was the Treaty of Goss, normalizing relations. The Xi'An accepted, exactly as they had quietly proposed forty years earlier.",
+      "Xi'An manufactured goods, ships, weapons, furniture, are prized throughout the UEE for unmatched craftsmanship. Aopoa, the dominant Xi'An starship manufacturer, makes every human fighter builder jealous.",
     ],
     culture:
       "Hierarchical, long-lived (a Xi'An centenarian is considered young), deliberate to the point of geological patience. Humor exists but is usually a decade in the setup.",
     notable: [
       "Average lifespan ~270 standard years",
       "Aopoa ship manufacturer produces the Khartu-al, San'tok.yāi, and more",
-      "Xi'An language syntax is tonal and contextual — humans rarely achieve true fluency",
+      "Xi'An language syntax is tonal and contextual, humans rarely achieve true fluency",
     ],
     heroImage: IMG_RACE.xian,
   },
@@ -495,11 +495,11 @@ export const RACES: LoreRace[] = [
     accent: "amber",
     firstContact: 2462,
     blurb:
-      "A species where the guild is the nation. Banu society has no single government — only hundreds of trade guilds in loose confederation.",
+      "A species where the guild is the nation. Banu society has no single government, only hundreds of trade guilds in loose confederation.",
     body: [
       "The Banu were the first species humanity signed a formal treaty with, and the relationship has been stable for half a millennium. They see the universe as a market. Every planet is a shop. Every interaction is a deal, even friendly ones.",
       "A Banu citizen belongs first to their guild (Souli), then their homeworld, then the Banu Protectorate as an afterthought. There is no Banu Emperor. The Banu Protectorate exists primarily to represent the Souli collectively when outsiders insist on talking to one authority.",
-      "Banu manufactured ships — especially from the Banu Defender and Banu Merchantman traditions — are rarities in human space but legendary for quality.",
+      "Banu manufactured ships, especially from the Banu Defender and Banu Merchantman traditions, are rarities in human space but legendary for quality.",
     ],
     culture:
       "Mercantile, decentralized, pragmatic. Lifespan roughly equal to humans. Individual Banu often have no use for abstract loyalty but intense loyalty to their guild.",
@@ -516,7 +516,7 @@ export const RACES: LoreRace[] = [
     subtitle: "The Nomadic Storm",
     relationship: "Hostile",
     homeworld: "Unknown (nomadic)",
-    homeSystem: "Unknown — clan-fleets roam",
+    homeSystem: "Unknown, clan-fleets roam",
     population: "Unknown (likely billions across clan-fleets)",
     glyph: "⚔",
     accent: "red",
@@ -524,9 +524,9 @@ export const RACES: LoreRace[] = [
     blurb:
       "Nomadic. Predatory. No embassy. No trade. Every known Vanduul encounter began when they were already shooting.",
     body: [
-      "The Vanduul are the UEE's primary adversary and the species that defines the current era. Unlike the Xi'An or Banu, the Vanduul have no fixed worlds — their civilization is a fleet of fleets, generational clanships that raid, retreat, and sometimes assimilate whole human colonies.",
+      "The Vanduul are the UEE's primary adversary and the species that defines the current era. Unlike the Xi'An or Banu, the Vanduul have no fixed worlds, their civilization is a fleet of fleets, generational clanships that raid, retreat, and sometimes assimilate whole human colonies.",
       "Nobody in UEE intelligence knows what the Vanduul want, or why they target humans specifically, or whether their leadership is unified or factional. Captured Vanduul invariably suicide before interrogation. Their language has been partially decoded but nothing resembling a diplomatic overture has ever been heard.",
-      "The Vanduul Scythe is the fighter every new UEE pilot learns to recognize — sleek, sharp, and usually attacking something important.",
+      "The Vanduul Scythe is the fighter every new UEE pilot learns to recognize, sleek, sharp, and usually attacking something important.",
     ],
     culture:
       "Predatory and clan-based. Individuals within a clan are fiercely loyal; rival clans will fight each other as readily as they fight humans. Age and combat honor appear central to their hierarchy.",
@@ -551,9 +551,9 @@ export const RACES: LoreRace[] = [
     blurb:
       "Twice-defeated, once-exterminated, now UEE citizens. The Tevarin are a living reminder of the sins of the Messer era.",
     body: [
-      "The Tevarin were a warrior civilization with a single homeworld — Kaleeth, in what is now the Elysium system. The First Tevarin War (2541–2563) ended in their military defeat; the Messer regime then terraformed Kaleeth into a human colony over the surviving Tevarin population's objections.",
+      "The Tevarin were a warrior civilization with a single homeworld, Kaleeth, in what is now the Elysium system. The First Tevarin War (2541–2563) ended in their military defeat; the Messer regime then terraformed Kaleeth into a human colony over the surviving Tevarin population's objections.",
       "The diaspora scattered. For two centuries, the Tevarin existed as a refugee people across human space, second-class citizens in a government that had taken their world. In 2872, under Corath'Thal, they briefly reclaimed Kaleeth in an act of desperate symbolism. The rebellion was crushed.",
-      "Modern UEE citizenship law — including the Fair Chance Act — is partly atonement. Tevarin serve in the Navy, sit in the Senate, run corporations. But the homeworld is gone, and the words \"Kaleeth\" and \"Jalan\" name the same planet depending on who's speaking.",
+      "Modern UEE citizenship law, including the Fair Chance Act, is partly atonement. Tevarin serve in the Navy, sit in the Senate, run corporations. But the homeworld is gone, and the words \"Kaleeth\" and \"Jalan\" name the same planet depending on who's speaking.",
     ],
     culture:
       "Warrior ethos, rohan ritual combat tradition, strong oral history. A Tevarin knows their full ancestry back to the First War; most humans cannot name their great-grandparents.",
@@ -582,7 +582,7 @@ export interface LoreSystem {
   notable: string[];
   accent: "cyan" | "amber" | "red" | "green" | "violet";
   glyph: string;
-  heroImage?: LoreImage;  // real banner image — preferred over SVG orbit
+  heroImage?: LoreImage;  // real banner image, preferred over SVG orbit
 }
 
 export const SYSTEMS: LoreSystem[] = [
@@ -590,7 +590,7 @@ export const SYSTEMS: LoreSystem[] = [
     slug: "sol",
     name: "Sol",
     kind: "UEE",
-    subtitle: "Cradle — the homeworld system",
+    subtitle: "Cradle, the homeworld system",
     sunType: "G-type yellow dwarf",
     jumpPoints: 4,
     planets: ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"],
@@ -598,8 +598,8 @@ export const SYSTEMS: LoreSystem[] = [
     blurb:
       "Where humanity began. Still the political center of the UEE despite Terra's commercial dominance.",
     body: [
-      "Sol is the system every human child learns first. Earth is still inhabited — cleaner than at any point since the Industrial Age. Mars holds the largest human city off Earth. Luna is the diplomatic neutral ground where every major treaty has been signed since the Xi'An accords.",
-      "Travel within Sol is free and fast — the infrastructure has been built out for nearly a millennium. Sol is also a common assignment for young Navy pilots: safe, well-patrolled, and the paperwork never breaks.",
+      "Sol is the system every human child learns first. Earth is still inhabited, cleaner than at any point since the Industrial Age. Mars holds the largest human city off Earth. Luna is the diplomatic neutral ground where every major treaty has been signed since the Xi'An accords.",
+      "Travel within Sol is free and fast, the infrastructure has been built out for nearly a millennium. Sol is also a common assignment for young Navy pilots: safe, well-patrolled, and the paperwork never breaks.",
     ],
     notable: [
       "Luna hosts the UEE Senate's diplomatic annex and every inter-species treaty signing",
@@ -614,7 +614,7 @@ export const SYSTEMS: LoreSystem[] = [
     slug: "stanton",
     name: "Stanton",
     kind: "UEE",
-    subtitle: "The Corporate System — four worlds, four companies",
+    subtitle: "The Corporate System, four worlds, four companies",
     sunType: "F-type main-sequence",
     jumpPoints: 3,
     planets: ["Hurston", "Crusader", "ArcCorp", "microTech"],
@@ -623,7 +623,7 @@ export const SYSTEMS: LoreSystem[] = [
       "Each of the four habitable planets here was sold by the UEE to a different MegaCorp in 2938. The most developed non-Sol system in the empire.",
     body: [
       "Stanton is the game's tutorial system and most players' home in the Verse. Hurston is mining and heavy industry; Crusader is ship manufacturing and cloud cities; ArcCorp is electronics and sprawling urbanization; microTech is software and frozen wilderness.",
-      "Every Stanton world is functionally a company town at planetary scale. UEE law applies — but the corporations write the local regulations, run the police, and own the land. For most players this is invisible. For anyone who gets on a Hurston Dynamics blacklist, it is very, very visible.",
+      "Every Stanton world is functionally a company town at planetary scale. UEE law applies, but the corporations write the local regulations, run the police, and own the land. For most players this is invisible. For anyone who gets on a Hurston Dynamics blacklist, it is very, very visible.",
     ],
     notable: [
       "Only system where a MegaCorp owns planetary development rights (as of 2952)",
@@ -646,13 +646,13 @@ export const SYSTEMS: LoreSystem[] = [
     blurb:
       "No UEE presence. No courts, no police, no refueling network guaranteed. The wild edge of known space.",
     body: [
-      "Pyro was surveyed, colonized, and abandoned centuries ago when the corporate backers folded. The jump gate was sealed by the UEE Navy in 2463 and remained sealed for 484 years. It reopened in 2947 to civilian traffic — or, more accurately, civilian traffic reopened it.",
-      "Today Pyro is a playground for outlaws, pirates, ex-military hardliners, miners who prefer no taxes, and a sizable population of Xenothreat. The Fair Chance Act does not apply here because no known sapient species is native. The UEE Navy does not patrol — they advise you not to visit and remind you no rescue is coming.",
+      "Pyro was surveyed, colonized, and abandoned centuries ago when the corporate backers folded. The jump gate was sealed by the UEE Navy in 2463 and remained sealed for 484 years. It reopened in 2947 to civilian traffic, or, more accurately, civilian traffic reopened it.",
+      "Today Pyro is a playground for outlaws, pirates, ex-military hardliners, miners who prefer no taxes, and a sizable population of Xenothreat. The Fair Chance Act does not apply here because no known sapient species is native. The UEE Navy does not patrol, they advise you not to visit and remind you no rescue is coming.",
     ],
     notable: [
       "Home system of the Xenothreat splinter faction",
       "Six planets, four derelict outposts, one decommissioned refinery, zero UEE installations",
-      "Pyro's star is an active flare star — EVA timing matters here",
+      "Pyro's star is an active flare star, EVA timing matters here",
     ],
     accent: "red",
     glyph: "☼",
@@ -662,7 +662,7 @@ export const SYSTEMS: LoreSystem[] = [
     slug: "terra",
     name: "Terra",
     kind: "UEE",
-    subtitle: "The Second Cradle — commercial capital",
+    subtitle: "The Second Cradle, commercial capital",
     sunType: "G-type (near-Sol analog)",
     jumpPoints: 7,
     planets: ["Pike", "Magda", "Terra", "Henge"],
@@ -670,11 +670,11 @@ export const SYSTEMS: LoreSystem[] = [
     blurb:
       "A planet so Earth-like that terraforming was unnecessary. Terra is the center of UEE commerce, finance, and increasingly politics.",
     body: [
-      "Terra was the luckiest find in UEE history — a fully habitable planet requiring no terraforming, discovered during a routine jump-point sweep in 2516. Within a century it was the second-most populous human world after Earth.",
+      "Terra was the luckiest find in UEE history, a fully habitable planet requiring no terraforming, discovered during a routine jump-point sweep in 2516. Within a century it was the second-most populous human world after Earth.",
       "Terra's commercial power makes its politics a permanent undercurrent in UEE life. Terra elects senators. Terra produces Imperators (Costigan, most recently). A long-running movement argues the UEE capital should be moved here from Earth. That movement has lost every vote for eighty years, and keeps running.",
     ],
     notable: [
-      "Seven charted jump points — more than any other UEE system, making it a logistics hub",
+      "Seven charted jump points, more than any other UEE system, making it a logistics hub",
       "Terra Prime (city) has the largest financial exchange off Earth",
       "Gen. Marshall Lee (Terran) led the 2792 Fleet mutiny that toppled the Messers",
     ],
@@ -694,12 +694,12 @@ export const SYSTEMS: LoreSystem[] = [
     blurb:
       "The first star system humans reached via jump point. Named for the miner who opened the door.",
     body: [
-      "When Nick Croshaw emerged from his jump in 2157 he arrived at a K-type star system sixty-eight light-years from Sol. The UEE now calls it Croshaw, the planet Croshaw is named for Croshaw, the crater he landed on is named for Croshaw, and — depending on your taste — this is either heartwarming or overkill.",
+      "When Nick Croshaw emerged from his jump in 2157 he arrived at a K-type star system sixty-eight light-years from Sol. The UEE now calls it Croshaw, the planet Croshaw is named for Croshaw, the crater he landed on is named for Croshaw, and, depending on your taste, this is either heartwarming or overkill.",
       "Saisei is the system's largest city, an ecumenopolis (city-planet) built over centuries of colonization. Academic institutions dominate. Croshaw Academy of Space Sciences is the MIT of the UEE and has produced nearly every notable jump-point cartographer of the modern era.",
     ],
     notable: [
       "First extrasolar system visited by humans",
-      "Saisei Prime is an ecumenopolis — fully urbanized planet",
+      "Saisei Prime is an ecumenopolis, fully urbanized planet",
       "Croshaw Academy is the UEE's premier jump-point research institution",
     ],
     accent: "violet",
@@ -710,7 +710,7 @@ export const SYSTEMS: LoreSystem[] = [
     slug: "odin",
     name: "Odin",
     kind: "Protected",
-    subtitle: "Fair Chance Act — no colonization permitted",
+    subtitle: "Fair Chance Act, no colonization permitted",
     sunType: "White dwarf (dying)",
     jumpPoints: 2,
     planets: ["Vili", "Eir (protected)"],
@@ -718,13 +718,13 @@ export const SYSTEMS: LoreSystem[] = [
     blurb:
       "A dying star and the sole known system containing a potential sapient species. Protected by treaty, inhabited by no one.",
     body: [
-      "Odin is a failed future. The system's white dwarf is in a late stage — Vili and the former homeworld of the pre-sapient \"Ganymede lifeform\" are both on slow tracks toward uninhabitability. The Fair Chance Act protects the system from colonization on the ethical grounds that Ganymede life, while not currently sapient, could be.",
-      "UEE Navy patrols enforce the exclusion. Smugglers sometimes stage from Odin because its protected status makes patrols predictable. The science outposts orbiting Eir are the only permanent human presence — and they are there specifically to study the Ganymede without touching it.",
+      "Odin is a failed future. The system's white dwarf is in a late stage, Vili and the former homeworld of the pre-sapient \"Ganymede lifeform\" are both on slow tracks toward uninhabitability. The Fair Chance Act protects the system from colonization on the ethical grounds that Ganymede life, while not currently sapient, could be.",
+      "UEE Navy patrols enforce the exclusion. Smugglers sometimes stage from Odin because its protected status makes patrols predictable. The science outposts orbiting Eir are the only permanent human presence, and they are there specifically to study the Ganymede without touching it.",
     ],
     notable: [
       "Only currently protected system under the Fair Chance Act",
       "Ganymede lifeform is the primary study subject of every xenobiologist in the UEE",
-      "Navy presence is sparse but active — smugglers who get caught here never get caught twice",
+      "Navy presence is sparse but active, smugglers who get caught here never get caught twice",
     ],
     accent: "cyan",
     glyph: "◉",

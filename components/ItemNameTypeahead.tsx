@@ -4,7 +4,7 @@
 // types, hits the catalog table that matches the selected category
 // (ships → ships, weapon → weapons, etc) and shows top-N suggestions.
 // Picking a suggestion fills the input. Free-typing is always allowed
-// — suggestions are hints, not enforcement, so paints / consumables /
+//, suggestions are hints, not enforcement, so paints / consumables /
 // other can still be entered manually.
 
 import { useEffect, useRef, useState } from "react";
@@ -32,7 +32,7 @@ export function ItemNameTypeahead({
   const [highlight, setHighlight] = useState(0);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  // Debounced fetch — wait 200ms after the user stops typing so we don't
+  // Debounced fetch, wait 200ms after the user stops typing so we don't
   // hammer Supabase on every keystroke.
   useEffect(() => {
     const v = value.trim();
@@ -42,7 +42,7 @@ export function ItemNameTypeahead({
     }
     const handle = setTimeout(() => {
       fetchItemSuggestions(category, v).then((s) => {
-        // If the only match is exactly what the user typed, hide — no
+        // If the only match is exactly what the user typed, hide, no
         // useful suggestion to make.
         const filtered = s.filter((x) => x.toLowerCase() !== v.toLowerCase());
         setSuggestions(filtered);
@@ -79,7 +79,7 @@ export function ItemNameTypeahead({
       e.preventDefault();
       setHighlight((h) => Math.max(h - 1, 0));
     } else if (e.key === "Enter") {
-      // Only intercept Enter if there's a real match — otherwise let the
+      // Only intercept Enter if there's a real match, otherwise let the
       // form submit normally.
       if (suggestions[highlight]) {
         e.preventDefault();
@@ -168,10 +168,10 @@ export function ItemNameTypeahead({
 }
 
 const CATEGORY_HELPER: Partial<Record<AuctionCategory, string>> = {
-  ship: "Search any ship in the catalog — or type a custom name.",
-  vehicle: "Search ground vehicles — or type a custom name.",
-  weapon: "Search the weapon catalog — or type a custom name.",
-  component: "Search the component catalog — or type a custom name.",
-  blueprint: "Search blueprint recipes — or type a custom name.",
-  cargo: "Search the commodity catalog — or type a custom name.",
+  ship: "Search any ship in the catalog, or type a custom name.",
+  vehicle: "Search ground vehicles, or type a custom name.",
+  weapon: "Search the weapon catalog, or type a custom name.",
+  component: "Search the component catalog, or type a custom name.",
+  blueprint: "Search blueprint recipes, or type a custom name.",
+  cargo: "Search the commodity catalog, or type a custom name.",
 };

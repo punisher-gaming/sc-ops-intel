@@ -91,7 +91,7 @@ export async function fetchThreads(categoryId: string, sort: SortMode): Promise<
   return (data ?? []) as Thread[];
 }
 
-// All topics across categories — the main community feed. Sorted so the most
+// All topics across categories, the main community feed. Sorted so the most
 // recently active (last reply or vote) bubbles to the top.
 export async function fetchAllThreads(sort: SortMode): Promise<Thread[]> {
   const client = createClient();

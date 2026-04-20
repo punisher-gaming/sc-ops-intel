@@ -1,4 +1,4 @@
-// Shared lib for both weapons + components — same column shape, different
+// Shared lib for both weapons + components, same column shape, different
 // table. We pass the table name in.
 
 import { createClient } from "./supabase/client";
@@ -20,7 +20,7 @@ export interface Item {
   // Projected from source_data.stdItem.DescriptionData.Class at list-fetch
   // time. Detail fetch resolves via itemClass() instead.
   item_class?: string | null;
-  // Projected for hover tooltips on list rows — keeps the payload small
+  // Projected for hover tooltips on list rows, keeps the payload small
   // (~100 bytes per row) vs. fetching full source_data jsonb. We skip
   // "Item Type" since it has a space (PostgREST jsonb arrow doesn't love
   // that) and the existing `type` column carries the same info.
@@ -83,7 +83,7 @@ export function uniqueItemValues<T extends keyof Item>(items: Item[], key: T): s
 }
 
 export function prettyType(t: string | null | undefined): string {
-  if (!t) return "—";
+  if (!t) return ", ";
   // CamelCase → spaced ("WeaponPersonal" → "Weapon Personal")
   return t.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
 }
@@ -101,7 +101,7 @@ export function formatGrade(
   grade: number | null | undefined,
   style: GradeStyle = "number",
 ): string {
-  if (grade == null) return "—";
+  if (grade == null) return ", ";
   if (style === "letter") {
     // 1 → A, 2 → B, etc. Falls back to the number for anything out of A–F.
     const letters = ["A", "B", "C", "D", "E", "F"];
@@ -110,8 +110,8 @@ export function formatGrade(
   return String(grade);
 }
 
-// Component class — Industrial / Military / Civilian / Stealth / Competition
-// — lives in source_data.stdItem.DescriptionData.Class. Not all items have
+// Component class, Industrial / Military / Civilian / Stealth / Competition
+//, lives in source_data.stdItem.DescriptionData.Class. Not all items have
 // one (weapons usually don't; ship components usually do).
 export function itemClass(item: Item): string | null {
   // List fetches project this as item_class; detail fetches include the

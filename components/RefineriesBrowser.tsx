@@ -156,8 +156,8 @@ export function RefineriesBrowser() {
                       {readableName(t)}
                     </Link>
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.system ?? "—"}</td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.planet ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.system ?? ", "}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{t.planet ?? ", "}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyKind(t.kind)}</td>
                 </tr>
               ))}

@@ -98,7 +98,7 @@ export function RsiProfileCard({ handle }: { handle: string }) {
           background: "rgba(245,185,71,0.04)",
         }}
       >
-        ⚠ <strong>RSI&apos;s site is having a moment</strong> — couldn&apos;t pull
+        ⚠ <strong>RSI&apos;s site is having a moment</strong>, couldn&apos;t pull
         the citizen profile for <strong>{handle}</strong> right now. This
         almost always clears within a minute. Refresh the page or come back
         in a bit.
@@ -223,7 +223,7 @@ export function RsiProfileCard({ handle }: { handle: string }) {
           </a>
         </div>
 
-        {/* Main org block — only when in an org */}
+        {/* Main org block, only when in an org */}
         {data.main_org && data.main_org.sid && (
           <a
             href={`https://robertsspaceindustries.com/orgs/${data.main_org.sid}`}

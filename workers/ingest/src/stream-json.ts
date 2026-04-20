@@ -1,4 +1,4 @@
-// Streaming parser for top-level JSON arrays — yields one element at a time.
+// Streaming parser for top-level JSON arrays, yields one element at a time.
 //
 // Why this exists: items.json from scunpacked is 107 MB. JSON.parse() on the
 // whole thing produces a JS object graph many times larger and crashes the
@@ -9,7 +9,7 @@
 // find object boundaries at depth 1 (the array's direct children), then
 // JSON.parse just that slice. Works for any `[obj, obj, obj]` shape.
 // Doesn't support arrays-of-arrays or arrays-of-primitives at the top level
-// — fine for our use case (every scunpacked dump is array-of-objects).
+//, fine for our use case (every scunpacked dump is array-of-objects).
 
 export async function* streamJsonArray<T>(res: Response): AsyncGenerator<T> {
   if (!res.body) throw new Error("response has no body to stream");
@@ -26,7 +26,7 @@ export async function* streamJsonArray<T>(res: Response): AsyncGenerator<T> {
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      // Decoder flush — push any final bytes
+      // Decoder flush, push any final bytes
       buf += decoder.decode();
       break;
     }

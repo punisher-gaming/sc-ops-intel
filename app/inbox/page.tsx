@@ -39,7 +39,7 @@ function Inbox() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [lastPushNote, setLastPushNote] = useState<string | null>(null);
-  // Quiet send — when checked, the message lands in their inbox only
+  // Quiet send, when checked, the message lands in their inbox only
   // with no email/Discord push. Defaults ON in an active thread (last
   // exchange under 10 min ago) since they're already chatting; defaults
   // OFF if it's a fresh thread or stale, where the recipient needs the
@@ -121,7 +121,7 @@ function Inbox() {
       setThread((prev) => (prev ? [...prev, res.message] : [res.message]));
       setBody("");
       if (quiet) {
-        setLastPushNote("🔕 Quiet send — landed in their inbox only");
+        setLastPushNote("🔕 Quiet send, landed in their inbox only");
       } else {
         const channels = [
           res.pushedToDiscord && "Discord",
@@ -130,7 +130,7 @@ function Inbox() {
         setLastPushNote(
           channels.length > 0
             ? `📡 Also notified via ${channels.join(" + ")}`
-            : "💤 No outside notifications configured — they'll see this on next visit",
+            : "💤 No outside notifications configured, they'll see this on next visit",
         );
       }
       // Clear the push hint after a moment so it doesn't pile up.
@@ -152,7 +152,7 @@ function Inbox() {
         <p>
           In-site chat. Messages you send auto-push to the other person&apos;s{" "}
           <strong>email</strong> (default-on) and to their <strong>Discord</strong>{" "}
-          if they&apos;ve set up a webhook — so they&apos;ll see it even if
+          if they&apos;ve set up a webhook, so they&apos;ll see it even if
           you&apos;re in different timezones.
         </p>
       </div>
@@ -173,7 +173,7 @@ function Inbox() {
           One-time webhook setup on your{" "}
           <Link href="/account" style={{ color: "var(--accent)" }}>account page</Link>.{" "}
           No server of your own? You can spin up a private one in 30 seconds
-          — the walkthrough on the account page covers the whole click path.
+         , the walkthrough on the account page covers the whole click path.
         </div>
       )}
 
@@ -294,7 +294,7 @@ function Inbox() {
                 {thread === null && <div style={{ color: "var(--text-muted)" }}>Loading thread…</div>}
                 {thread && thread.length === 0 && (
                   <div style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                    No messages in this thread yet — start it off below.
+                    No messages in this thread yet, start it off below.
                   </div>
                 )}
                 {thread &&
@@ -372,7 +372,7 @@ function Inbox() {
                   }}
                   title={
                     quiet
-                      ? "Message lands in their inbox only — no email or Discord ping"
+                      ? "Message lands in their inbox only, no email or Discord ping"
                       : "Message also pushes to their email + Discord (if configured)"
                   }
                 >
@@ -382,7 +382,7 @@ function Inbox() {
                     onChange={(e) => setQuiet(e.target.checked)}
                     style={{ accentColor: "var(--accent)" }}
                   />
-                  🔕 <strong>Quiet send</strong> — inbox only, skip email &amp; Discord
+                  🔕 <strong>Quiet send</strong>, inbox only, skip email &amp; Discord
                   <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: "var(--text-dim)" }}>
                     auto-on for active threads
                   </span>
@@ -400,7 +400,7 @@ function Inbox() {
                   lineHeight: 1.5,
                 }}
               >
-                🔒 Your email is private — never shared with anyone you message.
+                🔒 Your email is private, never shared with anyone you message.
                 Replies stay on CitizenDex. Don&apos;t paste personal contact info
                 in messages you wouldn&apos;t share publicly.
               </div>

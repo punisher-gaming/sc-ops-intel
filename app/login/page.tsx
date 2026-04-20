@@ -27,7 +27,7 @@ export default function LoginPage() {
     router.push("/");
   }
 
-  // Shared OAuth kickoff — supports any provider Supabase has configured.
+  // Shared OAuth kickoff, supports any provider Supabase has configured.
   // Google needs "google" client credentials set up in the Supabase dashboard
   // (Authentication → Providers → Google). Discord needs the same under
   // Providers → Discord. The button UI lives below.
@@ -144,7 +144,7 @@ export default function LoginPage() {
   );
 }
 
-// Google multicolor G — Google's brand guidelines allow this exact glyph
+// Google multicolor G, Google's brand guidelines allow this exact glyph
 // inline (it's the one embedded in googleapis.com identity components).
 function GoogleGlyph() {
   return (

@@ -25,7 +25,7 @@ export default function LandingPage() {
             </div>
             <div className="brand-secondary">
               <span className="brand-bar" aria-hidden />
-              {/* Hologram-projected subtitle — full Star Wars treatment:
+              {/* Hologram-projected subtitle, full Star Wars treatment:
                   cyan tint, scanlines, rolling interference band, flicker. */}
               <Hologram
                 stage
@@ -46,11 +46,17 @@ export default function LandingPage() {
               <span className="brand-bar" aria-hidden />
             </div>
           </div>
-          {/* Brand catchphrase — riffs on the CITIZENDEX wordmark.
-              Pilot-shorthand: "before you jump, check the Dex." */}
-          <p className="brand-slogan">
-            Check the <span className="accent">Dex</span>.
-          </p>
+          {/* Brand catchphrase as a comic-style speech burst, anchored
+              to the upper-left of the hero so it reads like a pilot
+              shouting it across the wordmark. */}
+          <div className="brand-slogan-burst" aria-hidden>
+            <span className="brand-slogan-text">
+              Check the <span className="accent">Dex!</span>
+            </span>
+          </div>
+          {/* Screen-reader copy, visually hidden but keeps the slogan
+              in the accessibility tree since the burst is aria-hidden. */}
+          <p className="sr-only">Check the Dex.</p>
           <p className="tagline">
             The Star Citizen database. Blueprints, resources, crafting
             recipes, commodities, ships, auto-synced every patch. Save notes.
@@ -64,7 +70,7 @@ export default function LandingPage() {
               Browse Ships
             </Link>
           </div>
-          {/* Secondary CTA row — supplemental to the main Browse buttons.
+          {/* Secondary CTA row, supplemental to the main Browse buttons.
               Stacks to a single column on narrow screens. */}
           <div
             style={{
@@ -118,7 +124,7 @@ export default function LandingPage() {
               display: "grid",
               gap: "0.6rem",
               // Tighter minmax so all six stats fit a single row on any
-              // non-phone viewport. 6 × 150px = 900px — fits container-wide
+              // non-phone viewport. 6 × 150px = 900px, fits container-wide
               // without forcing a wrap.
               gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
             }}
@@ -269,7 +275,7 @@ function StatusLine({
     <li style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
       <span className={`badge ${badgeClass}`} style={{ minWidth: 64, textAlign: "center" }}>{badgeText}</span>
       <span style={{ color: "var(--text)", fontWeight: 500 }}>{label}</span>
-      <span style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>— {detail}</span>
+      <span style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>,  {detail}</span>
     </li>
   );
 }

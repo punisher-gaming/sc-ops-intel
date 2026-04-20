@@ -7,7 +7,7 @@ import { resolveFirstMatch } from "@/lib/item-media";
 // API. Tries candidate titles in order. Renders a subtle loading state,
 // the image once resolved, or a labeled placeholder if nothing matched.
 //
-// `kind` controls the placeholder glyph and the aspect ratio — ships
+// `kind` controls the placeholder glyph and the aspect ratio, ships
 // render wide (16/10), items square.
 
 export function ItemImage({
@@ -116,7 +116,7 @@ export function ItemImage({
   );
 }
 
-// Credit line shown under the image — the wiki expects attribution when
+// Credit line shown under the image, the wiki expects attribution when
 // we embed their media.
 export function ItemImageCredit() {
   return (

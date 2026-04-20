@@ -1,4 +1,4 @@
-// Item image resolver — queries the starcitizen.tools MediaWiki API for
+// Item image resolver, queries the starcitizen.tools MediaWiki API for
 // the canonical page of a given title (item or ship name) and returns a
 // thumbnail URL.
 //

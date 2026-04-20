@@ -1,11 +1,11 @@
-// AI chat endpoint — uses Cloudflare Workers AI (llama-3.1 8B instruct)
+// AI chat endpoint, uses Cloudflare Workers AI (llama-3.1 8B instruct)
 // to answer Star Citizen questions. The frontend sends the user's
 // question PLUS a compact summary of the top catalog matches that our
 // rules-based matcher already found; the LLM synthesizes a natural
 // answer grounded in that data.
 //
 // Why not a full RAG pipeline: our catalog is tiny (ships, blueprints,
-// resources, commodities — a few thousand rows) and our rules-based
+// resources, commodities, a few thousand rows) and our rules-based
 // matcher already finds the right entities. The LLM's job is just to
 // stitch those entities into a readable paragraph, not to search the
 // whole Verse.
@@ -16,11 +16,11 @@ import type { Env } from "./supabase";
 
 const MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
-const SYSTEM_PROMPT = `You are CitizenDex's in-universe advisor — a calm, knowledgeable UEE Navy briefing officer helping new citizens in Star Citizen.
+const SYSTEM_PROMPT = `You are CitizenDex's in-universe advisor, a calm, knowledgeable UEE Navy briefing officer helping new citizens in Star Citizen.
 
 Rules:
 - Prefer the "Catalog context" (from our live-synced database) when present. If it's not there, use "Wiki context" (from Star Citizen Wiki) as a secondary source. If neither, say you don't have that data but point the user to /ships, /blueprints, /lore, /community, etc.
-- Keep answers short — 2–4 sentences max unless the question explicitly asks for detail.
+- Keep answers short, 2–4 sentences max unless the question explicitly asks for detail.
 - Be practical: if the user asks "how do I make money", give a concrete actionable answer.
 - Use in-game units (aUEC, SCU, UEE year) not real-world equivalents.
 - Never make up ship names, blueprint names, commodity prices, or spawn locations. If you need a number and don't have one, say so.
@@ -65,7 +65,7 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
   if (question.length > 800) {
     return Response.json({ ok: false, error: "question too long (max 800 chars)" }, { status: 400, headers: CORS });
   }
-  // Soft rate-limit by length of context, not IP — calling budget is the
+  // Soft rate-limit by length of context, not IP, calling budget is the
   // real constraint. Context is provided by the frontend from its existing
   // rules-based match; typically 1–2 KB.
   const context = (body.context ?? "").slice(0, 4000);
@@ -94,7 +94,7 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
   if (wikiContext) {
     messages.push({
       role: "system",
-      content: `Wiki context (excerpts from Star Citizen Wiki — use only if catalog context is empty):\n${wikiContext}`,
+      content: `Wiki context (excerpts from Star Citizen Wiki, use only if catalog context is empty):\n${wikiContext}`,
     });
   }
   for (const h of history) {
@@ -126,7 +126,7 @@ export async function handleAiChat(req: Request, env: Env): Promise<Response> {
 // intros as a single context string. Uses MediaWiki's opensearch to
 // find titles, then query+extracts to pull plain-text intros.
 //
-// Edge-cached 1 hour — popular questions ("cutlass black") will hit
+// Edge-cached 1 hour, popular questions ("cutlass black") will hit
 // cache rather than bouncing through the wiki every time.
 async function fetchWikiContext(question: string): Promise<string> {
   try {
@@ -157,7 +157,7 @@ async function fetchWikiContext(question: string): Promise<string> {
       .filter(Boolean);
     if (titles.length === 0) return "";
 
-    // 2. extracts for those titles — intro plain-text
+    // 2. extracts for those titles, intro plain-text
     const extractsUrl =
       `https://starcitizen.tools/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=` +
       encodeURIComponent(titles.slice(0, 3).join("|"));

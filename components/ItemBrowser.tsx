@@ -23,7 +23,7 @@ import { ItemHover } from "./ItemHover";
 const PAGE_SIZE = 50;
 
 // Shared browser used by /weapons and /components. Pass `table` to switch
-// between them — same column shape, different DB table.
+// between them, same column shape, different DB table.
 
 export function ItemBrowser({
   table,
@@ -233,13 +233,13 @@ function ItemList({
                       </div>
                     )}
                   </td>
-                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.manufacturer ?? "—"}</td>
+                  <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.manufacturer ?? ", "}</td>
                   <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{prettyType(r.type)}</td>
                   {classes.length > 0 && (
-                    <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{itemClass(r) ?? "—"}</td>
+                    <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{itemClass(r) ?? ", "}</td>
                   )}
                   <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{formatGrade(r.grade, gradeStyle)}</td>
-                  <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{r.size ?? "—"}</td>
+                  <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{r.size ?? ", "}</td>
                 </tr>
               ))}
               {pageRows.length === 0 && (
@@ -327,23 +327,23 @@ function ItemDetail({
       </div>
 
       <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", marginBottom: "1rem" }}>
-        <Stat label="Manufacturer" value={item.manufacturer ?? "—"} />
+        <Stat label="Manufacturer" value={item.manufacturer ?? ", "} />
         <Stat label="Type" value={prettyType(item.type)} />
-        <Stat label="Subtype" value={item.subtype ?? "—"} />
+        <Stat label="Subtype" value={item.subtype ?? ", "} />
         <Stat label="Grade" value={formatGrade(item.grade, gradeStyle)} />
-        <Stat label="Size" value={item.size != null ? String(item.size) : "—"} />
+        <Stat label="Size" value={item.size != null ? String(item.size) : ", "} />
         {itemClass(item) && <Stat label="Class" value={itemClass(item)!} />}
       </div>
 
       <WhereToBuy itemReference={item.id} />
 
-      {/* Raw item data block removed — jsonb dumps don't belong in the UI. */}
+      {/* Raw item data block removed, jsonb dumps don't belong in the UI. */}
 
       <div className="label-mini" style={{ marginTop: "2rem", textAlign: "center" }}>
         Last synced{" "}
         {item.last_synced_at
           ? new Date(item.last_synced_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
-          : "—"}
+          : ", "}
         {" · "}
         Patch {item.game_version ?? CURRENT_PATCH}
       </div>

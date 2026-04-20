@@ -6,7 +6,7 @@
 // top-level array, partition each item into weapons / components by Type,
 // and upsert in 200-row batches. Memory stays under ~10 MB resident.
 //
-// Items not matching either WEAPON_TYPES or COMPONENT_TYPES are skipped —
+// Items not matching either WEAPON_TYPES or COMPONENT_TYPES are skipped , 
 // those are flavour items (Misc, Cargo, Char_*, Display, Door, Seat, paints)
 // that don't deserve a top-level catalog page.
 
@@ -109,7 +109,7 @@ export async function ingestItems(
   try {
     const res = await fetch(SOURCE, {
       headers: { accept: "application/json" },
-      // No CF cache — file is 107 MB, blow up the cache budget for nothing
+      // No CF cache, file is 107 MB, blow up the cache budget for nothing
     });
     if (!res.ok) throw new Error(`items.json: HTTP ${res.status}`);
 

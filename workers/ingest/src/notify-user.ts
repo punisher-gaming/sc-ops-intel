@@ -3,7 +3,7 @@
 // The frontend can't read another user's webhook URL (RLS forbids it),
 // so it POSTs to this endpoint with just the recipient_id and message.
 // We use the service-role key to look up the webhook and forward to
-// Discord. Best-effort — the in-site message is already saved, this is
+// Discord. Best-effort, the in-site message is already saved, this is
 // just a notification on top.
 //
 // Privacy: the webhook URL is never returned to the caller. We only
@@ -92,7 +92,7 @@ export async function handleNotifyUser(req: Request, env: Env): Promise<Response
       });
       discordPushed = res.ok;
     } catch {
-      /* swallow — email path may still succeed */
+      /* swallow, email path may still succeed */
     }
   }
 
@@ -108,7 +108,7 @@ export async function handleNotifyUser(req: Request, env: Env): Promise<Response
       const text =
         `${sender} sent you a message on CitizenDex${ctx}:\n\n` +
         `"${message}"\n\n` +
-        `Reply on the site — your email is private and was never shared.`;
+        `Reply on the site, your email is private and was never shared.`;
       const res = await sendEmail(env, {
         to: email,
         subject,

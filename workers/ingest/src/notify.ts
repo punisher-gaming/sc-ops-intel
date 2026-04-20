@@ -1,9 +1,9 @@
-// Discord webhook proxy — the frontend can't POST to Discord directly
+// Discord webhook proxy, the frontend can't POST to Discord directly
 // (CORS) so this worker route accepts a {webhook_url, payload} body
 // and forwards it. We validate the URL is a Discord webhook before
 // fanning out to prevent abuse as an open relay.
 //
-// No auth required — we don't store the URL here, the caller passes it
+// No auth required, we don't store the URL here, the caller passes it
 // each time. The URL itself is a credential (it's a per-channel write
 // token), so anyone with it can post anyway. Our job is just CORS.
 

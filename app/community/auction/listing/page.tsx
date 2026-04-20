@@ -61,14 +61,14 @@ function ListingDetail() {
       const buyer = soldHandle.trim();
       await updateListingStatus(listing.id, "sold", buyer || undefined);
       setListing({ ...listing, status: "sold", sold_to_handle: buyer || null });
-      // Best-effort Discord notification — fires to seller's webhook
+      // Best-effort Discord notification, fires to seller's webhook
       // if they configured one. Non-fatal.
       const priceStr = formatPrice(listing.price_amount, listing.price_currency);
       const wtb = listing.listing_type === "wtb";
       const lines = [
         wtb
-          ? `🤝 **Buy request FILLED** — meet your seller in-game!`
-          : `🤝 **Listing SOLD** — meet your buyer in-game!`,
+          ? `🤝 **Buy request FILLED**, meet your seller in-game!`
+          : `🤝 **Listing SOLD**, meet your buyer in-game!`,
         `**Item:** ${listing.item_name}`,
         `**${wtb ? "Budget" : "Price"}:** ${priceStr}${listing.price_per_unit ? " (per unit)" : ""}`,
         ...(buyer ? [`**${wtb ? "Seller" : "Buyer"}:** @${buyer}`] : []),
@@ -233,7 +233,7 @@ function ListingDetail() {
                     fontSize: "0.78rem",
                   }}
                 >
-                  🪙 Commodity trade — buyer delivers <strong>{listing.price_currency}</strong>{" "}
+                  🪙 Commodity trade, buyer delivers <strong>{listing.price_currency}</strong>{" "}
                   in-game (typically by SCU at a refinery or trade location)
                 </div>
               )}
@@ -313,12 +313,12 @@ function ListingDetail() {
                   ? <>To sell: message the buyer on Discord (handle above) or via their CitizenDex profile. Agree on a meet-up in-game, then deliver the item.</>
                   : <>To buy: message the seller on Discord (handle above) or via their CitizenDex profile. Agree on a meet-up location in-game, then trade.</>}{" "}
                 <strong>{listing.price_currency === "aUEC"
-                  ? "aUEC only — never send real money."
-                  : `Trade pays in ${listing.price_currency} in-game — never real money.`}</strong>
+                  ? "aUEC only, never send real money."
+                  : `Trade pays in ${listing.price_currency} in-game, never real money.`}</strong>
               </div>
               {user && !isOwner && (
                 <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-                  {/* Primary contact path — always works, lands in their
+                  {/* Primary contact path, always works, lands in their
                       CitizenDex inbox AND auto-pushes to their Discord
                       if they have a webhook set up. */}
                   <MessageButton
@@ -346,7 +346,7 @@ function ListingDetail() {
                         : `🔔 Quick Discord ping (no message)`}
                   </button>
                   <div className="label-mini" style={{ lineHeight: 1.5 }}>
-                    The <strong>blue button</strong> always works — it lands in
+                    The <strong>blue button</strong> always works, it lands in
                     their CitizenDex inbox and pushes to their Discord too if
                     they&apos;ve set up notifications.{" "}
                     The <strong>quick ping</strong> only works if the{" "}

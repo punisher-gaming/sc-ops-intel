@@ -1,4 +1,4 @@
-// Meta Loadouts — math-optimal weapon recommendations per ship.
+// Meta Loadouts, math-optimal weapon recommendations per ship.
 //
 // Architecture:
 //   1. SHIP_HARDPOINTS hand-curates which weapon slots each ship has
@@ -13,7 +13,7 @@
 //   4. computeLoadout() picks the highest-scoring weapon that fits each
 //      hardpoint, returns the loadout + summary stats.
 //
-// All math is deterministic — given the same weapon catalog snapshot,
+// All math is deterministic, given the same weapon catalog snapshot,
 // the same loadout is recommended every time. v1 is conservative on
 // purpose: when stats are missing we mark the slot "math unavailable"
 // rather than guess.
@@ -82,7 +82,7 @@ export type ComponentCategory =
   | "cooler"
   | "quantum";
 
-/** Armor + hull stats lifted from ships.source_data — used to compute
+/** Armor + hull stats lifted from ships.source_data, used to compute
  *  effective HP and rank tanks vs glass cannons. Multipliers are
  *  incoming-damage scalars (1.0 = full damage, 0.6 = 40% reduction). */
 export interface ShipDurability {
@@ -108,20 +108,20 @@ export interface ShipLoadoutDef {
   blurb: string;
   hardpoints: Hardpoint[];
   /** Shields / power / cooler / quantum slots. Some ships have multiples
-   *  (e.g. Freelancer MAX has 2× S2 shields) — express each as its own
+   *  (e.g. Freelancer MAX has 2× S2 shields), express each as its own
    *  entry with a unique id. */
   components: ComponentSlot[];
-  /** Hull / armor / resists — drives the Tank profile + leaderboard. */
+  /** Hull / armor / resists, drives the Tank profile + leaderboard. */
   durability?: ShipDurability;
 }
 
 /**
- * v1 coverage — popular fighter / multicrew picks where math-optimal
+ * v1 coverage, popular fighter / multicrew picks where math-optimal
  * builds are most relevant. Expand by adding entries; the UI auto-shows
  * any ship listed here that also has a row in our `ships` table.
  *
  * Hardpoint sizes verified against erkul.games + Star Citizen Wiki
- * 4.7.1-LIVE. May drift slightly when CIG re-tunes a hull — flag any
+ * 4.7.1-LIVE. May drift slightly when CIG re-tunes a hull, flag any
  * mismatches and we'll update.
  */
 export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
@@ -144,7 +144,7 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
   {
     shipName: "F7A Hornet Mk II",
     manufacturer: "Anvil",
-    blurb: "Military Hornet — bigger wing slots, harder hitter than the F7C.",
+    blurb: "Military Hornet, bigger wing slots, harder hitter than the F7C.",
     hardpoints: [
       { id: "nose", label: "Nose ball turret", size: 4, mount: "turret" },
       { id: "wing-l", label: "Left wing", size: 5, mount: "gimbal" },
@@ -177,7 +177,7 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
   {
     shipName: "Sabre",
     manufacturer: "Aegis",
-    blurb: "Stealth fighter. 4×S3 wings — twin pairs of identical guns.",
+    blurb: "Stealth fighter. 4×S3 wings, twin pairs of identical guns.",
     hardpoints: [
       { id: "wing-l1", label: "Left wing inner", size: 3, mount: "gimbal" },
       { id: "wing-l2", label: "Left wing outer", size: 3, mount: "gimbal" },
@@ -212,7 +212,7 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
   {
     shipName: "Cutlass Steel",
     manufacturer: "Drake",
-    blurb: "Military Cutlass — larger nose gun + chin turret + door guns.",
+    blurb: "Military Cutlass, larger nose gun + chin turret + door guns.",
     hardpoints: [
       { id: "nose", label: "Nose", size: 5, mount: "fixed" },
       { id: "wing-l", label: "Left wing", size: 4, mount: "fixed" },
@@ -229,7 +229,7 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
   {
     shipName: "Avenger Titan",
     manufacturer: "Aegis",
-    blurb: "Starter / cargo runner. 1×S3 nose + 2×S2 wing — punchy for its size.",
+    blurb: "Starter / cargo runner. 1×S3 nose + 2×S2 wing, punchy for its size.",
     hardpoints: [
       { id: "nose", label: "Nose", size: 3, mount: "fixed" },
       { id: "wing-l", label: "Left wing", size: 2, mount: "fixed" },
@@ -245,7 +245,7 @@ export const SHIP_HARDPOINTS: ShipLoadoutDef[] = [
   {
     shipName: "Aurora LN",
     manufacturer: "RSI",
-    blurb: "Starter combat. 2×S2 wings — best-in-class price-to-DPS ratio.",
+    blurb: "Starter combat. 2×S2 wings, best-in-class price-to-DPS ratio.",
     hardpoints: [
       { id: "wing-l", label: "Left wing", size: 2, mount: "fixed" },
       { id: "wing-r", label: "Right wing", size: 2, mount: "fixed" },
@@ -428,7 +428,7 @@ export async function fetchAllShipDefs(): Promise<DbShipDef[]> {
     }
     if (rows.length < PAGE) break;
   }
-  // Dedupe — the ships table has occasional literal duplicates (same
+  // Dedupe, the ships table has occasional literal duplicates (same
   // name, different ids) from multi-pass ingest. Keep the first seen
   // for each (lowercased) name so the leaderboard / picker doesn't
   // show the same ship 4× and React doesn't get key collisions.
@@ -461,7 +461,7 @@ export interface WeaponStats {
   projectileSpeed: number | null;
   /** Mount type the weapon supports (fixed, gimbal, turret-mounted). */
   mountKind: "fixed" | "gimbal" | "turret" | "any";
-  /** Marketing blurb from stdItem.DescriptionText — shown on hover. */
+  /** Marketing blurb from stdItem.DescriptionText, shown on hover. */
   description: string | null;
   /** Item Type / Class / Grade etc. for hover panel. */
   meta: Record<string, string>;
@@ -478,7 +478,7 @@ function num(x: unknown): number | null {
 
 /** Recursively search the entire source_data tree for keys matching a
  *  predicate. scunpacked's schema for ship weapons varies between
- *  weapon kinds and dump versions — rather than trying to hardcode
+ *  weapon kinds and dump versions, rather than trying to hardcode
  *  every path, we walk the tree once and pull the first numeric value
  *  whose key matches. Stops at first hit (depth-first). */
 function findFirstNumber(
@@ -508,7 +508,7 @@ function findFirstNumber(
   return null;
 }
 
-/** Sum of all matching numeric keys at any depth — for damage that's
+/** Sum of all matching numeric keys at any depth, for damage that's
  *  split across multiple subtypes (physical + energy + thermal etc). */
 function sumAllNumbers(
   root: unknown,
@@ -611,7 +611,7 @@ export function extractWeaponStats(w: Item): WeaponStats {
     if (totalDamage > 0) alpha = totalDamage;
   }
 
-  // Fire rate — RateOfFire is the canonical key in stdItem.Weapon.
+  // Fire rate, RateOfFire is the canonical key in stdItem.Weapon.
   let fireRate = num(weapon?.RateOfFire);
   if (fireRate == null) {
     fireRate = findFirstNumber(sd, (k) =>
@@ -625,13 +625,13 @@ export function extractWeaponStats(w: Item): WeaponStats {
     dps = (alpha * fireRate) / 60;
   }
 
-  // Projectile speed — stdItem.Ammunition.Speed is canonical.
+  // Projectile speed, stdItem.Ammunition.Speed is canonical.
   const ammunition = stdItem.Ammunition as Record<string, unknown> | undefined;
   const projectileSpeed =
     num(ammunition?.Speed) ??
     findFirstNumber(sd, (k) => /^(Speed|MuzzleVelocity|ProjectileVelocity)$/i.test(k));
 
-  // Damage type — pick the dominant subtype from the Damage block.
+  // Damage type, pick the dominant subtype from the Damage block.
   let damageType: WeaponStats["damageType"] = "unknown";
   const maxAlpha = Math.max(alphaPhys || dmgPhys, alphaEnergy || dmgEnergy, alphaDist || dmgDist);
   if (maxAlpha > 0) {
@@ -645,20 +645,20 @@ export function extractWeaponStats(w: Item): WeaponStats {
     else if (c.includes("distortion")) damageType = "distortion";
   }
   if (damageType === "unknown") {
-    // Tags are reliable when present — VNCL guns are tagged NeutronCannon etc.
+    // Tags are reliable when present, VNCL guns are tagged NeutronCannon etc.
     const tagsLower = ((typeof w.tags === "string" ? w.tags : "") + " " + (Array.isArray(stdItem.Tags) ? (stdItem.Tags as string[]).join(" ") : "")).toLowerCase();
     if (/ballistic|gatling|repeater|kinetic|cannon[^a-z]/i.test(tagsLower)) damageType = "ballistic";
     if (/laser|plasma|neutron|distortion|disruptor|tachyon/i.test(tagsLower)) damageType = "energy";
   }
 
-  // Mount kind — scunpacked sometimes puts this in tags.
+  // Mount kind, scunpacked sometimes puts this in tags.
   const tags = (typeof w.tags === "string" ? w.tags : "").toLowerCase();
   let mountKind: WeaponStats["mountKind"] = "any";
   if (tags.includes("fixed")) mountKind = "fixed";
   else if (tags.includes("gimbal")) mountKind = "gimbal";
   else if (tags.includes("turret")) mountKind = "turret";
 
-  // Size — prefer the column, fall back to source_data.stdItem.Size
+  // Size, prefer the column, fall back to source_data.stdItem.Size
   // since the column was projected at ingest time and may be null for
   // some rows.
   let size = w.size ?? 0;
@@ -725,7 +725,7 @@ export interface ComponentStats {
   size: number;
   manufacturer: string | null;
   category: ComponentCategory;
-  /** Headline value used for ranking — meaning depends on category:
+  /** Headline value used for ranking, meaning depends on category:
    *  - shield: max HP
    *  - powerplant: power output
    *  - cooler: cooling rate
@@ -758,7 +758,7 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
   let primary: number | null = null;
   let secondary: number | null = null;
   let primaryLabel = "Stat";
-  let secondaryLabel = "—";
+  let secondaryLabel = ", ";
 
   if (category === "shield") {
     // Shield block: stdItem.Shield.MaxShieldHealth + RegenerationRate.
@@ -774,7 +774,7 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
   } else if (category === "powerplant") {
     // Power plant output lives in stdItem.ResourceNetwork.Generation.Power
     // (it's the same value also reflected in States[0].Deltas where
-    // Type="Generation" — but Generation.Power is the cleanest path).
+    // Type="Generation", but Generation.Power is the cleanest path).
     // EM signature comes from stdItem.Emission.Em.Maximum.
     const network = stdItem.ResourceNetwork as Record<string, unknown> | undefined;
     const generation = network?.Generation as Record<string, unknown> | undefined;
@@ -797,7 +797,7 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
       primary = sumGenerationByType(sd, "Coolant") || sumGenerationByType(sd, "Cooling");
       if (primary === 0) primary = null;
     }
-    // IR sig — if present.
+    // IR sig, if present.
     const emission = stdItem.Emission as Record<string, unknown> | undefined;
     secondary = num(emission?.Ir);
     primaryLabel = "Cooling";
@@ -813,7 +813,7 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
       findFirstNumber(sd, (k) => /^(JumpRange|MaxRange)$/i.test(k));
     // Sentinel guard.
     if (primary != null && primary > 1e15) primary = null;
-    // Range stored in m by some dumps — convert to km.
+    // Range stored in m by some dumps, convert to km.
     if (primary != null && primary > 100_000_000) primary = primary / 1000;
     secondary =
       num(q?.DriveSpeed) ??
@@ -824,7 +824,7 @@ export function extractComponentStats(item: Item, category: ComponentCategory): 
     secondaryLabel = "Speed";
   }
 
-  // Hover-info — same shape as weapons.
+  // Hover-info, same shape as weapons.
   const description = typeof stdItem.DescriptionText === "string" ? (stdItem.DescriptionText as string) : null;
   const dd = (stdItem.DescriptionData as Record<string, string> | undefined) ?? {};
   const meta: Record<string, string> = {};
@@ -877,7 +877,7 @@ export async function fetchComponentCandidates(): Promise<Map<ComponentCategory,
   return out;
 }
 
-/** Pick the best component for a slot — highest primary stat that fits
+/** Pick the best component for a slot, highest primary stat that fits
  *  the slot's size. */
 export function pickBestComponent(
   slot: ComponentSlot,
@@ -891,7 +891,7 @@ export function pickBestComponent(
   if (!Number.isFinite(ranked[0].p)) {
     return {
       component: ranked[0].c,
-      reason: "Stats unavailable — picked first size match",
+      reason: "Stats unavailable, picked first size match",
     };
   }
   return { component: ranked[0].c };
@@ -929,7 +929,7 @@ export const PROFILES: ProfileDef[] = [
     key: "balanced",
     label: "Balanced",
     emoji: "⚖",
-    blurb: "DPS × projectile speed — a hit you can't land doesn't count.",
+    blurb: "DPS × projectile speed, a hit you can't land doesn't count.",
     score: (s) =>
       s.dps != null && s.projectileSpeed != null
         ? s.dps * (s.projectileSpeed / 1000)
@@ -939,7 +939,7 @@ export const PROFILES: ProfileDef[] = [
     key: "ballistic",
     label: "Ballistic-Only",
     emoji: "🔫",
-    blurb: "Bypass shields by hitting hull directly. Limited ammo — burst fights only.",
+    blurb: "Bypass shields by hitting hull directly. Limited ammo, burst fights only.",
     score: (s) => (s.damageType === "ballistic" ? (s.dps ?? 0) : -Infinity),
   },
   {
@@ -1018,7 +1018,7 @@ export interface LoadoutResult {
 
 /** Effective HP combines shield + (hull / damage-type multiplier) + armor.
  *  Multiplier of 0.6 means the hull effectively has 1.67× HP vs that
- *  damage type. Armor HP is added raw — it's a separate bucket the game
+ *  damage type. Armor HP is added raw, it's a separate bucket the game
  *  burns through alongside the hull. */
 export function effectiveHp(
   shieldHp: number,
@@ -1066,7 +1066,7 @@ export function computeLoadout(
       return {
         hardpoint: hp,
         weapon: fallback,
-        reason: "Profile match weak — showing best size match (stats may be incomplete)",
+        reason: "Profile match weak, showing best size match (stats may be incomplete)",
       };
     }
     scored.sort((a, b) => b.s - a.s);
@@ -1077,7 +1077,7 @@ export function computeLoadout(
   const totalDps = slots.reduce((acc, s) => acc + (s.weapon?.dps ?? 0), 0);
   const totalAlpha = slots.reduce((acc, s) => acc + (s.weapon?.alpha ?? 0), 0);
 
-  // Components — pick the best per slot from each category.
+  // Components, pick the best per slot from each category.
   const components: ComponentChoice[] = ship.components.map((cs) => {
     const pool = componentsByCategory?.get(cs.category) ?? [];
     const { component, reason } = pickBestComponent(cs, pool);

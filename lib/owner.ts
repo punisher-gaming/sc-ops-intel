@@ -11,7 +11,7 @@
 // layer only.
 //
 // The OWNER_USER_ID special case is kept for the KNERFD uppercase-name
-// transform — the site owner's handle always renders in caps regardless
+// transform, the site owner's handle always renders in caps regardless
 // of how it's stored in Discord or profiles.
 
 export const OWNER_USER_ID = "11a713da-315d-40cb-8fa7-b092787eea01";

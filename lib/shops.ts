@@ -28,7 +28,7 @@ export interface ShopInventoryRow {
   shop?: Shop;
 }
 
-// "Where can I buy / sell this item?" — one query, joined with the shop row
+// "Where can I buy / sell this item?", one query, joined with the shop row
 // so we can render location + price in a single pass.
 export async function fetchItemShopInventory(
   itemReference: string,
@@ -47,7 +47,7 @@ export async function fetchItemShopInventory(
 }
 
 export function formatAuecPrice(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return ", ";
   return `${Math.round(n).toLocaleString()} aUEC`;
 }
 

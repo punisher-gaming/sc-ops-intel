@@ -11,7 +11,7 @@ import { Hologram } from "./Hologram";
 import { displayNameFor, roleLabelFor } from "@/lib/owner";
 import { MessageButton } from "./MessageButton";
 
-// Public profile page — anyone can view. Reads ?id=<uuid> from the URL,
+// Public profile page, anyone can view. Reads ?id=<uuid> from the URL,
 // loads the user's safe display fields plus all their is_public fleets,
 // and renders a roster of ships per fleet.
 //
@@ -49,7 +49,7 @@ export function ProfileBrowser() {
           for (const s of ships) map.set(s.id, s);
           setShipsById(map);
         } catch (e) {
-          // non-fatal — fleet rows just won't have ship names
+          // non-fatal, fleet rows just won't have ship names
           console.warn("[profile] ship lookup failed", e);
         }
       })
@@ -95,7 +95,7 @@ export function ProfileBrowser() {
 
   return (
     <div className="container" style={{ paddingTop: "2rem" }}>
-      {/* Header — avatar + name + handles */}
+      {/* Header, avatar + name + handles */}
       <div
         className="card"
         style={{
@@ -106,7 +106,7 @@ export function ProfileBrowser() {
           flexWrap: "wrap",
         }}
       >
-        {/* Project the avatar as a Star Wars hologram — cyan-tinted, with
+        {/* Project the avatar as a Star Wars hologram, cyan-tinted, with
             scanlines + rolling band + flicker. Reads as the rebel briefing
             "we caught a holo of this player" vibe. */}
         <Hologram stage>
@@ -173,7 +173,7 @@ export function ProfileBrowser() {
               {profile.bio}
             </p>
           )}
-          {/* DM this citizen — lands in their CitizenDex inbox + auto-
+          {/* DM this citizen, lands in their CitizenDex inbox + auto-
               pushes to their Discord if they've set up notifications.
               MessageButton hides itself when viewing your own profile. */}
           <div style={{ marginTop: 12 }}>
@@ -211,7 +211,7 @@ export function ProfileBrowser() {
 
         {fleets && fleets.length === 0 && !err && (
           <div className="card" style={{ padding: "1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            {name} hasn&apos;t published any fleets yet. Fleets default to private —
+            {name} hasn&apos;t published any fleets yet. Fleets default to private , 
             owners flip the toggle on their account page to share.
           </div>
         )}

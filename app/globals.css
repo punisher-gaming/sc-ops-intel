@@ -2,7 +2,7 @@
 
 /* ================================================================
    SC OPS INTEL :: design tokens
-   mobiGlas-lite — near-black bg, single cyan accent, clean sans.
+   mobiGlas-lite, near-black bg, single cyan accent, clean sans.
    ================================================================ */
 
 @theme {
@@ -51,7 +51,7 @@ html, body {
 
 a { color: inherit; text-decoration: none; }
 
-/* Subtle radial vignette at top — used on hero sections */
+/* Subtle radial vignette at top, used on hero sections */
 .page-vignette {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background: radial-gradient(ellipse at top, rgba(77,217,255,0.05) 0%, transparent 60%);
@@ -64,7 +64,7 @@ a { color: inherit; text-decoration: none; }
 .container-wide { max-width: 1400px; margin: 0 auto; padding-left: 2rem; padding-right: 2rem; }
 .container      { max-width: 1200px; margin: 0 auto; padding-left: 2rem; padding-right: 2rem; }
 
-/* Tighter gutters on mobile — 2rem eats too much horizontal real estate
+/* Tighter gutters on mobile, 2rem eats too much horizontal real estate
    on a 390px phone. 1rem keeps the content breathable without cramping. */
 @media (max-width: 600px) {
   .container-wide,
@@ -129,7 +129,7 @@ a { color: inherit; text-decoration: none; }
   background: rgba(255,255,255,0.08);
 }
 
-/* Native dropdown options — most browsers default to OS white. Hint
+/* Native dropdown options, most browsers default to OS white. Hint
    towards our dark theme. Firefox + modern Chrome respect this; Safari
    uses OS chrome regardless but the trigger element itself stays themed. */
 .select option,
@@ -187,7 +187,7 @@ select {
 .site-nav-links a.active { color: var(--text); }
 .site-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 
-/* Hamburger button — hidden on desktop, shown on mobile */
+/* Hamburger button, hidden on desktop, shown on mobile */
 .site-nav-hamburger {
   display: none;
   align-items: center; justify-content: center;
@@ -201,7 +201,7 @@ select {
 }
 .site-nav-hamburger:hover { background: rgba(255, 255, 255, 0.04); }
 
-/* Mobile drawer — slides down below the nav. Full-width, touch-friendly. */
+/* Mobile drawer, slides down below the nav. Full-width, touch-friendly. */
 .site-nav-drawer {
   display: none;
   position: absolute;
@@ -237,7 +237,7 @@ select {
    Floating FABs (music player + global search)
    ================================================================ */
 
-/* Music collapsed pill — ♪ Music */
+/* Music collapsed pill, ♪ Music */
 .music-fab {
   position: fixed;
   left: 16px; top: 80px;
@@ -254,7 +254,7 @@ select {
 }
 .music-fab-label { display: inline; }
 
-/* Music open panel — z-index 35 so it paints above the search FAB
+/* Music open panel, z-index 35 so it paints above the search FAB
    (z-index 30), guaranteeing the × close button is always clickable
    even when the two floaters overlap on narrow screens. */
 .music-panel {
@@ -271,7 +271,7 @@ select {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* When the music panel is open on mobile, just hide the search FAB —
+/* When the music panel is open on mobile, just hide the search FAB , 
    they'd otherwise stack in the same corner. The CSS :has() selector
    lets one sibling react to another without any JS state sharing.
    Supported in Safari 15.4+ / Chrome 105+ / Firefox 121+ (iOS Safari
@@ -280,8 +280,8 @@ select {
   body:has(.music-panel) .search-fab { display: none; }
 }
 
-/* Global search pill — ⌘K trigger */
-/* Global search — always an icon-only circular button (desktop + mobile).
+/* Global search pill, ⌘K trigger */
+/* Global search, always an icon-only circular button (desktop + mobile).
    ⌘K keyboard shortcut still works via the JS handler; the button just
    doesn't need to advertise it. */
 .search-fab {
@@ -301,7 +301,7 @@ select {
 .search-fab-label,
 .search-fab-kbd { display: none; }
 
-/* ≤900px — mobile layout:
+/* ≤900px, mobile layout:
    - Music panel stretches full-width (minus gutters) when open so its
      close button isn't hidden under the search icon.
    - Music collapsed pill shrinks to a round icon-only button so it
@@ -336,7 +336,7 @@ select {
 
 /* ≤900px: swap desktop links for the hamburger + drawer. Also trim the
    patch pill since it's visual noise on a narrow screen. The drawer is
-   position:absolute below the nav — .site-nav is already position:sticky
+   position:absolute below the nav, .site-nav is already position:sticky
    which provides the containing block it anchors to. */
 @media (max-width: 900px) {
   .site-nav-inner { padding: 0 1rem; gap: 0.75rem; }
@@ -407,7 +407,7 @@ select {
 .home-hero h1 .accent { color: var(--accent); }
 
 /* ====================================================================
-   Hero brand-mark — military / sci-fi command-center vibe
+   Hero brand-mark, military / sci-fi command-center vibe
    - corner L-brackets at each corner of a transparent frame
    - chunky uppercase wordmark with chromatic-aberration shadow ghost
      (cyan + red) and a soft cyan halo
@@ -429,7 +429,7 @@ select {
   padding: 1.4rem 2.2rem;
 }
 
-/* Corner L-brackets — pure CSS, no images */
+/* Corner L-brackets, pure CSS, no images */
 .brand-corner {
   position: absolute;
   width: 22px;
@@ -463,12 +463,12 @@ select {
   margin: 0;
 }
 
-/* Clean white+cyan wordmark (CITIZENDEX) — matches the nav corner mark
+/* Clean white+cyan wordmark (CITIZENDEX), matches the nav corner mark
    exactly: one word, white "CITIZEN", cyan "DEX", no gap, no dot, no
    chromatic-aberration ghost, no middle slash. */
 .brand-wordmark {
   display: inline-block !important;       /* kill the flex gap from brand-primary */
-  letter-spacing: 0;                      /* natural font metrics — N→D kiss */
+  letter-spacing: 0;                      /* natural font metrics, N→D kiss */
   text-shadow: 0 0 50px rgba(77, 217, 255, 0.25);
 }
 .brand-wordmark .accent {
@@ -478,7 +478,7 @@ select {
 }
 /* Suppress the decorative horizontal slash the brand-frame draws behind
    the wordmark (brand-frame::after) when we're rendering the clean
-   version. Parent gets .brand-frame-clean — see app/page.tsx. */
+   version. Parent gets .brand-frame-clean, see app/page.tsx. */
 .brand-frame-clean::after { display: none !important; }
 
 .brand-primary .brand-dot {
@@ -492,7 +492,7 @@ select {
   padding: 0 0.05em;
 }
 
-/* Cyan slash through the middle of the wordmark — sits behind text via
+/* Cyan slash through the middle of the wordmark, sits behind text via
    z-index so the letters cut through it. Subtle pulse keeps it alive. */
 .brand-frame::after {
   content: "";
@@ -531,7 +531,7 @@ select {
   background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), transparent);
 }
 
-/* Keybinding grid used on /new-players — two-column rows of keys + desc. */
+/* Keybinding grid used on /new-players, two-column rows of keys + desc. */
 .kb-grid {
   display: grid;
   gap: 8px;
@@ -542,7 +542,7 @@ select {
   .kb-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* Hero hologram subtitle — sized/spaced so "THE STAR CITIZEN // DATABASE"
+/* Hero hologram subtitle, sized/spaced so "THE STAR CITIZEN // DATABASE"
    stays on a single line across the full viewport range. The vw-scaled
    font shrinks smoothly on narrow screens so 27 characters always fit
    without wrapping (white-space: nowrap on the element forces it anyway). */
@@ -555,23 +555,68 @@ select {
   .brand-bar { width: 20px; }
   .brand-secondary { gap: 8px; }
 }
-/* Brand catchphrase — large, condensed, all-caps. Sits between the
-   wordmark and the descriptive tagline. The trailing period is part
-   of the slogan: "Check the Dex." reads as a confident command. */
-.home-hero .brand-slogan {
-  margin: 1.5rem auto 0.75rem;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: clamp(1.4rem, 3.4vw, 2rem);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text);
-  text-shadow: 0 0 18px rgba(77, 217, 255, 0.25);
+/* Brand catchphrase as a comic-book speech burst, anchored to the
+   upper-left of the hero, slanted, Bangers display font. Reads like
+   a pilot is shouting it across the wordmark. Hidden on small
+   screens so it doesn't crowd the brand mark on phones. */
+.home-hero {
+  position: relative; /* anchor for absolute slogan burst */
 }
-.home-hero .brand-slogan .accent {
+.home-hero .brand-slogan-burst {
+  position: absolute;
+  top: 1.6rem;
+  left: 1.5rem;
+  pointer-events: none;
+  transform: rotate(-9deg);
+  z-index: 5;
+}
+.home-hero .brand-slogan-text {
+  display: inline-block;
+  font-family: "Bangers", "Permanent Marker", "Impact", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text);
+  text-shadow:
+    2px 2px 0 #000,
+    -1px -1px 0 #000,
+    0 0 22px rgba(77, 217, 255, 0.35);
+  /* Subtle floaty pulse so it feels like a hand-drawn shout, not
+     just static text. */
+  animation: brand-slogan-bob 4.5s ease-in-out infinite;
+}
+.home-hero .brand-slogan-text .accent {
   color: var(--accent);
-  text-shadow: 0 0 14px rgba(77, 217, 255, 0.55);
+  text-shadow:
+    2px 2px 0 #000,
+    -1px -1px 0 #000,
+    0 0 18px rgba(77, 217, 255, 0.7);
+}
+@keyframes brand-slogan-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+/* Visually hidden but available to screen readers + crawlers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 720px) {
+  /* On phones the wordmark fills the viewport; tuck the slogan above
+     the brand mark so it doesn't overlap. */
+  .home-hero .brand-slogan-burst {
+    position: static;
+    transform: rotate(-6deg);
+    text-align: center;
+    margin: 0 auto 1rem;
+  }
 }
 .home-hero .tagline {
   color: var(--text-muted);
@@ -633,7 +678,7 @@ select {
 .table-shell tbody tr:hover { background: rgba(255,255,255,0.03); }
 
 /* ====================================================================
-   Hologram — OG Star Wars "help me Obi-Wan" projection effect
+   Hologram, OG Star Wars "help me Obi-Wan" projection effect
    --------------------------------------------------------------------
    Combine four layers for the period-correct vibe:
      1. Content tinted to that cyan-blue holo color via filter()
@@ -664,7 +709,7 @@ select {
 }
 
 /* Tint everything inside the hologram cyan and add a slight bloom. The
-   `filter` chain works for text AND images alike — perfect for wrapping
+   `filter` chain works for text AND images alike, perfect for wrapping
    avatars or the wordmark without touching their internals. */
 .hologram > * {
   filter:
@@ -673,7 +718,7 @@ select {
   animation: holo-jitter 7s infinite ease-in-out;
 }
 
-/* Horizontal scanlines — fixed, very fine. Sit above content via z-index. */
+/* Horizontal scanlines, fixed, very fine. Sit above content via z-index. */
 .hologram::before {
   content: "";
   position: absolute;
@@ -691,7 +736,7 @@ select {
   border-radius: inherit;
 }
 
-/* Rolling interference band — a soft cyan strip that scrolls top→bottom
+/* Rolling interference band, a soft cyan strip that scrolls top→bottom
    on a slow loop. The classic "the projector is reading off a tape" gag. */
 .hologram::after {
   content: "";
@@ -714,7 +759,7 @@ select {
   border-radius: inherit;
 }
 
-/* Master flicker — opacity + a tiny vertical jump every few cycles.
+/* Master flicker, opacity + a tiny vertical jump every few cycles.
    Steps() makes it discrete rather than smooth, which reads as analog
    signal noise instead of a CSS fade. */
 @keyframes holo-flicker {
@@ -731,7 +776,7 @@ select {
   91%  { opacity: 1.0; }
 }
 
-/* Sub-pixel jitter on the inner content — looks like a wobbling beam. */
+/* Sub-pixel jitter on the inner content, looks like a wobbling beam. */
 @keyframes holo-jitter {
   0%, 100% { transform: translate(0, 0); }
   20%      { transform: translate(0.4px, -0.5px); }
@@ -746,8 +791,8 @@ select {
   100% { top: 100%; }
 }
 
-/* Optional "projection cone" — flares up from below behind the hologram.
-   Wrap your .hologram in a .hologram-stage to add it. Pure decoration —
+/* Optional "projection cone", flares up from below behind the hologram.
+   Wrap your .hologram in a .hologram-stage to add it. Pure decoration , 
    skip it for inline pills / small holograms. */
 .hologram-stage {
   position: relative;
@@ -773,7 +818,7 @@ select {
   z-index: -1;
 }
 
-/* Respect reduced-motion users — kill the flicker, keep the look */
+/* Respect reduced-motion users, kill the flicker, keep the look */
 @media (prefers-reduced-motion: reduce) {
   .hologram,
   .hologram > *,
@@ -924,7 +969,7 @@ select {
 }
 
 /* ================================================================
-   NAV — HOLOGRAPHIC AUCTION HOUSE LINK
+   NAV, HOLOGRAPHIC AUCTION HOUSE LINK
    ================================================================ */
 
 .site-nav-links a.nav-holo {
@@ -981,10 +1026,10 @@ select {
 }
 
 /* ================================================================
-   MUSIC PLAYER — HOLOGRAPHIC TREATMENT
+   MUSIC PLAYER, HOLOGRAPHIC TREATMENT
    ================================================================ */
 
-/* Closed pill — full Star Wars hologram: cyan tint, scanlines,
+/* Closed pill, full Star Wars hologram: cyan tint, scanlines,
    rolling interference band, soft flicker. Catches the eye in the
    top-left corner so people notice the player exists. */
 .music-fab.music-fab-holo {
@@ -1045,7 +1090,7 @@ select {
   to   { background-position: 200% 50%; }
 }
 
-/* Open panel — softer hologram: cyan-glow border + scanline trim,
+/* Open panel, softer hologram: cyan-glow border + scanline trim,
    but content stays readable (no body flicker) so the controls work. */
 .music-panel.music-panel-holo {
   border: 1px solid rgba(125, 249, 255, 0.40);
@@ -1053,13 +1098,13 @@ select {
     inset 0 0 22px rgba(77, 217, 255, 0.10),
     0 0 22px rgba(77, 217, 255, 0.20),
     0 12px 32px rgba(0, 0, 0, 0.5);
-  /* No position override here — base .music-panel is position:fixed,
+  /* No position override here, base .music-panel is position:fixed,
      which is itself a valid containing block for the ::before scanline.
      Adding position:relative reset the panel into document flow and
      made it disappear when opened. */
 }
 .music-panel.music-panel-holo::before {
-  /* Top scanline accent strip — gives "transmission feed" look */
+  /* Top scanline accent strip, gives "transmission feed" look */
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -1083,7 +1128,7 @@ select {
   .music-fab.music-fab-holo::after { animation: none; }
 }
 
-/* 3D Y-axis rotation on the music FAB inner content — Princess-Leia
+/* 3D Y-axis rotation on the music FAB inner content, Princess-Leia
    spin. Lives on an inner <span> so the button itself stays a stable
    click target (rotating the button geometry would tank hit-testing).
    Pauses on hover so it's easy to click. */
@@ -1112,9 +1157,9 @@ select {
 }
 
 /* ================================================================
-   ITEM HOVER TOOLTIP — universal popup for any catalog item
+   ITEM HOVER TOOLTIP, universal popup for any catalog item
    (weapons, components, attachments, mining heads, scopes, etc.)
-   Pure CSS — no JS state. Hover the wrapper, popup appears.
+   Pure CSS, no JS state. Hover the wrapper, popup appears.
    ================================================================ */
 
 .item-hover {

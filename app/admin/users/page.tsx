@@ -237,19 +237,19 @@ export default function AdminUsers() {
                               )}
                             </div>
                             <div style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: 2 }}>
-                              {r.email ?? "—"}
+                              {r.email ?? ", "}
                               {r.rsi_handle && ` · RSI: ${r.rsi_handle}`}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td style={{ ...tdStyle, color: "var(--text-muted)", textTransform: "capitalize" }}>
-                        {r.provider ?? "—"}
+                        {r.provider ?? ", "}
                       </td>
                       <td style={{ ...tdStyle, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
                         {r.created_at
                           ? new Date(r.created_at).toISOString().slice(0, 10)
-                          : "—"}
+                          : ", "}
                       </td>
                       <td style={{ ...tdStyle, textAlign: "center" }}>
                         <Toggle

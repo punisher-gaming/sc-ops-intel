@@ -313,7 +313,7 @@ function IntelForm({
           onChange={(e) => setBody(e.target.value)}
           rows={4}
           maxLength={2000}
-          placeholder="Anything useful — drop rate, time of day, which NPC, tips for farming, etc."
+          placeholder="Anything useful, drop rate, time of day, which NPC, tips for farming, etc."
           className="textarea"
         />
       </label>

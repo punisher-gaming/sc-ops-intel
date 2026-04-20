@@ -1,7 +1,7 @@
 "use client";
 
 // Tooltip-style hover popup for items (weapons / components / anything
-// with a description). Pure CSS hover, no JS state — visible on hover
+// with a description). Pure CSS hover, no JS state, visible on hover
 // of the wrapper, hidden otherwise. Positions to the right of the
 // trigger by default; flips to the left on small screens via CSS
 // translateX(-100%) when there's no room.

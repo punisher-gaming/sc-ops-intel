@@ -2,7 +2,7 @@
 
 // "Send message" button + compose modal. Used wherever a user might
 // want to DM another user (auction listings, profile pages). Modal is
-// inline rather than a portal so it stays self-contained — no globals
+// inline rather than a portal so it stays self-contained, no globals
 // needed. Inserts into direct_messages and best-effort pushes to the
 // recipient's Discord webhook via the worker proxy.
 
@@ -14,7 +14,7 @@ import { useUser } from "@/lib/supabase/hooks";
 interface Props {
   recipientId: string;
   recipientName: string;
-  /** Optional listing context — sets context_listing_id and surfaces in
+  /** Optional listing context, sets context_listing_id and surfaces in
    *  the Discord push so the recipient knows which listing the DM is
    *  about. */
   contextListingId?: string;
@@ -46,7 +46,7 @@ export function MessageButton({
   const [sent, setSent] = useState(false);
   const [pushedDiscord, setPushedDiscord] = useState(false);
   const [pushedEmail, setPushedEmail] = useState(false);
-  // Quiet mode — when checked, message lands in their inbox only with
+  // Quiet mode, when checked, message lands in their inbox only with
   // no email/Discord push. Default OFF (loud) for first-contact since
   // we want them to actually see it. They can flip it for casual chat.
   const [quiet, setQuiet] = useState(false);
@@ -166,10 +166,10 @@ export function MessageButton({
                       {[pushedDiscord && "Discord", pushedEmail && "email"]
                         .filter(Boolean)
                         .join(" + ")}{" "}
-                      — they&apos;ll see it instantly.
+                     , they&apos;ll see it instantly.
                     </>
                   ) : (
-                    <>💤 No outside notifications configured — they&apos;ll see it when they next visit CitizenDex.</>
+                    <>💤 No outside notifications configured, they&apos;ll see it when they next visit CitizenDex.</>
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -186,7 +186,7 @@ export function MessageButton({
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  placeholder={`Hey ${recipientName.split(" ")[0]} — interested in your listing. When are you next in-game?`}
+                  placeholder={`Hey ${recipientName.split(" ")[0]}, interested in your listing. When are you next in-game?`}
                   rows={5}
                   maxLength={4000}
                   required
@@ -210,7 +210,7 @@ export function MessageButton({
                     onChange={(e) => setQuiet(e.target.checked)}
                     style={{ accentColor: "var(--accent)" }}
                   />
-                  🔕 <strong>Quiet send</strong> — inbox only, no email or
+                  🔕 <strong>Quiet send</strong>, inbox only, no email or
                   Discord ping
                 </label>
 
@@ -226,7 +226,7 @@ export function MessageButton({
                   }}
                 >
                   🔒 <strong>Your email stays private.</strong> {recipientName}{" "}
-                  will see your CitizenDex display name and the message text —
+                  will see your CitizenDex display name and the message text , 
                   never your email address. Don&apos;t paste personal contact
                   info you wouldn&apos;t normally share.
                 </div>

@@ -95,7 +95,7 @@ export default async function RaceDetail({
   );
 }
 
-// Single-column stack on mobile — the portrait is a square card that
+// Single-column stack on mobile, the portrait is a square card that
 // eats the whole row instead of a tight left column.
 const mobilePortraitFix = `
 @media (max-width: 760px) {

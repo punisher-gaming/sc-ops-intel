@@ -45,13 +45,13 @@ export function CraftingBrowser() {
   }, [rows, q, type]);
 
   // Aggregate: what are the top material groups across all recipes? Useful
-  // preview while nothing is typed — surfaces what you can actually build.
+  // preview while nothing is typed, surfaces what you can actually build.
   const groupAgg = useMemo(() => {
     if (!rows) return [];
     const counts = new Map<string, number>();
     for (const r of rows) {
       for (const g of r.required_groups ?? []) {
-        const k = g.name ?? g.key ?? "—";
+        const k = g.name ?? g.key ?? ", ";
         counts.set(k, (counts.get(k) ?? 0) + 1);
       }
     }
@@ -185,7 +185,7 @@ export function CraftingBrowser() {
                           color: "var(--text-muted)",
                         }}
                       >
-                        {g.name ?? g.key ?? "—"}
+                        {g.name ?? g.key ?? ", "}
                         {g.required_count != null && g.required_count > 1 && (
                           <span style={{ color: "var(--accent)", marginLeft: 4 }}>×{g.required_count}</span>
                         )}
