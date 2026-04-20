@@ -495,6 +495,20 @@ function ShipPicker({
 
 type MetricKey = "dps" | "alpha" | "shield" | "hull" | "armor" | "ehpEnergy" | "ehpBallistic";
 
+/** Right-aligned column header with a hover-explain tooltip. Uses the
+ *  same ItemHover system as weapon/component names so the UX matches. */
+function ColHeader({ label, desc }: { label: string; desc: string }) {
+  return (
+    <th style={{ padding: "8px 10px", textAlign: "right" }}>
+      <ItemHover description={desc}>
+        <span style={{ cursor: "help", borderBottom: "1px dotted rgba(255,255,255,0.2)" }}>
+          {label}
+        </span>
+      </ItemHover>
+    </th>
+  );
+}
+
 /** Ranked-leaderboard view: pick a ship category (role) + a metric and
  *  see every ship in that category sorted by the metric. Computes the
  *  full math-optimal loadout per ship in-memory. */
@@ -623,13 +637,13 @@ function CategoryRankings({
             <tr style={{ textAlign: "left", color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
               <th style={{ padding: "8px 10px", width: 36 }}>#</th>
               <th style={{ padding: "8px 10px" }}>Ship</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>DPS</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Alpha</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Shield</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Hull</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>Armor</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>EHP⚡</th>
-              <th style={{ padding: "8px 10px", textAlign: "right" }}>EHP🔫</th>
+              <ColHeader label="DPS" desc="Damage Per Second — sustained damage output across every weapon slot, computed as alpha × fire-rate ÷ 60. The honest 'big number' for fights that last more than a single trigger pull." />
+              <ColHeader label="Alpha" desc="Total damage from a single coordinated trigger pull across every weapon slot. High alpha = big burst (assassinations / one-shots from stealth). Low alpha but high DPS = sustained brawler." />
+              <ColHeader label="Shield" desc="Total shield HP across every shield slot using the math-optimal shield component for each slot's size. Shields regenerate between fights — the first line of defense." />
+              <ColHeader label="Hull" desc="Raw hull HP from the ship's source data. This is what's left to chew through after shields drop. Doesn't include damage-type resistances (see EHP columns for that)." />
+              <ColHeader label="Armor" desc="Raw armor HP — a separate damage bucket that absorbs hits alongside the hull. Not all ships have meaningful armor; light fighters often show small numbers here." />
+              <ColHeader label="EHP⚡" desc="EHP = Effective Hit Points vs Energy weapons (lasers, plasma, neutron). Math: shield + (hull ÷ energy multiplier) + armor. A ship with 0.60× energy resistance has 1.67× effective hull HP vs lasers. Higher = harder to kill in a laser fight." />
+              <ColHeader label="EHP🔫" desc="EHP = Effective Hit Points vs Ballistic weapons (gatlings, repeaters, cannons — kinetic damage). Math: shield + (hull ÷ physical multiplier) + armor. Higher = harder to kill against ballistic loadouts." />
             </tr>
           </thead>
           <tbody>
