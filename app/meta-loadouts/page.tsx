@@ -285,7 +285,50 @@ function MetaLoadouts() {
         </div>
       )}
 
-      <p style={{ marginTop: "2rem", fontSize: "0.72rem", color: "var(--text-dim)", lineHeight: 1.6 }}>
+      {/* How-to-read explainer — gives the stats meaning so casual readers
+          aren't just staring at columns of numbers. */}
+      <div className="card" style={{ padding: "1.5rem", marginTop: 24 }}>
+        <div className="accent-label">📖 How to read these numbers</div>
+        <h3 style={{ margin: "4px 0 14px", fontSize: "1.15rem" }}>
+          Tank, glass cannon, or balanced — what the stats actually tell you
+        </h3>
+        <div style={{ display: "grid", gap: 14, fontSize: "0.88rem", lineHeight: 1.65, color: "var(--text)" }}>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--accent)" }}>Higher EHP⚡ = more tanky vs energy weapons.</strong>{" "}
+            EHP (Effective Hit Points) is the total damage a ship can absorb before it dies, accounting
+            for armor&apos;s damage reduction. A ship with 519,888 EHP⚡ takes <em>nearly 2.5× more laser
+            damage to kill</em> than one with 210,167 EHP⚡ — even if their raw hull HP looks similar.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--accent)" }}>EHP🔫 is almost always lower than EHP⚡.</strong>{" "}
+            Most hulls have higher physical resistance multipliers (0.75×) than energy multipliers
+            (0.60×), meaning hulls eat <em>more</em> ballistic damage per shot. That&apos;s why
+            kinetic loadouts (gatlings, repeaters, cannons) are favored against tanks in PvP — they
+            skip the shield game faster and grind hulls down.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--accent)" }}>DPS vs EHP tells you the playstyle.</strong>{" "}
+            High DPS + low EHP = glass cannon (Redeemer). High EHP + low DPS = pure tank (Starlancer
+            TAC). The sweet spot is usually a hull with both — a ship like the Paladin that has
+            ~80% the tank of a dedicated tank but nearly 2× the firepower is often the actual meta
+            pick over the &ldquo;best&rdquo; in either category.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--accent)" }}>The build profile changes the weapon math but not the hull.</strong>{" "}
+            Switching to <em>Tank</em> profile picks long-range projectile weapons so a durable hull
+            can trade at distance and let its EHP advantage outlast the enemy. <em>Max DPS</em>
+            picks raw damage, <em>Long Range</em> prioritizes projectile speed, and so on. The
+            ship&apos;s hull/armor stats stay constant — only the weapons change.
+          </p>
+          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.82rem" }}>
+            💡 <em>Try this:</em> set Category to your favorite combat hull bucket, switch &ldquo;Rank
+            by&rdquo; to <strong>EHP vs Energy</strong>, and look for a ship in the top 5 that also
+            has high DPS. That&apos;s your sleeper pick.
+          </p>
+        </div>
+      </div>
+
+      <p style={{ marginTop: "1.5rem", fontSize: "0.72rem", color: "var(--text-dim)", lineHeight: 1.6 }}>
         Math-optimal builds are the ceiling, not the rule. Server desync,
         weapon bugs, and pilot skill all influence what actually wins fights.
         Our recommendations refresh every patch as the weapon catalog re-syncs
