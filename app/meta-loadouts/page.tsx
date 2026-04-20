@@ -242,6 +242,15 @@ function MetaLoadouts() {
 
       {loadout && <LoadoutCard result={loadout} />}
 
+      {weapons && allShips.length > 12 && (
+        <CategoryRankings
+          ships={allShips}
+          weapons={weapons}
+          components={components ?? undefined}
+          onPick={setShipName}
+        />
+      )}
+
       {debug && rawSamples.length > 0 && (
         <div className="card" style={{ padding: "1.25rem", marginTop: 16 }}>
           <div className="accent-label" style={{ marginBottom: 8 }}>🐛 Debug — raw source_data samples</div>
@@ -481,6 +490,186 @@ function ShipPicker({
       )}
     </div>
   );
+}
+
+/** Ranked-leaderboard view: pick a ship category (role) + a metric and
+ *  see every ship in that category sorted by the metric. Computes the
+ *  full math-optimal loadout per ship in-memory. */
+function CategoryRankings({
+  ships,
+  weapons,
+  components,
+  onPick,
+}: {
+  ships: ShipLoadoutDef[];
+  weapons: WeaponStats[];
+  components?: Map<ComponentCategory, ComponentStats[]>;
+  onPick: (shipName: string) => void;
+}) {
+  // Build the category list from ships' blurb (which we populated from
+  // ships.role on the DB). Normalize so e.g. "Heavy fighter" and "Heavy
+  // Fighter" collapse into one bucket.
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const s of ships) {
+      const cat = normalizeCategory(s.blurb);
+      if (!cat) continue;
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, count]) => ({ cat, count }));
+  }, [ships]);
+
+  const [category, setCategory] = useState<string>(() => categories[0]?.cat ?? "");
+  const [metric, setMetric] = useState<"dps" | "alpha" | "shield">("dps");
+  const [profileKey, setProfileKey] = useState<ProfileDef["key"]>("max_dps");
+
+  // Default the category to whichever has the most ships once loaded.
+  useEffect(() => {
+    if (!category && categories.length > 0) {
+      setCategory(categories[0].cat);
+    }
+  }, [categories, category]);
+
+  const profile = PROFILES.find((p) => p.key === profileKey)!;
+
+  const ranked = useMemo(() => {
+    if (!category) return [];
+    const inCat = ships.filter((s) => normalizeCategory(s.blurb) === category);
+    const rows = inCat.map((s) => {
+      const r = computeLoadout(s, profile, weapons, components);
+      return {
+        ship: s,
+        dps: r.totals.dps,
+        alpha: r.totals.alpha,
+        shield: r.totals.shieldHp,
+        weaponSlots: s.hardpoints.length,
+      };
+    });
+    rows.sort((a, b) => (b[metric] ?? 0) - (a[metric] ?? 0));
+    return rows;
+  }, [ships, category, weapons, components, profile, metric]);
+
+  if (categories.length === 0) return null;
+
+  return (
+    <div className="card" style={{ padding: "1.5rem", marginTop: 24 }}>
+      <div className="accent-label">🏆 Category rankings</div>
+      <h2 style={{ margin: "4px 0 12px", fontSize: "1.4rem" }}>
+        Best {category || "ships"} by metric
+      </h2>
+      <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: 16, lineHeight: 1.6 }}>
+        Computes the full math-optimal loadout for every ship in this category
+        and ranks them. Click any ship to load its loadout above.
+      </p>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        <div>
+          <div className="label-mini" style={{ marginBottom: 6 }}>Category</div>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="select">
+            {categories.map(({ cat, count }) => (
+              <option key={cat} value={cat}>{cat} ({count})</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <div className="label-mini" style={{ marginBottom: 6 }}>Build profile</div>
+          <select
+            value={profileKey}
+            onChange={(e) => setProfileKey(e.target.value as ProfileDef["key"])}
+            className="select"
+          >
+            {PROFILES.map((p) => (
+              <option key={p.key} value={p.key}>{p.emoji} {p.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <div className="label-mini" style={{ marginBottom: 6 }}>Rank by</div>
+          <select
+            value={metric}
+            onChange={(e) => setMetric(e.target.value as "dps" | "alpha" | "shield")}
+            className="select"
+          >
+            <option value="dps">Total DPS</option>
+            <option value="alpha">Total alpha</option>
+            <option value="shield">Shield HP</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
+          <thead>
+            <tr style={{ textAlign: "left", color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <th style={{ padding: "8px 10px", width: 36 }}>#</th>
+              <th style={{ padding: "8px 10px" }}>Ship</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>DPS</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Alpha</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Shield HP</th>
+              <th style={{ padding: "8px 10px", textAlign: "right" }}>Slots</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranked.slice(0, 30).map((r, i) => (
+              <tr
+                key={`${r.ship.manufacturer}-${r.ship.shipName}`}
+                onClick={() => onPick(r.ship.shipName)}
+                style={{
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  cursor: "pointer",
+                }}
+              >
+                <td style={{ padding: "8px 10px", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>{i + 1}</td>
+                <td style={{ padding: "8px 10px" }}>
+                  <div style={{ color: "var(--accent)", fontWeight: 600 }}>{r.ship.shipName}</div>
+                  <div className="label-mini" style={{ marginTop: 2 }}>{r.ship.manufacturer}</div>
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "dps" ? "var(--accent)" : "var(--text)" }}>
+                  {r.dps.toLocaleString()}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "alpha" ? "var(--accent)" : "var(--text)" }}>
+                  {r.alpha.toLocaleString()}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: metric === "shield" ? "var(--accent)" : "var(--text)" }}>
+                  {r.shield > 0 ? r.shield.toLocaleString() : "—"}
+                </td>
+                <td style={{ padding: "8px 10px", textAlign: "right", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                  {r.weaponSlots}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {ranked.length > 30 && (
+        <div className="label-mini" style={{ marginTop: 10, textAlign: "center" }}>
+          Showing top 30 of {ranked.length}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Normalize a wiki "role" string into a clean category name. SC Wiki
+ *  returns inconsistent casing + variants (e.g. "Heavy fighter",
+ *  "Heavy Fighter", "Heavy-Fighter"). Title-case + collapse spaces. */
+function normalizeCategory(blurb: string | null | undefined): string | null {
+  if (!blurb) return null;
+  const cleaned = blurb.trim();
+  if (!cleaned || cleaned.length > 60) return null; // garbage / freeform descriptions
+  return cleaned
+    .split(/[\s\-_]+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+    .join(" ");
 }
 
 function LoadoutCard({ result }: { result: LoadoutResult }) {
