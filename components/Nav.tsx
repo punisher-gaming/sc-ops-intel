@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AuthButton } from "./AuthButton";
-import { CURRENT_PATCH } from "./PatchPill";
+import { useCurrentPatch } from "./PatchPill";
 import { NotificationBell } from "./NotificationBell";
 import { useUser } from "@/lib/supabase/hooks";
 
@@ -120,7 +120,7 @@ export function Nav() {
         </div>
 
         <div className="site-nav-right">
-          <span className="site-patch-pill">Patch {CURRENT_PATCH}</span>
+          <span className="site-patch-pill">Patch <PatchVersion /></span>
           <NotificationBell />
           <AuthButton />
           {/* Hamburger, shown ≤900px only */}
@@ -324,6 +324,14 @@ function NavDropdown({
       )}
     </div>
   );
+}
+
+/** Tiny client component that renders the live patch version. Kept
+ *  inline so the Nav is the single hook consumer (otherwise we'd refetch
+ *  on every component using useCurrentPatch). */
+function PatchVersion() {
+  const v = useCurrentPatch();
+  return <>{v}</>;
 }
 
 function HamburgerIcon() {

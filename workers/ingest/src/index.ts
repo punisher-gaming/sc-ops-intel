@@ -92,12 +92,26 @@ export default {
     }
 
     if (url.pathname === "/patch") {
+      // Public read-only endpoint, the frontend hits this from
+      // citizendex.com (cross-origin) so CORS must be open. Cache for
+      // 10 min on the edge so we don't hammer GitHub on every page load.
+      const cors = {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, OPTIONS",
+        "cache-control": "public, max-age=600",
+      };
+      if (req.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: cors });
+      }
       const detected = await detectPatchVersion(env);
-      return Response.json({
-        configured: env.CURRENT_GAME_VERSION,
-        detected,
-        using: detected,
-      });
+      return new Response(
+        JSON.stringify({
+          configured: env.CURRENT_GAME_VERSION,
+          detected,
+          using: detected,
+        }),
+        { headers: { "content-type": "application/json", ...cors } },
+      );
     }
 
     // For ingest routes, auto-detect the patch version once and pin it onto
