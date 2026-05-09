@@ -14,6 +14,7 @@ const LS_VOL = "sc-ops-intel:music-volume";
 const LS_IDX = "sc-ops-intel:music-index";
 const LS_SHUFFLE = "sc-ops-intel:music-shuffle";
 const LS_LOOP = "sc-ops-intel:music-loop";
+const LS_MUTED = "sc-ops-intel:music-muted";
 
 type LoopMode = "off" | "all" | "one";
 
@@ -23,6 +24,7 @@ export function MusicPlayer() {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.4);
+  const [muted, setMuted] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   // off → stop at end of playlist; all → wrap around (default);
   // one → repeat current track
@@ -57,6 +59,7 @@ export function MusicPlayer() {
         }
         setOpen(localStorage.getItem(LS_OPEN) === "1");
         setShuffle(localStorage.getItem(LS_SHUFFLE) === "1");
+        setMuted(localStorage.getItem(LS_MUTED) === "1");
         const savedLoop = localStorage.getItem(LS_LOOP);
         if (savedLoop === "off" || savedLoop === "all" || savedLoop === "one") {
           setLoop(savedLoop);
@@ -97,12 +100,13 @@ export function MusicPlayer() {
       });
   }, []);
 
-  // Sync audio element when track/volume changes
+  // Sync audio element when track/volume/muted changes
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
     el.volume = volume;
-  }, [volume]);
+    el.muted = muted;
+  }, [volume, muted]);
 
   // Keep localStorage in sync
   useEffect(() => {
@@ -112,8 +116,9 @@ export function MusicPlayer() {
       localStorage.setItem(LS_OPEN, open ? "1" : "0");
       localStorage.setItem(LS_SHUFFLE, shuffle ? "1" : "0");
       localStorage.setItem(LS_LOOP, loop);
+      localStorage.setItem(LS_MUTED, muted ? "1" : "0");
     }
-  }, [volume, idx, open, shuffle, loop]);
+  }, [volume, idx, open, shuffle, loop, muted]);
 
   // Pick the next index given the current state (shuffle / loop / playlist length)
   function pickNext(current: number, len: number): number | null {
@@ -153,10 +158,26 @@ export function MusicPlayer() {
     el.pause();
     el.currentTime = 0;
     if (wantPlayingRef.current) {
-      // play() is async; if the user mashes prev/next a 3rd time before
-      // this resolves the next effect's pause() will still cancel it
-      // cleanly.
-      el.play().catch(() => {});
+      // Wait for the browser to be ready to play the new src. Calling
+      // play() immediately after a src change can fail with NotAllowed
+      // / NotSupportedError in some browsers because the new media
+      // resource hasn't loaded yet. Listening for 'canplay' lets the
+      // resource pipeline catch up before we kick playback.
+      const tryPlay = () => {
+        if (!wantPlayingRef.current) return;
+        el.play().catch(() => {});
+      };
+      if (el.readyState >= 3) {
+        tryPlay();
+      } else {
+        const onCan = () => {
+          el.removeEventListener("canplay", onCan);
+          tryPlay();
+        };
+        el.addEventListener("canplay", onCan);
+        // Force-load in case the browser hasn't started fetching yet.
+        el.load();
+      }
     }
     // We deliberately depend on idx only, the src change is implicit
     // via the audio element's `src` prop being driven by `track`.
@@ -260,6 +281,11 @@ export function MusicPlayer() {
     <audio
       ref={audioRef}
       src={track.public_url}
+      // Native HTML loop is OFF, our JS pickNext / onEnded logic
+      // owns the repeat decision (Loop one / all / off + brand-song
+      // autoplay no-repeat path). Setting this explicitly so the
+      // browser can never auto-loop behind our back.
+      loop={false}
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => {
@@ -295,21 +321,42 @@ export function MusicPlayer() {
   // a different DOM parent and unmounts+remounts the audio, killing
   // playback. Rendering it as a fragment sibling on BOTH branches keeps
   // the same DOM node alive so audio survives minimize.
+  // Pair: a tiny mute toggle next to the FAB so listeners can hush
+  // the brand-song autoplay without expanding the panel. Mute is
+  // intentionally NOT a user-interaction signal, hitting mute is
+  // "shut this up" not "I want more songs," so the autoplay-once
+  // invariant still holds (track ends, playlist stays silent until
+  // the user actually clicks Play / Next / Prev).
   const minimizedFab = (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      aria-label={playing ? `Music playing: ${track.title}, expand player` : "Open music player"}
-      className="music-fab music-fab-holo"
-      title={playing ? `♪ ${track.title}` : "Open music player"}
-    >
-      <span className="music-fab-spin">
-        <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
-          {playing ? "♫" : "♪"}
+    <div className="music-fab-stack">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMuted((m) => !m);
+        }}
+        aria-label={muted ? "Unmute" : "Mute"}
+        aria-pressed={muted}
+        title={muted ? "Unmute" : "Mute"}
+        className="music-fab-mute"
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={playing ? `Music playing: ${track.title}, expand player` : "Open music player"}
+        className="music-fab music-fab-holo"
+        title={playing ? `♪ ${track.title}` : "Open music player"}
+      >
+        <span className="music-fab-spin">
+          <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
+            {playing && !muted ? "♫" : "♪"}
+          </span>
+          <span className="music-fab-label"> {muted ? "Muted" : playing ? "Playing" : "Music"}</span>
         </span>
-        <span className="music-fab-label"> {playing ? "Playing" : "Music"}</span>
-      </span>
-    </button>
+      </button>
+    </div>
   );
 
   if (!open) {
@@ -422,7 +469,30 @@ export function MusicPlayer() {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-        <span className="label-mini">Vol</span>
+        <button
+          type="button"
+          onClick={() => setMuted((m) => !m)}
+          aria-label={muted ? "Unmute" : "Mute"}
+          aria-pressed={muted}
+          title={muted ? "Unmute" : "Mute"}
+          style={{
+            width: 32,
+            height: 28,
+            padding: 0,
+            borderRadius: 6,
+            background: muted ? "rgba(255,107,107,0.12)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${muted ? "rgba(255,107,107,0.45)" : "rgba(255,255,255,0.1)"}`,
+            color: muted ? "var(--alert)" : "var(--text-muted)",
+            cursor: "pointer",
+            fontSize: "0.95rem",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {muted ? "🔇" : volume === 0 ? "🔈" : volume < 0.5 ? "🔉" : "🔊"}
+        </button>
         <input
           type="range"
           min={0}
@@ -430,7 +500,12 @@ export function MusicPlayer() {
           step={0.05}
           value={volume}
           onChange={(e) => { markUserInteraction(); setVolume(Number(e.target.value)); }}
-          style={{ flex: 1, accentColor: "var(--accent)" }}
+          style={{
+            flex: 1,
+            accentColor: "var(--accent)",
+            opacity: muted ? 0.4 : 1,
+            transition: "opacity 0.15s",
+          }}
           aria-label="Volume"
         />
         <span className="label-mini" style={{ width: 28, textAlign: "right", fontFamily: "var(--font-mono)" }}>

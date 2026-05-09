@@ -254,6 +254,50 @@ select {
 }
 .music-fab-label { display: inline; }
 
+/* Stack wrapper so a small mute toggle can sit next to the FAB without
+   each one needing its own position:fixed. The FAB inside the stack
+   becomes statically positioned, the stack itself owns the fixed
+   positioning. */
+.music-fab-stack {
+  position: fixed;
+  left: 16px; top: 80px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.music-fab-stack .music-fab {
+  position: static;
+  left: auto; top: auto;
+}
+.music-fab-mute {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.music-fab-mute:hover {
+  background: rgba(10, 14, 22, 0.95);
+  border-color: rgba(77, 217, 255, 0.35);
+  color: var(--accent);
+}
+.music-fab-mute[aria-pressed="true"] {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.45);
+  color: var(--alert);
+}
+
 /* Music open panel, z-index 35 so it paints above the search FAB
    (z-index 30), guaranteeing the × close button is always clickable
    even when the two floaters overlap on narrow screens. */
