@@ -157,34 +157,42 @@ export function MusicPlayer() {
     />
   );
 
+  // CRITICAL: the <audio> element MUST live at a stable position in the
+  // React tree across `open` toggles. If we put it inside the panel <div>
+  // when open and inside a fragment when closed, React's reconciler sees
+  // a different DOM parent and unmounts+remounts the audio, killing
+  // playback. Rendering it as a fragment sibling on BOTH branches keeps
+  // the same DOM node alive so audio survives minimize.
+  const minimizedFab = (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      aria-label={playing ? `Music playing: ${track.title}, expand player` : "Open music player"}
+      className="music-fab music-fab-holo"
+      title={playing ? `♪ ${track.title}` : "Open music player"}
+    >
+      <span className="music-fab-spin">
+        <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
+          {playing ? "♫" : "♪"}
+        </span>
+        <span className="music-fab-label"> {playing ? "Playing" : "Music"}</span>
+      </span>
+    </button>
+  );
+
   if (!open) {
-    // Minimized FAB. Keeps the audio engine mounted (above) and shows a
-    // playing indicator + track name when something's spinning so users
-    // can see at a glance what's playing.
     return (
       <>
         {audioElement}
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label={playing ? `Music playing: ${track.title}, expand player` : "Open music player"}
-          className="music-fab music-fab-holo"
-          title={playing ? `♪ ${track.title}` : "Open music player"}
-        >
-          <span className="music-fab-spin">
-            <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
-              {playing ? "♫" : "♪"}
-            </span>
-            <span className="music-fab-label"> {playing ? "Playing" : "Music"}</span>
-          </span>
-        </button>
+        {minimizedFab}
       </>
     );
   }
 
   return (
-    <div className="music-panel music-panel-holo">
+    <>
       {audioElement}
+      <div className="music-panel music-panel-holo">
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 8 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -301,6 +309,7 @@ export function MusicPlayer() {
       <div className="label-mini" style={{ marginTop: 10, textAlign: "center" }}>
         Track {idx + 1} / {tracks.length}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
