@@ -129,47 +129,64 @@ export function MusicPlayer() {
     }, 50);
   }
 
+  // The <audio> element is rendered ALWAYS (regardless of open) so that
+  // minimizing the panel doesn't unmount it and stop playback. The visual
+  // panel (controls + info) toggles open; the audio engine keeps running
+  // in the background.
+  const audioElement = (
+    <audio
+      ref={audioRef}
+      src={track.public_url}
+      onPlay={() => setPlaying(true)}
+      onPause={() => setPlaying(false)}
+      onEnded={() => {
+        // Loop=one → replay current track
+        if (loop === "one") {
+          const el = audioRef.current;
+          if (el) {
+            el.currentTime = 0;
+            el.play().catch(() => {});
+          }
+          return;
+        }
+        const n = pickNext(idx, tracks.length);
+        if (n == null) return; // loop=off, end of playlist
+        setIdx(n);
+        setTimeout(() => audioRef.current?.play().catch(() => {}), 50);
+      }}
+    />
+  );
+
   if (!open) {
+    // Minimized FAB. Keeps the audio engine mounted (above) and shows a
+    // playing indicator + track name when something's spinning so users
+    // can see at a glance what's playing.
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open music player"
-        className="music-fab music-fab-holo"
-      >
-        <span className="music-fab-spin">
-          <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>♪</span>
-          <span className="music-fab-label"> Music</span>
-        </span>
-      </button>
+      <>
+        {audioElement}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={playing ? `Music playing: ${track.title}, expand player` : "Open music player"}
+          className="music-fab music-fab-holo"
+          title={playing ? `♪ ${track.title}` : "Open music player"}
+        >
+          <span className="music-fab-spin">
+            <span style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
+              {playing ? "♫" : "♪"}
+            </span>
+            <span className="music-fab-label"> {playing ? "Playing" : "Music"}</span>
+          </span>
+        </button>
+      </>
     );
   }
 
   return (
     <div className="music-panel music-panel-holo">
-      <audio
-        ref={audioRef}
-        src={track.public_url}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
-          // Loop=one → replay current track
-          if (loop === "one") {
-            const el = audioRef.current;
-            if (el) {
-              el.currentTime = 0;
-              el.play().catch(() => {});
-            }
-            return;
-          }
-          const n = pickNext(idx, tracks.length);
-          if (n == null) return; // loop=off, end of playlist
-          setIdx(n);
-          setTimeout(() => audioRef.current?.play().catch(() => {}), 50);
-        }}
-      />
+      {audioElement}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 8 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="label-mini">Now {playing ? "playing" : "paused"}</div>
           <div style={{ fontSize: "0.9rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -181,14 +198,18 @@ export function MusicPlayer() {
             </div>
           )}
         </div>
+        {/* Minimize collapses the panel back to the FAB but keeps audio
+            playing. The X-style close button has been replaced because
+            users were reading it as "stop the music entirely." */}
         <button
           type="button"
           onClick={() => setOpen(false)}
-          aria-label="Close music player"
+          aria-label="Minimize music player"
+          title="Minimize (keeps playing)"
           className="btn btn-ghost"
-          style={{ height: 24, width: 24, padding: 0, fontSize: "0.9rem", minWidth: 0 }}
+          style={{ height: 24, width: 24, padding: 0, fontSize: "1.1rem", minWidth: 0, lineHeight: 1 }}
         >
-          ×
+          –
         </button>
       </div>
 

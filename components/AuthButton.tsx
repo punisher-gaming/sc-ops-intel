@@ -34,10 +34,29 @@ export function AuthButton() {
   }
 
   if (!user) {
+    // Two-CTA layout, the prominent "Sign Up" gets the primary cyan
+    // chip (most visitors are new), and "Log in" is a small ghost
+    // link for returning citizens. Conversion data showed thousands
+    // of hits but only a handful of accounts under the previous
+    // single "Sign in" entry, where new users didn't realize they
+    // needed to create an account first.
     return (
-      <Link href="/login" className="btn btn-primary">
-        Sign in
-      </Link>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <Link
+          href="/login"
+          className="auth-login-link"
+          style={{
+            fontSize: "0.82rem",
+            color: "var(--text-muted)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Log in
+        </Link>
+        <Link href="/signup" className="btn btn-primary">
+          Sign Up
+        </Link>
+      </span>
     );
   }
 
