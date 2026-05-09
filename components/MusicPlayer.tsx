@@ -88,10 +88,38 @@ export function MusicPlayer() {
     return loop === "off" ? null : 0;
   }
 
-  // Don't render anything until we know there are tracks
-  if (tracks.length === 0) return null;
+  // Tracks the user's intent across track changes. The <audio> element's
+  // own `paused` state resets when src changes, so we can't rely on it
+  // to know whether to autoplay the next track. Instead we mirror intent
+  // here and use it from the src-change effect below.
+  // ALL HOOKS must run on every render, including before the early
+  // return below, or React's hook-order check will (correctly) yell.
+  const wantPlayingRef = useRef(false);
+  useEffect(() => {
+    wantPlayingRef.current = playing;
+  }, [playing]);
 
-  const track = tracks[idx];
+  // When the track index changes (prev/next/shuffle), pause the current
+  // audio, swap src, then resume only if the user was already playing.
+  // Doing this in an effect (instead of a setTimeout in the click
+  // handler) eliminates the race where rapid clicking could leave two
+  // play() calls in flight against different src values.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    // Hard reset, calling pause() before src changes prevents the old
+    // track from briefly continuing while the new one loads.
+    el.pause();
+    el.currentTime = 0;
+    if (wantPlayingRef.current) {
+      // play() is async; if the user mashes prev/next a 3rd time before
+      // this resolves the next effect's pause() will still cancel it
+      // cleanly.
+      el.play().catch(() => {});
+    }
+    // We deliberately depend on idx only, the src change is implicit
+    // via the audio element's `src` prop being driven by `track`.
+  }, [idx]);
 
   function togglePlay() {
     const el = audioRef.current;
@@ -113,9 +141,6 @@ export function MusicPlayer() {
       return;
     }
     setIdx(n);
-    setTimeout(() => {
-      if (playing) audioRef.current?.play().catch(() => {});
-    }, 50);
   }
   function prev() {
     // Prev always steps backward through the linear order, regardless of
@@ -124,10 +149,52 @@ export function MusicPlayer() {
       if (i > 0) return i - 1;
       return loop === "off" ? 0 : tracks.length - 1;
     });
-    setTimeout(() => {
-      if (playing) audioRef.current?.play().catch(() => {});
-    }, 50);
   }
+
+  // Hard cleanup on unmount, pause + clear src so the browser releases
+  // the media decoder. Without this, certain browsers (Chrome on macOS
+  // notably) can keep the audio decoder alive in a background process
+  // after the tab/window is closed, leading to the "music kept playing
+  // after I closed the browser" bug.
+  useEffect(() => {
+    return () => {
+      const el = audioRef.current;
+      if (el) {
+        el.pause();
+        el.src = "";
+        el.load();
+      }
+    };
+  }, []);
+
+  // Cleanup hook for stale service workers + caches from earlier
+  // deployments (web-push prototype, etc.). Without this, a returning
+  // visitor whose browser registered the old SW can have it intercept
+  // requests + keep audio context alive in the background. Runs once
+  // per page load, idempotent.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => {
+        for (const r of regs) r.unregister().catch(() => {});
+      })
+      .catch(() => {});
+    if (typeof caches !== "undefined") {
+      caches
+        .keys()
+        .then((keys) => {
+          for (const k of keys) caches.delete(k).catch(() => {});
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  // Don't render anything until we know there are tracks. (Early return
+  // is safe HERE because every hook above runs unconditionally on every
+  // render, satisfying the rules-of-hooks invariant.)
+  if (tracks.length === 0) return null;
+  const track = tracks[idx];
 
   // The <audio> element is rendered ALWAYS (regardless of open) so that
   // minimizing the panel doesn't unmount it and stop playback. The visual

@@ -70,6 +70,13 @@ export default function LandingPage() {
               Browse Ships
             </Link>
           </div>
+
+          {/* Sign-up promo card. Conversion data showed thousands of
+              visitors but only a handful of accounts created, so the
+              hero now spells out exactly what citizens GET when they
+              sign up, not just where to click. Free, no credit card,
+              concrete benefits, persistent CTA. */}
+          <SignUpPromo />
           {/* Secondary CTA row, supplemental to the main Browse buttons.
               Stacks to a single column on narrow screens. */}
           <div
@@ -214,6 +221,42 @@ export default function LandingPage() {
         </div>
       </footer>
     </>
+  );
+}
+
+/** Hero sign-up promo. Spells out what a free account actually unlocks
+ *  so the value prop is visible at glance, not buried behind the nav.
+ *  The benefit list uses concrete features, not marketing fluff. */
+function SignUpPromo() {
+  return (
+    <div className="signup-promo">
+      <div className="signup-promo-header">
+        <span className="signup-promo-tag">FREE ACCOUNT</span>
+        <h2 className="signup-promo-title">
+          Sign up to unlock your <span className="accent">CitizenDex</span>
+        </h2>
+        <p className="signup-promo-sub">
+          Browsing is free for everyone. A free account adds your personal layer:
+          notes, fleet tracking, watchlists, AH alerts, in-site DMs.
+        </p>
+      </div>
+      <ul className="signup-promo-bullets">
+        <li><span className="signup-promo-icon">📝</span> <strong>Save private notes</strong> on any blueprint, resource, or ship</li>
+        <li><span className="signup-promo-icon">🚀</span> <strong>Track your fleet</strong>, import from RSI Hangar in one click</li>
+        <li><span className="signup-promo-icon">⚖</span> <strong>Trade in the Auction House</strong>, post WTS / WTB, get pinged when buyers bite</li>
+        <li><span className="signup-promo-icon">💬</span> <strong>Citizen-to-Citizen DMs</strong>, talk to other pilots, no Discord required</li>
+        <li><span className="signup-promo-icon">🔔</span> <strong>Email alerts</strong> on new auctions, replies, and patch drops</li>
+        <li><span className="signup-promo-icon">📊</span> <strong>Personal watchlists</strong> for blueprints you&apos;re grinding toward</li>
+      </ul>
+      <div className="signup-promo-cta-row">
+        <Link href="/signup" className="btn btn-primary signup-promo-cta">
+          Create Free Account →
+        </Link>
+        <span className="signup-promo-trust">
+          No credit card · No real money on the site, ever · Delete anytime
+        </span>
+      </div>
+    </div>
   );
 }
 
