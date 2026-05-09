@@ -31,23 +31,12 @@ export function MusicPlayer() {
   const [loop, setLoop] = useState<LoopMode>("all");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Tracks whether the user has clicked any player control this session.
-  // Until they have, the player is in "intro autoplay" mode: the
-  // CitizenDex theme song plays once on landing and then stops at the
-  // end of the track. After any player-button click this flips to true
-  // and normal playlist behavior takes over (auto-advance, etc.).
-  const userInteractedRef = useRef(false);
-  function markUserInteraction() {
-    userInteractedRef.current = true;
-  }
-
-  // Title of the brand theme song. Matched case-insensitively against
-  // tracks.title so minor renames or punctuation differences don't
-  // break the autoplay path. Falls back to the first track if not
-  // found in the catalog.
-  const BRAND_TRACK_HINTS = ["check tha dex", "check the dex", "citizendex"];
-
-  // Initial load of tracks + persisted prefs + brand-song autoplay
+  // Initial load of tracks + persisted prefs. No autoplay: the player
+  // sits silent until the user clicks Play. (Earlier autoplay attempts
+  // caused races between the deferred play() and user clicks, leading
+  // to overlapping audio. Removed entirely. The CitizenDex theme is
+  // simply position 1 in the playlist via DB display_order, so the
+  // first thing users hit Play on is the brand song.)
   useEffect(() => {
     fetchPublishedTracks()
       .then((ts) => {
@@ -64,36 +53,13 @@ export function MusicPlayer() {
         if (savedLoop === "off" || savedLoop === "all" || savedLoop === "one") {
           setLoop(savedLoop);
         }
-        // Brand-song autoplay: every fresh page load starts on "Check
-        // Tha Dex!" so the site has its theme. We deliberately ignore
-        // the saved idx here, that's per-page-load behavior, not a
-        // returning-user preference. As soon as the user clicks any
-        // player control, userInteractedRef flips and the saved idx
-        // / shuffle / loop preferences kick back in.
-        const brandIdx = ts.findIndex((t) =>
-          BRAND_TRACK_HINTS.some((hint) =>
-            (t.title || "").toLowerCase().replace(/[!?.,]/g, "").includes(hint),
-          ),
-        );
-        const startIdx = brandIdx >= 0 ? brandIdx : 0;
-        setIdx(startIdx);
-        // Defer the play() call by a tick so the <audio> element has
-        // its src set after the idx state updates. play() is async and
-        // returns a Promise; we swallow rejection because most browsers
-        // block autoplay until the user has interacted with the page.
-        // That's fine, the player is still loaded and a single click
-        // anywhere starts it.
-        setTimeout(() => {
-          const el = audioRef.current;
-          if (el && !userInteractedRef.current) {
-            wantPlayingRef.current = true;
-            el.play().catch(() => {
-              // Autoplay blocked, the song is queued and the FAB
-              // will start it on first user click.
-              wantPlayingRef.current = false;
-            });
-          }
-        }, 100);
+        // Restore the saved track index so returning visitors land on
+        // wherever they left off. Falls back to 0 (first track in
+        // display_order, which is now the CitizenDex theme).
+        const savedIdx = Number(localStorage.getItem(LS_IDX));
+        if (Number.isFinite(savedIdx) && savedIdx >= 0 && savedIdx < ts.length) {
+          setIdx(savedIdx);
+        }
       })
       .catch(() => {
         /* fail silently, player just doesn't show */
@@ -184,7 +150,7 @@ export function MusicPlayer() {
   }, [idx]);
 
   function togglePlay() {
-    markUserInteraction();
+    
     const el = audioRef.current;
     if (!el) return;
     if (playing) {
@@ -203,7 +169,7 @@ export function MusicPlayer() {
   }
 
   function next() {
-    markUserInteraction();
+    
     // User clicked Next, that's an explicit "keep playing" signal.
     // Restore wantPlayingRef so the src-change useEffect plays the
     // new track (wantPlayingRef may have been cleared by the
@@ -218,7 +184,7 @@ export function MusicPlayer() {
     setIdx(n);
   }
   function prev() {
-    markUserInteraction();
+    
     wantPlayingRef.current = true;
     // Prev always steps backward through the linear order, regardless of
     // shuffle. Wraps if loop != "off".
@@ -228,19 +194,43 @@ export function MusicPlayer() {
     });
   }
 
-  // Hard cleanup on unmount, pause + clear src so the browser releases
-  // the media decoder. Without this, certain browsers (Chrome on macOS
-  // notably) can keep the audio decoder alive in a background process
-  // after the tab/window is closed, leading to the "music kept playing
-  // after I closed the browser" bug.
+  // Hard cleanup on unmount + on tab close. React unmount only fires
+  // when the component itself is removed (rare for a layout-level
+  // player). For tab close / page navigation we hook the browser's
+  // pagehide event, which fires reliably across all browsers when the
+  // page is being torn down. visibilitychange catches the case where
+  // the tab is hidden but not yet closed (mobile Safari, background
+  // tabs). Without these, the browser can keep the audio decoder
+  // alive in a process that survives the visible tab, producing the
+  // "music kept playing after I closed the browser" bug.
   useEffect(() => {
-    return () => {
+    function killAudio() {
       const el = audioRef.current;
-      if (el) {
+      if (!el) return;
+      try {
         el.pause();
         el.src = "";
         el.load();
+      } catch {
+        /* element already detached */
       }
+    }
+    function onVis() {
+      if (document.visibilityState === "hidden") {
+        // Just pause when hidden, src stays so resuming the tab
+        // resumes from the same spot. Full teardown happens on
+        // pagehide (the actual close).
+        audioRef.current?.pause();
+      }
+    }
+    window.addEventListener("pagehide", killAudio);
+    window.addEventListener("beforeunload", killAudio);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      killAudio();
+      window.removeEventListener("pagehide", killAudio);
+      window.removeEventListener("beforeunload", killAudio);
+      document.removeEventListener("visibilitychange", onVis);
     };
   }, []);
 
@@ -289,15 +279,6 @@ export function MusicPlayer() {
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => {
-        // Brand-song autoplay path: if the user hasn't clicked any
-        // player control yet, the CitizenDex theme played as the
-        // landing intro and we should stop here, NOT roll into the
-        // rest of the playlist. As soon as they touch any button
-        // userInteractedRef flips and normal behavior resumes.
-        if (!userInteractedRef.current) {
-          wantPlayingRef.current = false;
-          return;
-        }
         // Loop=one → replay current track
         if (loop === "one") {
           const el = audioRef.current;
@@ -421,7 +402,7 @@ export function MusicPlayer() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
         <button
           type="button"
-          onClick={() => { markUserInteraction(); setShuffle((v) => !v); }}
+          onClick={() => { setShuffle((v) => !v); }}
           aria-pressed={shuffle}
           aria-label={`Shuffle ${shuffle ? "on" : "off"}`}
           title={`Shuffle ${shuffle ? "on" : "off"}`}
@@ -445,7 +426,7 @@ export function MusicPlayer() {
         </button>
         <button
           type="button"
-          onClick={() => { markUserInteraction(); setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off")); }}
+          onClick={() => { setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off")); }}
           aria-label={`Loop ${loop}`}
           title={loop === "off" ? "Loop off, stop at end" : loop === "all" ? "Loop playlist" : "Loop one, repeat track"}
           style={{
@@ -499,7 +480,7 @@ export function MusicPlayer() {
           max={1}
           step={0.05}
           value={volume}
-          onChange={(e) => { markUserInteraction(); setVolume(Number(e.target.value)); }}
+          onChange={(e) => { setVolume(Number(e.target.value)); }}
           style={{
             flex: 1,
             accentColor: "var(--accent)",
