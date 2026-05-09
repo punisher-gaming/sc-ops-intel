@@ -29,27 +29,68 @@ export function MusicPlayer() {
   const [loop, setLoop] = useState<LoopMode>("all");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initial load of tracks + persisted prefs
+  // Tracks whether the user has clicked any player control this session.
+  // Until they have, the player is in "intro autoplay" mode: the
+  // CitizenDex theme song plays once on landing and then stops at the
+  // end of the track. After any player-button click this flips to true
+  // and normal playlist behavior takes over (auto-advance, etc.).
+  const userInteractedRef = useRef(false);
+  function markUserInteraction() {
+    userInteractedRef.current = true;
+  }
+
+  // Title of the brand theme song. Matched case-insensitively against
+  // tracks.title so minor renames or punctuation differences don't
+  // break the autoplay path. Falls back to the first track if not
+  // found in the catalog.
+  const BRAND_TRACK_HINTS = ["check tha dex", "check the dex", "citizendex"];
+
+  // Initial load of tracks + persisted prefs + brand-song autoplay
   useEffect(() => {
     fetchPublishedTracks()
       .then((ts) => {
         setTracks(ts);
-        if (typeof window !== "undefined") {
-          const savedIdx = Number(localStorage.getItem(LS_IDX));
-          if (Number.isFinite(savedIdx) && savedIdx >= 0 && savedIdx < ts.length) {
-            setIdx(savedIdx);
-          }
-          const savedVol = Number(localStorage.getItem(LS_VOL));
-          if (Number.isFinite(savedVol) && savedVol >= 0 && savedVol <= 1) {
-            setVolume(savedVol);
-          }
-          setOpen(localStorage.getItem(LS_OPEN) === "1");
-          setShuffle(localStorage.getItem(LS_SHUFFLE) === "1");
-          const savedLoop = localStorage.getItem(LS_LOOP);
-          if (savedLoop === "off" || savedLoop === "all" || savedLoop === "one") {
-            setLoop(savedLoop);
-          }
+        if (typeof window === "undefined") return;
+        const savedVol = Number(localStorage.getItem(LS_VOL));
+        if (Number.isFinite(savedVol) && savedVol >= 0 && savedVol <= 1) {
+          setVolume(savedVol);
         }
+        setOpen(localStorage.getItem(LS_OPEN) === "1");
+        setShuffle(localStorage.getItem(LS_SHUFFLE) === "1");
+        const savedLoop = localStorage.getItem(LS_LOOP);
+        if (savedLoop === "off" || savedLoop === "all" || savedLoop === "one") {
+          setLoop(savedLoop);
+        }
+        // Brand-song autoplay: every fresh page load starts on "Check
+        // Tha Dex!" so the site has its theme. We deliberately ignore
+        // the saved idx here, that's per-page-load behavior, not a
+        // returning-user preference. As soon as the user clicks any
+        // player control, userInteractedRef flips and the saved idx
+        // / shuffle / loop preferences kick back in.
+        const brandIdx = ts.findIndex((t) =>
+          BRAND_TRACK_HINTS.some((hint) =>
+            (t.title || "").toLowerCase().replace(/[!?.,]/g, "").includes(hint),
+          ),
+        );
+        const startIdx = brandIdx >= 0 ? brandIdx : 0;
+        setIdx(startIdx);
+        // Defer the play() call by a tick so the <audio> element has
+        // its src set after the idx state updates. play() is async and
+        // returns a Promise; we swallow rejection because most browsers
+        // block autoplay until the user has interacted with the page.
+        // That's fine, the player is still loaded and a single click
+        // anywhere starts it.
+        setTimeout(() => {
+          const el = audioRef.current;
+          if (el && !userInteractedRef.current) {
+            wantPlayingRef.current = true;
+            el.play().catch(() => {
+              // Autoplay blocked, the song is queued and the FAB
+              // will start it on first user click.
+              wantPlayingRef.current = false;
+            });
+          }
+        }, 100);
       })
       .catch(() => {
         /* fail silently, player just doesn't show */
@@ -122,11 +163,18 @@ export function MusicPlayer() {
   }, [idx]);
 
   function togglePlay() {
+    markUserInteraction();
     const el = audioRef.current;
     if (!el) return;
     if (playing) {
       el.pause();
     } else {
+      // If we're at end-of-track (e.g. the brand-song autoplay just
+      // finished and stopped), rewind to 0 before playing so the user
+      // gets the song from the start instead of an instant re-end.
+      if (el.duration && el.currentTime >= el.duration - 0.05) {
+        el.currentTime = 0;
+      }
       el.play().catch(() => {
         // Browser may still block, swallow silently
       });
@@ -134,6 +182,12 @@ export function MusicPlayer() {
   }
 
   function next() {
+    markUserInteraction();
+    // User clicked Next, that's an explicit "keep playing" signal.
+    // Restore wantPlayingRef so the src-change useEffect plays the
+    // new track (wantPlayingRef may have been cleared by the
+    // brand-song-ended path).
+    wantPlayingRef.current = true;
     const n = pickNext(idx, tracks.length);
     if (n == null) {
       // Loop=off, hit end of playlist, stop playback
@@ -143,6 +197,8 @@ export function MusicPlayer() {
     setIdx(n);
   }
   function prev() {
+    markUserInteraction();
+    wantPlayingRef.current = true;
     // Prev always steps backward through the linear order, regardless of
     // shuffle. Wraps if loop != "off".
     setIdx((i) => {
@@ -207,6 +263,15 @@ export function MusicPlayer() {
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => {
+        // Brand-song autoplay path: if the user hasn't clicked any
+        // player control yet, the CitizenDex theme played as the
+        // landing intro and we should stop here, NOT roll into the
+        // rest of the playlist. As soon as they touch any button
+        // userInteractedRef flips and normal behavior resumes.
+        if (!userInteractedRef.current) {
+          wantPlayingRef.current = false;
+          return;
+        }
         // Loop=one → replay current track
         if (loop === "one") {
           const el = audioRef.current;
@@ -309,7 +374,7 @@ export function MusicPlayer() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
         <button
           type="button"
-          onClick={() => setShuffle((v) => !v)}
+          onClick={() => { markUserInteraction(); setShuffle((v) => !v); }}
           aria-pressed={shuffle}
           aria-label={`Shuffle ${shuffle ? "on" : "off"}`}
           title={`Shuffle ${shuffle ? "on" : "off"}`}
@@ -333,7 +398,7 @@ export function MusicPlayer() {
         </button>
         <button
           type="button"
-          onClick={() => setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off"))}
+          onClick={() => { markUserInteraction(); setLoop((m) => (m === "off" ? "all" : m === "all" ? "one" : "off")); }}
           aria-label={`Loop ${loop}`}
           title={loop === "off" ? "Loop off, stop at end" : loop === "all" ? "Loop playlist" : "Loop one, repeat track"}
           style={{
@@ -364,7 +429,7 @@ export function MusicPlayer() {
           max={1}
           step={0.05}
           value={volume}
-          onChange={(e) => setVolume(Number(e.target.value))}
+          onChange={(e) => { markUserInteraction(); setVolume(Number(e.target.value)); }}
           style={{ flex: 1, accentColor: "var(--accent)" }}
           aria-label="Volume"
         />
