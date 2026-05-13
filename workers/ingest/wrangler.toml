@@ -3,9 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2026-04-18"
 compatibility_flags = ["nodejs_compat"]
 
-# Run daily at 03:00 UTC
+# Patch-window schedule, every 2 hours so a major drop (4.8 on 2026-05-10)
+# refreshes the catalog within ~2h of scunpacked-data syncing rather than
+# waiting until 3 AM the next day. Revert to "0 3 * * *" (daily) once the
+# patch dust settles and the catalog is stable again.
 [triggers]
-crons = ["0 3 * * *"]
+crons = ["0 */2 * * *"]
 
 # Public config — non-secret
 [vars]
@@ -14,7 +17,7 @@ SC_WIKI_BASE = "https://api.star-citizen.wiki/api/v3"
 # Fallback only — the worker auto-detects patch version from the latest
 # StarCitizenWiki/scunpacked-data commit on every run. This value is used
 # only if GitHub is unreachable.
-CURRENT_GAME_VERSION = "4.7.1-LIVE"
+CURRENT_GAME_VERSION = "4.7.2-LIVE"
 
 # Email notifications via Resend. citizendex.com verified Apr 19 2026.
 NOTIFICATIONS_FROM = "CitizenDex <notifications@citizendex.com>"
