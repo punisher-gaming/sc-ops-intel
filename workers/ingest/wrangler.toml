@@ -3,12 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2026-04-18"
 compatibility_flags = ["nodejs_compat"]
 
-# Patch-window schedule, every 2 hours so a major drop (4.8 on 2026-05-10)
-# refreshes the catalog within ~2h of scunpacked-data syncing rather than
-# waiting until 3 AM the next day. Revert to "0 3 * * *" (daily) once the
-# patch dust settles and the catalog is stable again.
+# Cron disabled. The sync is now driven by .github/workflows/sync-catalog.yml
+# every 2 hours, which runs the full chain including heavy steps (items,
+# shops, availability, ship-loadouts) that exceed Worker CPU + subrequest
+# limits when run inside the Worker. The Worker is still the canonical
+# implementation of the LIGHT ingest endpoints (called via HTTPS from the
+# Action) and serves /patch + /ai/chat + /notify/*.
 [triggers]
-crons = ["0 */2 * * *"]
+crons = []
 
 # Public config — non-secret
 [vars]

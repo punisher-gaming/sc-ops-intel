@@ -142,12 +142,16 @@ async function main() {
     `[ingest-availability] built ${rows.length} availability rows (skipped ${missingCommodity} unknown commodities, ${missingLocation} unknown locations)`,
   );
 
-  // Clean slate for this game_version — availability can shift per patch.
-  console.log(`[ingest-availability] clearing existing rows for ${GAME_VERSION}`);
+  // Clean slate, the unique constraint on
+  // (commodity_id, trade_location_id, kind) does NOT include
+  // game_version, so a same-key row from an older patch would block the
+  // re-insert. We wipe the whole table and rebuild it from scratch every
+  // ingest. Safe because this table is fully derived from scunpacked.
+  console.log(`[ingest-availability] wiping table (full rebuild)`);
   const { error: delErr } = await client
     .from("commodity_availability")
     .delete()
-    .eq("game_version", GAME_VERSION);
+    .not("id", "is", null);
   if (delErr) throw delErr;
 
   // Bulk insert in batches

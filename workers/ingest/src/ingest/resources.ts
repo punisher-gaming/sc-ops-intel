@@ -157,12 +157,15 @@ export async function ingestResourceLocations(client: SupabaseClient, env: Env) 
       }
     }
 
-    // Blow away the old rows for this game_version, locations change by patch
-    // and there's no stable id on the join row, so delete-then-insert is cleanest.
+    // Full-wipe rebuild. Previously we only deleted rows for the current
+    // game_version, which accumulated stale prior-patch rows (joins on
+    // resources × locations are entirely derived from scunpacked, so
+    // there is no user data to preserve). Without this, every patch
+    // ingest stacked another ~1000 orphan rows on top.
     const { error: delErr } = await client
       .from("resource_locations")
       .delete()
-      .eq("game_version", env.CURRENT_GAME_VERSION);
+      .not("id", "is", null);
     if (delErr) throw delErr;
 
     let inserted = 0;

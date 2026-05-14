@@ -1,0 +1,86 @@
+# Full catalog sync from scunpacked-data + SC Wiki.
+#
+# Why GitHub Actions instead of the Cloudflare Worker cron:
+# - Three ingest steps (items, shops, availability, ship-loadouts) exceed
+#   the Worker's CPU + subrequest limits because each pulls 40-100 MB of
+#   JSON or does 90k+ row inserts. They consistently 1102 in the Worker.
+# - GH Actions has no per-job CPU cap (only a 6h wall-clock max) and runs
+#   on the free tier with plenty of headroom.
+# - Single source of truth for "what runs on patch day" -> this file.
+#
+# Cadence:
+# - Cron: every 2 hours during expected patch-drop windows. Reduce to
+#   '0 3 * * *' (daily) after the catalog stabilizes.
+# - workflow_dispatch: lets you trigger a sync manually from the GH UI
+#   when CIG pushes a hotfix and you don't want to wait for the next cron.
+
+name: Sync Catalog
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  # Prevent two runs from stomping on the same tables. If a sync is
+  # already in flight, queue the next one. (Patch days can stack
+  # multiple triggers in a short window.)
+  group: sync-catalog
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      WORKER_BASE: https://sc-ops-intel-ingest.clint-150.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        # Scripts only need @supabase/supabase-js + node:fs; full install
+        # is fine since the repo's package.json declares it.
+        run: npm ci
+
+      # Light steps -> Worker endpoints. Worker handles patch auto-detect
+      # via /patch, so we don't have to pass game_version explicitly.
+      # Order matters for FK dependencies (resources before resource_locations,
+      # commodities + trade_locations before availability/shops).
+      - name: Ingest manufacturers
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/manufacturers"
+      - name: Ingest ships
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/ships"
+      - name: Ingest resources
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/resources"
+      - name: Ingest resource locations
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/resource-locations"
+      - name: Ingest commodities
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/commodities"
+      - name: Ingest trade locations
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/trade-locations"
+      - name: Ingest blueprints
+        run: curl -fsS -X POST "$WORKER_BASE/ingest/blueprints"
+
+      # Heavy steps -> local node scripts. These bypass Worker CPU limits
+      # because they stream JSON in batched chunks. See script files for
+      # implementation details.
+      - name: Ingest items (weapons + components, ~107 MB)
+        run: node scripts/ingest-items.mjs
+      - name: Ingest shops
+        run: node scripts/ingest-shops.mjs
+      - name: Ingest commodity availability (~95k rows)
+        run: node scripts/ingest-availability.mjs
+
+      # Ship loadouts depend on ships rows being present, so this comes
+      # last. Walks scunpacked-data/ships/*.json and populates
+      # ships.ship_loadout for new hulls.
+      - name: Ingest ship loadouts
+        run: node scripts/ingest-ship-loadouts.mjs
